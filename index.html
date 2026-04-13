@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>make software</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lacquer&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: oklch(50.58% .2886 264.84);
+      --bg: #fbfbfb;
+      --mono: 'Share Tech Mono', monospace;
+      --display: 'Lacquer', cursive;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--blue);
+      font-family: var(--mono);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grid ────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(oklch(50.58% .2886 264.84 / 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, oklch(50.58% .2886 264.84 / 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ── Noise overlay ───────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── Page shell ──────────────────────────────── */
+    .page {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 1.75rem 2.25rem;
+      z-index: 10;
+    }
+
+    /* ── Body ────────────────────────────────────── */
+    .body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.75rem;
+    }
+
+    /* ── Title + glitch ──────────────────────────── */
+    h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(2.8rem, 10.5vw, 8rem);
+      line-height: 1.05;
+      letter-spacing: 0.01em;
+    }
+
+    .word {
+      display: block;
+      position: relative;
+      width: fit-content;
+    }
+
+    .word::before,
+    .word::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      line-height: inherit;
+      color: var(--blue);
+      white-space: nowrap;
+    }
+    .word::before {
+      animation: glitch-a 6s steps(1) infinite;
+      clip-path: polygon(0 15%, 100% 15%, 100% 38%, 0 38%);
+    }
+    .word::after {
+      animation: glitch-b 6s steps(1) infinite;
+      clip-path: polygon(0 62%, 100% 62%, 100% 82%, 0 82%);
+    }
+
+    @keyframes glitch-a {
+      0%,88%,100% { transform: none; opacity: 0; }
+      89%         { transform: translate(-4px, 1px); opacity: 0.7; }
+      91%         { transform: translate(3px, -2px); opacity: 0.7; }
+      93%         { transform: translate(-2px, 2px); opacity: 0.7; }
+      95%         { transform: none; opacity: 0; }
+    }
+    @keyframes glitch-b {
+      0%,83%,100% { transform: none; opacity: 0; }
+      84%         { transform: translate(5px, -2px); opacity: 0.6; }
+      86%         { transform: translate(-3px, 1px); opacity: 0.6; }
+      88%         { transform: none; opacity: 0; }
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.55em;
+      height: 0.1em;
+      background: currentColor;
+      margin-left: 0.05em;
+      vertical-align: 0.05em;
+      animation: blink 0.85s step-end infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Manifesto ───────────────────────────────── */
+    .manifesto {
+      font-size: 0.88rem;
+      letter-spacing: 0.05em;
+      line-height: 2.1;
+      opacity: 0.5;
+    }
+
+    /* ── Bottom bar ──────────────────────────────── */
+    .bottombar {
+      flex-shrink: 0;
+      border-top: 1px solid currentColor;
+      padding-top: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.4;
+    }
+
+    /* ── Mobile ──────────────────────────────────── */
+    @media (max-width: 640px) {
+      .page {
+        padding: 1.25rem 1.25rem;
+      }
+
+      .body {
+        gap: 1.25rem;
+      }
+
+      h1 {
+        font-size: clamp(2.8rem, 16vw, 5rem);
+      }
+
+      .manifesto {
+        font-size: 0.78rem;
+        line-height: 1.95;
+      }
+
+      /* let long lines wrap naturally on small screens */
+      .manifesto br {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <div class="body">
+      <h1>
+        <span class="word" data-text="make">make</span>
+        <span class="word" data-text="software">software<span class="cursor"></span></span>
+      </h1>
+      <p class="manifesto">
+        A community for creatives and tinkerers.<br>
+        We use AI to make software, unlock a brighter future,<br>
+        and build the human connections that matter.<br>
+        Made by builders, for builders.
+      </p>
+    </div>
+
+    <footer class="bottombar">
+      <span>Coming soon</span>
+      <span>Vienna · 2026</span>
+    </footer>
+  </div>
+
+</body>
+</html>
