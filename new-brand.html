@@ -51,10 +51,14 @@
       margin: 0;
       overflow-x: hidden;
       background:
+        radial-gradient(circle, rgba(16, 16, 16, 0.105) 0 2px, transparent 2.35px),
         radial-gradient(circle at 24% 22%, rgba(255, 22, 13, 0.08), transparent 26rem),
         radial-gradient(circle at 74% 24%, rgba(0, 242, 30, 0.08), transparent 26rem),
         radial-gradient(circle at 50% 72%, rgba(16, 39, 255, 0.08), transparent 28rem),
         var(--paper);
+      background-attachment: fixed, fixed, fixed, fixed, fixed;
+      background-position: center top, 24% 22%, 74% 24%, 50% 72%, center;
+      background-size: 12px 12px, auto, auto, auto, auto;
     }
 
     body::after {
@@ -183,15 +187,28 @@
     .experiment-footer {
       position: relative;
       z-index: 5;
-      display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(20rem, 1.05fr);
-      gap: clamp(1rem, 2.5vw, 2rem);
-      align-items: stretch;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.5rem, 3vw, 2.8rem);
       width: min(100%, 1180px);
-      min-height: 100svh;
       margin: 0 auto;
-      padding: clamp(1rem, 3vw, 2rem);
+      padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 3vw, 2rem) clamp(2rem, 5vw, 4rem);
       pointer-events: auto;
+      isolation: isolate;
+    }
+
+    .experiment-footer::after {
+      content: '';
+      position: absolute;
+      top: clamp(3.5rem, 8vw, 6.5rem);
+      bottom: clamp(2rem, 5vw, 4rem);
+      left: clamp(1.6rem, 4vw, 3.1rem);
+      width: 0.35rem;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(16, 16, 16, 0.52) 0 1.25px, transparent 1.55px);
+      background-size: 0.35rem 0.82rem;
+      background-repeat: repeat-y;
+      background-position: center top;
     }
 
     .experiment-footer a,
@@ -200,17 +217,50 @@
     }
 
     .footer-panel {
-      border: 1px solid rgba(16, 16, 16, 0.16);
-      border-radius: 1.3rem;
-      background: rgba(247, 244, 236, 0.72);
+      --marker: var(--ink);
+      position: relative;
+      margin-left: clamp(1.6rem, 4vw, 3.1rem);
+      padding-left: clamp(1.25rem, 3vw, 2rem);
+      background: transparent;
+    }
+
+    .footer-panel::before,
+    .footer-ambient::before {
+      content: '';
+      position: absolute;
+      top: 1.05rem;
+      left: calc(clamp(1.25rem, 3vw, 2rem) * -1 - 0.34rem);
+      z-index: 2;
+      width: 0.78rem;
+      height: 0.78rem;
+      border-radius: 50%;
+      background: var(--marker);
       box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
-        0 1.6rem 4rem rgba(16, 16, 16, 0.08);
-      backdrop-filter: blur(5px);
+        0 1.05rem 0 color-mix(in srgb, var(--marker) 54%, transparent),
+        0 2.1rem 0 color-mix(in srgb, var(--marker) 28%, transparent);
+    }
+
+    .footer-panel::after {
+      content: '';
+      display: block;
+      border-bottom: 1px dotted rgba(16, 16, 16, 0.32);
+      margin-top: clamp(1.3rem, 3vw, 2.2rem);
+    }
+
+    .footer-event-panel {
+      --marker: var(--red);
     }
 
     .footer-copy-panel {
-      padding: clamp(1rem, 2.4vw, 1.6rem);
+      --marker: var(--green);
+    }
+
+    .footer-copy-panel {
+      padding: clamp(1.4rem, 4vw, 2.8rem) 0;
+    }
+
+    .footer-event-copy {
+      padding: 0 0 clamp(1rem, 2.5vw, 1.5rem);
     }
 
     .footer-kicker {
@@ -221,16 +271,25 @@
     }
 
     .footer-title {
-      max-width: 10ch;
+      max-width: 12ch;
       margin: 0 0 1rem;
       font-family: var(--serif);
-      font-size: clamp(3rem, 8vw, 6.8rem);
+      font-size: clamp(3.2rem, 10vw, 8rem);
       font-weight: 600;
       line-height: 0.82;
     }
 
+    .footer-event-title {
+      max-width: 12ch;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      font-weight: 600;
+      line-height: 0.84;
+    }
+
     .footer-text {
-      max-width: 34rem;
+      max-width: 40rem;
       margin: 0 0 1.5rem;
       font-family: var(--mono);
       font-size: clamp(0.9rem, 1.1vw, 1.05rem);
@@ -258,13 +317,23 @@
     }
 
     .footer-ambient {
-      display: inline-flex;
+      --marker: var(--blue);
+      position: relative;
+      display: flex;
       align-items: center;
-      gap: 0.55rem;
-      margin-top: 1.25rem;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-left: clamp(1.6rem, 4vw, 3.1rem);
+      padding: clamp(1rem, 2.4vw, 1.5rem) 0 0 clamp(1.25rem, 3vw, 2rem);
       font-family: var(--mono);
       font-size: 0.78rem;
       text-transform: uppercase;
+    }
+
+    .footer-ambient-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
     }
 
     .ambient-dot {
@@ -283,10 +352,14 @@
     }
 
     .footer-event-panel {
-      overflow: hidden;
-      align-self: stretch;
-      min-height: clamp(26rem, 70vh, 39rem);
-      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+      min-height: clamp(28rem, 72vh, 42rem);
+      padding: clamp(1rem, 2.4vw, 1.5rem);
+      border: 1px dotted rgba(16, 16, 16, 0.28);
+      border-radius: 1.2rem;
+      background: transparent;
     }
 
     .footer-event-panel iframe {
@@ -329,14 +402,37 @@
       }
 
       .experiment-footer {
-        grid-template-columns: 1fr;
-        align-content: end;
-        gap: 0.8rem;
+        gap: 1rem;
+        padding-top: 3rem;
+      }
+
+      .experiment-footer::after {
+        left: 1.18rem;
+      }
+
+      .footer-panel,
+      .footer-ambient {
+        margin-left: 1.18rem;
+        padding-left: 1rem;
+      }
+
+      .footer-panel::before,
+      .footer-ambient::before {
+        left: -1.36rem;
       }
 
       .footer-title {
         max-width: 12ch;
         font-size: clamp(2.6rem, 15vw, 4.6rem);
+      }
+
+      .footer-event-title {
+        font-size: clamp(2.5rem, 14vw, 4.2rem);
+      }
+
+      .footer-ambient {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
       .footer-event-panel {
@@ -388,24 +484,16 @@
     <div class="scroll-space" aria-hidden="true"></div>
   </main>
   <section class="experiment-footer" aria-labelledby="footer-title">
-    <div class="footer-panel footer-copy-panel">
-      <p class="footer-kicker">Come make with us</p>
-      <h2 class="footer-title" id="footer-title">Tiny software, near others.</h2>
-      <p class="footer-text">
-        Bring a strange idea, a half-working demo, a tiny tool, or a question. Make Software is for computers that feel personal, playful, and alive.
-      </p>
-      <div class="footer-links">
-        <a class="footer-link" href="mailto:riccardob36@gmail.com">riccardob36@gmail.com</a>
-        <a class="footer-link" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma calendar</a>
-      </div>
-      <div class="footer-ambient" aria-label="A project by Ambient">
-        <span class="ambient-dot" aria-hidden="true">
-          <img src="assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
-        </span>
-        <span>Made by Ambient, Vienna</span>
-      </div>
-    </div>
     <div class="footer-panel footer-event-panel">
+      <div class="footer-event-copy">
+        <div>
+          <p class="footer-kicker">Upcoming gatherings</p>
+          <h2 class="footer-event-title">Come make</h2>
+        </div>
+        <p class="footer-text">
+          Tiny software, strange ideas, and computers that feel like toys again. Join the next room when something is on the calendar.
+        </p>
+      </div>
       <iframe
         src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
         title="Make Software upcoming events"
@@ -413,6 +501,30 @@
         allowfullscreen
       ></iframe>
     </div>
+    <div class="footer-panel footer-copy-panel">
+      <div>
+        <p class="footer-kicker">Come make with us</p>
+        <h2 class="footer-title" id="footer-title">Tiny software, near others.</h2>
+      </div>
+      <div>
+        <p class="footer-text">
+          Bring a strange idea, a half-working demo, a tiny tool, or a question. Make Software is for computers that feel personal, playful, and alive.
+        </p>
+        <div class="footer-links">
+          <a class="footer-link" href="mailto:riccardob36@gmail.com">riccardob36@gmail.com</a>
+          <a class="footer-link" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma calendar</a>
+        </div>
+      </div>
+    </div>
+    <footer class="footer-ambient" aria-label="A project by Ambient">
+      <span class="footer-ambient-group">
+        <span class="ambient-dot" aria-hidden="true">
+          <img src="assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+        </span>
+        <span>Made by Ambient, Vienna</span>
+      </span>
+      <span>Coming soon to Vienna</span>
+    </footer>
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
@@ -421,7 +533,7 @@
   <script>
     (() => {
       const canvas = document.querySelector('canvas');
-      const ctx = canvas.getContext('2d', { alpha: false });
+      const ctx = canvas.getContext('2d', { alpha: true });
       const textCanvas = document.createElement('canvas');
       const textCtx = textCanvas.getContext('2d', { willReadFrequently: true });
       const track = document.querySelector('#morph-track');
@@ -599,7 +711,7 @@
             ]
           : [
               [-0.42, -0.18, 0], [-0.23, 0.25, 2], [-0.10, -0.30, 1], [0.02, 0.08, 1],
-              [0.22, -0.22, 0], [0.34, 0.14, 2], [0.44, -0.02, 1], [-0.38, 0.08, 0], [0.08, -0.44, 2]
+              [0.22, -0.22, 0], [0.34, 0.14, 2], [0.44, -0.02, 1], [-0.34, 0.2, 0], [0.08, -0.44, 2]
             ];
         const radiusX = isMobile ? footer.w * 0.86 : footer.w * 0.78;
         const radiusY = isMobile ? footer.h * 0.62 : footer.h * 0.58;
@@ -614,7 +726,7 @@
             source,
             x: center.x + nx * radiusX,
             y: center.y + ny * radiusY,
-            r: clamp(short * (isMobile ? 0.032 : 0.036), isMobile ? 15 : 22, isMobile ? 24 : 34) * (index % 3 === 0 ? 1.14 : 1),
+            r: clamp(short * (isMobile ? 0.07 : 0.068), isMobile ? 24 : 38, isMobile ? 34 : 56) * (index % 3 === 0 ? 1.08 : 1),
             color: colors[colorIndex],
             phase: hash(index + 88) * Math.PI * 2,
             label: ['idea', 'tool', 'taste', 'demo', 'friend', 'room', 'weird', 'craft', 'AI', 'finish'][index]
@@ -731,7 +843,7 @@
           const finalPoint = pointInPanel(s1, s2, panel, clamp(panel.w * 0.075, 16, 36));
           const nodeIndex = Math.floor((i / 3) % networkNodes.length);
           const node = networkNodes[nodeIndex];
-          const nodePoint = pointInCircle(s3, s4, node.x, node.y, node.r * 0.76);
+          const nodePoint = pointInCircle(s3, s4, node.x, node.y, node.r * 0.92);
           const side = Math.floor(s1 * 4);
           const edgePoint = side === 0
             ? { x: mix(panel.x, panel.x + panel.w, s2), y: panel.y }
@@ -782,23 +894,6 @@
         buildParticles();
         draw(renderedProgress);
         lastDrawnProgress = renderedProgress;
-      }
-
-      function drawHalftone(progress) {
-        const step = clamp(Math.min(width, height) / 58, 8, 14);
-        const alpha = mix(0.035, 0.072, smooth(0.22, 0.78, progress));
-        ctx.save();
-        ctx.fillStyle = `rgba(16, 16, 16, ${alpha})`;
-        for (let y = -step; y < height + step; y += step) {
-          for (let x = -step; x < width + step; x += step) {
-            const wave = 0.5 + 0.5 * Math.sin(x * 0.022 + y * 0.018 + progress * 9);
-            const r = step * (0.12 + wave * 0.13);
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-        ctx.restore();
       }
 
       function drawPanelFields(progress, opacity = 1) {
@@ -909,8 +1004,6 @@
         const lineAlpha = appear * visibility;
 
         ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
 
         const connections = [
           [0, 2], [2, 4], [4, 6], [6, 5], [5, 3], [3, 1], [1, 0], [7, 1], [7, 2], [8, 4], [8, 5]
@@ -924,14 +1017,23 @@
           const ay = mix(a.source.y, a.y, ease(settle));
           const bx = mix(b.source.x, b.x, ease(settle));
           const by = mix(b.source.y, b.y, ease(settle));
-          ctx.strokeStyle = rgb(a.color, lineAlpha * 0.58);
-          ctx.lineWidth = mix(1.1, 2.5, appear) * visibility;
-          ctx.beginPath();
-          ctx.moveTo(ax, ay);
           const mx = (ax + bx) * 0.5 + Math.sin(progress * Math.PI * 2 + a.phase) * 10 * (1 - settle);
           const my = (ay + by) * 0.5 + Math.cos(progress * Math.PI * 2 + b.phase) * 10 * (1 - settle);
-          ctx.quadraticCurveTo(mx, my, bx, by);
-          ctx.stroke();
+          const length = Math.hypot(bx - ax, by - ay);
+          const spacing = clamp(Math.min(width, height) / 42, 9, 15);
+          const steps = Math.max(4, Math.floor(length / spacing));
+          const visibleSteps = Math.floor(steps * smooth(0.16, 0.9, progress));
+          const dotRadius = clamp(Math.min(width, height) / 360, 1.25, 2.15) * mix(0.72, 1, appear) * visibility;
+          ctx.fillStyle = rgb(palette.ink, lineAlpha * 0.62);
+
+          for (let i = 0; i <= visibleSteps; i += 1) {
+            const t = i / steps;
+            const qx = (1 - t) * (1 - t) * ax + 2 * (1 - t) * t * mx + t * t * bx;
+            const qy = (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * by;
+            ctx.beginPath();
+            ctx.arc(qx, qy, dotRadius, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
 
         ctx.restore();
@@ -942,12 +1044,9 @@
         const networkProgress = smooth(0.64, 0.9, progress);
         const networkFade = smooth(0.93, 1, progress);
         const valuesOpacity = 1 - smooth(0.62, 0.74, progress);
-        const bg = blend(palette.paper, palette.white, smooth(0.18, 0.7, valuesProgress) * 0.34);
-        ctx.fillStyle = rgb(bg, 1);
-        ctx.fillRect(0, 0, width, height);
+        ctx.clearRect(0, 0, width, height);
 
         drawPanelFields(valuesProgress, valuesOpacity);
-        drawHalftone(valuesProgress);
         drawNetworkConnections(networkProgress, networkFade);
 
         const morph = smooth(0.05, 0.92, valuesProgress);
@@ -966,7 +1065,7 @@
           };
           const color = blend(particle.color, particle.networkColor, smooth(0.16, 0.82, networkProgress));
           const pulse = 0.95 + Math.sin((valuesProgress + networkProgress) * Math.PI * 7 + particle.phase) * 0.11 * (1 - smooth(0.82, 1, networkProgress));
-          const size = particle.dot * mix(mix(1.22, 0.88, morph), 1.42, smooth(0.2, 1, networkProgress)) * pulse;
+          const size = particle.dot * mix(mix(1.22, 0.88, morph), 0.78, smooth(0.2, 1, networkProgress)) * pulse;
           const panelAlpha = clamp(mix(0.96, 0.065, finalTextSpace) + particle.seed * 0.04, 0.05, 1) * valuesOpacity;
           const networkAlpha = smooth(0.04, 0.34, networkProgress) * (1 - networkFade);
           const alpha = Math.max(panelAlpha, networkAlpha);
