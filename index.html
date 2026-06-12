@@ -90,6 +90,13 @@
       background: var(--bg);
     }
 
+    body.is-scroll-locked {
+      position: fixed;
+      inset: var(--locked-top, 0px) 0 auto 0;
+      width: 100%;
+      overflow: hidden;
+    }
+
     body::before {
       content: none;
     }
@@ -162,6 +169,59 @@
       width: min(100%, 1180px);
       margin: 0 auto;
       padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 2rem;
+      transition: transform 620ms cubic-bezier(.16, .84, .18, 1);
+    }
+
+    .chaos-meter {
+      position: fixed;
+      left: 50%;
+      bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 1.25rem));
+      z-index: 90;
+      width: min(17rem, calc(100vw - 2.5rem));
+      height: 1.1rem;
+      overflow: hidden;
+      border: var(--line-strong) solid var(--blue);
+      background:
+        linear-gradient(90deg, #fffdf5 0 18%, #ffd429 18% 22%, #fffdf5 22% 46%, #00b7c7 46% 50%, #fffdf5 50% 74%, #ff5a47 74% 78%, #fffdf5 78% 100%);
+      pointer-events: none;
+      opacity: var(--chaos-progress, 0);
+      transform:
+        translate3d(-50%, 0, 0)
+        scaleX(calc(0.78 + (var(--chaos-progress, 0) * 0.22)))
+        scaleY(calc(0.92 + (var(--chaos-progress, 0) * 0.08)));
+      transform-origin: center bottom;
+      transition:
+        opacity 120ms ease,
+        transform 120ms cubic-bezier(.18, .78, .18, 1);
+    }
+
+    .chaos-meter::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: calc(var(--chaos-progress, 0) * 100%);
+      background: var(--blue);
+    }
+
+    .chaos-meter::after {
+      content: '';
+      position: absolute;
+      inset: var(--line-strong);
+      border: var(--line) solid #fffdf5;
+      pointer-events: none;
+    }
+
+    body.is-chaos-charging .chaos-meter {
+      opacity: 1;
+      animation: chaos-elastic 720ms cubic-bezier(.16, .84, .18, 1) both;
+    }
+
+    body.is-chaos-active .chaos-meter {
+      opacity: 0;
+    }
+
+    body.is-chaos-active .parallax-title {
+      animation: chaos-title-run 920ms linear infinite;
     }
 
     .hero {
@@ -343,6 +403,58 @@
       display: block;
       position: relative;
       z-index: 1;
+    }
+
+    .title-letter {
+      display: inline-block;
+      transform: translate3d(0, 0, 0) rotate(0deg);
+      transition: transform 780ms cubic-bezier(.16, .84, .18, 1);
+      will-change: transform;
+    }
+
+    body.is-chaos-active .parallax-title::before,
+    body.is-chaos-active .parallax-title::after {
+      opacity: 0;
+    }
+
+    body.is-chaos-active .title-letter {
+      transform:
+        translate3d(var(--chaos-letter-x, 0px), var(--chaos-letter-y, 0px), 0)
+        rotate(var(--chaos-letter-rotate, 0deg))
+        scale(var(--chaos-letter-scale, 1));
+    }
+
+    @keyframes chaos-elastic {
+      0% {
+        transform: translate3d(-50%, 0, 0) scaleX(1) scaleY(1);
+      }
+      34% {
+        transform: translate3d(-50%, -1.35rem, 0) scaleX(1.24) scaleY(0.62);
+      }
+      62% {
+        transform: translate3d(-50%, -0.52rem, 0) scaleX(0.82) scaleY(1.48);
+      }
+      100% {
+        transform: translate3d(-50%, -0.9rem, 0) scaleX(1.08) scaleY(1);
+      }
+    }
+
+    @keyframes chaos-title-run {
+      0% {
+        transform: translate3d(-50%, calc(-50% + var(--parallax-y, 0px)), 0) rotate(-4deg);
+      }
+      25% {
+        transform: translate3d(-25%, calc(-62% + var(--parallax-y, 0px)), 0) rotate(7deg);
+      }
+      50% {
+        transform: translate3d(-70%, calc(-42% + var(--parallax-y, 0px)), 0) rotate(-10deg);
+      }
+      75% {
+        transform: translate3d(-38%, calc(-32% + var(--parallax-y, 0px)), 0) rotate(12deg);
+      }
+      100% {
+        transform: translate3d(-50%, calc(-50% + var(--parallax-y, 0px)), 0) rotate(-4deg);
+      }
     }
 
     @keyframes handmade-background {
@@ -921,6 +1033,56 @@
       outline: var(--line-strong) solid var(--blue);
     }
 
+    .logo-player,
+    .letter-wrap,
+    .letter,
+    .summary,
+    .events,
+    .contact,
+    .bottombar {
+      transition:
+        transform 780ms cubic-bezier(.16, .84, .18, 1),
+        opacity 420ms ease;
+    }
+
+    body.is-chaos-active .page {
+      pointer-events: none;
+    }
+
+    body.is-chaos-active .logo-player {
+      opacity: 0;
+      transform: translate3d(-42vw, -28vh, 0) rotate(-24deg) scale(0.64);
+    }
+
+    body.is-chaos-active .letter-wrap {
+      pointer-events: none;
+    }
+
+    body.is-chaos-active .letter {
+      opacity: 0;
+      transform: translate3d(56vw, 32vh, 0) rotate(17deg) scale(0.78);
+    }
+
+    body.is-chaos-active .summary {
+      opacity: 0;
+      transform: translate3d(-58vw, 8vh, 0) rotate(-9deg) scale(0.72);
+    }
+
+    body.is-chaos-active .events {
+      opacity: 0;
+      transform: translate3d(58vw, -10vh, 0) rotate(8deg) scale(0.74);
+    }
+
+    body.is-chaos-active .contact {
+      opacity: 0;
+      transform: translate3d(-50vw, 24vh, 0) rotate(-7deg) scale(0.78);
+    }
+
+    body.is-chaos-active .bottombar {
+      opacity: 0;
+      transform: translate3d(0, 42vh, 0) rotate(4deg) scale(0.82);
+    }
+
     @media (max-width: 900px) {
       .hero {
         --hero-top-space: clamp(2.1rem, 6vh, 3.25rem);
@@ -1139,6 +1301,7 @@
     <span class="word">Software</span>
   </h1>
   <div class="shape-field shape-field--front" id="shape-field-front" aria-hidden="true"></div>
+  <div class="chaos-meter" id="chaos-meter" aria-hidden="true"></div>
   <div id="loader"></div>
   <audio id="site-audio" src="assets/audio/song.mp3" preload="auto" loop></audio>
 
@@ -1347,49 +1510,6 @@
       syncUi();
     }
 
-    function initLeetGlitch() {
-      const leet = { a:'4', e:'3', i:'1', o:'0', t:'7', s:'5', b:'8', l:'1', g:'9', z:'2' };
-      const manifesto = document.querySelector('.manifesto');
-
-      function processNode(node) {
-        if (node.nodeType === 3) {
-          const frag = document.createDocumentFragment();
-          for (const char of node.textContent) {
-            const alt = leet[char.toLowerCase()];
-            if (alt) {
-              const span = document.createElement('span');
-              span.dataset.orig = char;
-              span.dataset.alt = alt;
-              span.textContent = char;
-              frag.appendChild(span);
-            } else {
-              frag.appendChild(document.createTextNode(char));
-            }
-          }
-          node.parentNode.replaceChild(frag, node);
-        } else if (node.nodeType === 1) {
-          [...node.childNodes].forEach(processNode);
-        }
-      }
-
-      [...manifesto.childNodes].forEach(processNode);
-
-      const spans = [...manifesto.querySelectorAll('span[data-orig]')];
-
-      setInterval(() => {
-        spans.forEach(span => {
-          if (!span.dataset.glitched && Math.random() < 0.008) {
-            span.dataset.glitched = '1';
-            span.textContent = span.dataset.alt;
-            setTimeout(() => {
-              span.textContent = span.dataset.orig;
-              delete span.dataset.glitched;
-            }, 100 + Math.random() * 200);
-          }
-        });
-      }, 200);
-    }
-
     function initParallaxTitle() {
       const title = document.querySelector('.parallax-title');
       const logo = document.querySelector('.logo-player');
@@ -1413,6 +1533,38 @@
       }, { passive: true });
 
       update();
+    }
+
+    function initTitleLetters() {
+      const title = document.querySelector('.parallax-title');
+      if (!title || title.dataset.lettersReady) return;
+
+      const words = [...title.querySelectorAll('.word')];
+      words.forEach((word, wordIndex) => {
+        const text = word.textContent.trim();
+        word.replaceChildren();
+
+        [...text].forEach((letter, letterIndex) => {
+          const span = document.createElement('span');
+          const direction = wordIndex === 0 ? -1 : 1;
+          const indexOffset = letterIndex - (text.length - 1) / 2;
+          const x = direction * (24 + Math.abs(indexOffset) * 5) + indexOffset * 9;
+          const y = (wordIndex === 0 ? -1 : 1) * (18 + Math.abs(indexOffset) * 6);
+          const rotate = direction * (12 + indexOffset * 8);
+          const scale = 0.86 + ((letterIndex % 3) * 0.08);
+
+          span.className = 'title-letter';
+          span.textContent = letter;
+          span.setAttribute('aria-hidden', 'true');
+          span.style.setProperty('--chaos-letter-x', `${x}vw`);
+          span.style.setProperty('--chaos-letter-y', `${y}vh`);
+          span.style.setProperty('--chaos-letter-rotate', `${rotate}deg`);
+          span.style.setProperty('--chaos-letter-scale', scale.toFixed(2));
+          word.appendChild(span);
+        });
+      });
+
+      title.dataset.lettersReady = 'true';
     }
 
     function initLetterHover() {
@@ -1473,6 +1625,7 @@
       const shapeTypes = ['circle', 'square', 'diamond', 'hex', 'star', 'triangle', 'plus', 'capsule', 'spark'];
       const shapes = [];
       const pointer = { x: -9999, y: -9999, active: false };
+      const chaos = { active: false, startedAt: 0 };
 
       function viewport() {
         return {
@@ -1609,7 +1762,8 @@
             phase: Math.random() * Math.PI * 2,
             radius: 6 + Math.random() * 16,
             rotate: Math.random() * 360,
-            rotateSpeed: (Math.random() - 0.5) * 0.015
+            rotateSpeed: (Math.random() - 0.5) * 0.015,
+            chaosPhase: Math.random() * Math.PI * 2
           });
         }
       }
@@ -1648,10 +1802,24 @@
         const driftY = Math.sin(time * 0.00006 + shape.phase) * shape.radius;
         const centerX = shape.x + driftX + shape.size / 2;
         const centerY = shape.y + driftY + shape.size / 2;
+        let chaosX = 0;
+        let chaosY = 0;
+        let chaosRotate = 0;
 
         let targetRepelX = 0;
         let targetRepelY = 0;
         const titleForce = titleRepel(shape, centerX, centerY, titleRect);
+
+        if (chaos.active) {
+          const elapsed = time - chaos.startedAt;
+          const rampIn = Math.min(elapsed / 650, 1);
+          const rampOut = elapsed > 9200 ? Math.max((10000 - elapsed) / 800, 0) : 1;
+          const intensity = Math.max(0, Math.min(rampIn, rampOut));
+          const layerBoost = shape.layer ? 1.18 : 1;
+          chaosX = Math.cos(time * 0.008 + shape.chaosPhase) * 92 * layerBoost * intensity;
+          chaosY = Math.sin(time * 0.0095 + shape.chaosPhase * 1.7) * 76 * layerBoost * intensity;
+          chaosRotate = Math.sin(time * 0.012 + shape.chaosPhase) * 34 * intensity;
+        }
 
         if (pointer.active) {
           const dx = centerX - pointer.x;
@@ -1670,9 +1838,9 @@
         shape.ry += (targetRepelY - shape.ry) * 0.09;
         shape.tx += (titleForce.x - shape.tx) * 0.16;
         shape.ty += (titleForce.y - shape.ty) * 0.16;
-        shape.x += shape.speedX;
-        shape.y += shape.speedY;
-        shape.rotate += shape.rotateSpeed;
+        shape.x += shape.speedX * (chaos.active ? 16 : 1);
+        shape.y += shape.speedY * (chaos.active ? 16 : 1);
+        shape.rotate += shape.rotateSpeed * (chaos.active ? 28 : 1);
 
         const vp = viewport();
         if (shape.x < -140) shape.x = vp.width + 80;
@@ -1680,11 +1848,11 @@
         if (shape.y < -140) shape.y = vp.height + 80;
         if (shape.y > vp.height + 140) shape.y = -80;
 
-        shape.node.style.setProperty('--shape-x', `${shape.x + driftX + shape.rx + shape.tx}px`);
-        shape.node.style.setProperty('--shape-y', `${shape.y + driftY + shape.ry + shape.ty}px`);
+        shape.node.style.setProperty('--shape-x', `${shape.x + driftX + shape.rx + shape.tx + chaosX}px`);
+        shape.node.style.setProperty('--shape-y', `${shape.y + driftY + shape.ry + shape.ty + chaosY}px`);
         shape.node.style.setProperty('--shape-title-x', `${shape.tx}px`);
         shape.node.style.setProperty('--shape-title-y', `${shape.ty}px`);
-        shape.node.style.setProperty('--shape-rotate', `${shape.rotate}deg`);
+        shape.node.style.setProperty('--shape-rotate', `${shape.rotate + chaosRotate}deg`);
       }
 
       function animate(time) {
@@ -1701,6 +1869,15 @@
 
       window.addEventListener('pointerleave', () => {
         pointer.active = false;
+      });
+
+      window.addEventListener('make-software-chaos-start', () => {
+        chaos.active = true;
+        chaos.startedAt = performance.now();
+      });
+
+      window.addEventListener('make-software-chaos-end', () => {
+        chaos.active = false;
       });
 
       let resizeTimer;
@@ -1737,6 +1914,127 @@
         callout.style.setProperty('--callout-accent', theme.accent);
         usedIndexes.add(index);
       });
+    }
+
+    function initOverscrollChaos() {
+      const meter = document.getElementById('chaos-meter');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (!meter || reducedMotion.matches) return;
+
+      let charge = 0;
+      let triggered = false;
+      let touchY = null;
+      let decayTimer;
+      let endTimer;
+      let lockedScrollY = 0;
+      let bottomEnteredAt = 0;
+
+      function maxScroll() {
+        return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      }
+
+      function isAtBottom() {
+        return window.scrollY >= maxScroll() - 4;
+      }
+
+      function syncBottomDwell() {
+        if (isAtBottom()) {
+          if (!bottomEnteredAt) bottomEnteredAt = performance.now();
+        } else {
+          bottomEnteredAt = 0;
+        }
+      }
+
+      function canChargeFromOverscroll(delta) {
+        syncBottomDwell();
+        return delta > 0 &&
+          isAtBottom() &&
+          window.scrollY > 8 &&
+          performance.now() - bottomEnteredAt > 450;
+      }
+
+      function setCharge(nextCharge) {
+        charge = Math.max(0, Math.min(nextCharge, 1));
+        meter.style.setProperty('--chaos-progress', charge.toFixed(3));
+      }
+
+      function resetChargeSoon() {
+        window.clearTimeout(decayTimer);
+        decayTimer = window.setTimeout(() => {
+          if (!triggered) setCharge(0);
+        }, 2200);
+      }
+
+      function endChaos() {
+        document.body.classList.remove('is-chaos-active');
+        window.dispatchEvent(new CustomEvent('make-software-chaos-end'));
+        window.clearTimeout(endTimer);
+        window.setTimeout(() => {
+          document.body.classList.remove('is-scroll-locked');
+          document.body.style.removeProperty('--locked-top');
+          window.scrollTo(0, lockedScrollY);
+          triggered = false;
+          setCharge(0);
+        }, 420);
+      }
+
+      function startChaos() {
+        lockedScrollY = window.scrollY;
+        document.body.style.setProperty('--locked-top', `${-lockedScrollY}px`);
+        document.body.classList.remove('is-chaos-charging');
+        document.body.classList.add('is-scroll-locked');
+        document.body.classList.add('is-chaos-active');
+        window.dispatchEvent(new CustomEvent('make-software-chaos-start'));
+        window.clearTimeout(endTimer);
+        endTimer = window.setTimeout(endChaos, 10000);
+      }
+
+      function triggerChaos() {
+        if (triggered) return;
+        triggered = true;
+        setCharge(1);
+        document.body.classList.add('is-chaos-charging');
+        window.setTimeout(startChaos, 720);
+      }
+
+      function addCharge(amount) {
+        if (triggered || !isAtBottom()) return;
+
+        setCharge(charge + amount);
+        if (charge >= 1) {
+          triggerChaos();
+        } else {
+          resetChargeSoon();
+        }
+      }
+
+      window.addEventListener('wheel', event => {
+        if (canChargeFromOverscroll(event.deltaY)) {
+          addCharge(Math.min(event.deltaY, 180) / 950);
+        } else if (!triggered && !isAtBottom()) {
+          setCharge(charge * 0.62);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchstart', event => {
+        touchY = event.touches[0]?.clientY ?? null;
+      }, { passive: true });
+
+      window.addEventListener('touchmove', event => {
+        const nextY = event.touches[0]?.clientY ?? null;
+        if (touchY === null || nextY === null) return;
+
+        const delta = touchY - nextY;
+        touchY = nextY;
+        if (canChargeFromOverscroll(delta)) {
+          addCharge(Math.min(delta, 140) / 1000);
+        }
+      }, { passive: true });
+
+      window.addEventListener('scroll', () => {
+        syncBottomDwell();
+        if (!isAtBottom() && !triggered) setCharge(0);
+      }, { passive: true });
     }
 
     function initValueTiles() {
@@ -1812,11 +2110,12 @@
       loader.classList.add('done');
       loader.addEventListener('transitionend', () => loader.remove(), { once: true });
       initAudioPlayer();
-      initLeetGlitch();
+      initTitleLetters();
       initBackgroundShapes();
       initParallaxTitle();
       initLetterHover();
       initCalloutColors();
+      initOverscrollChaos();
       initValueTiles();
     });
   </script>
