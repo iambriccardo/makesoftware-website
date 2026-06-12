@@ -1,7 +1,7 @@
 {
-  "name": "make software",
-  "short_name": "make software",
-  "description": "We're builders who want to make software fun again.",
+  "name": "Make Software",
+  "short_name": "Make Software",
+  "description": "A community for builders, creatives, and curious minds making playful, personal, small, weird software beyond profit or scale.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f4ec",

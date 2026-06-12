@@ -3,40 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>make software</title>
-  <meta name="description" content="Make Software is a community for people who want to create with computers the way others paint, write, or play music." />
+  <title>Make Software</title>
+  <meta name="description" content="Make Software is a community for builders, creatives, and curious minds making playful, personal, small, weird software beyond profit or scale." />
   <link rel="canonical" href="https://makesoftware.fun/" />
   <meta property="og:url" content="https://makesoftware.fun/" />
   <meta name="theme-color" content="#2046ff" />
   <meta name="color-scheme" content="light" />
   <meta name="robots" content="index,follow" />
-  <meta name="application-name" content="make software" />
-  <meta name="apple-mobile-web-app-title" content="make software" />
+  <meta name="author" content="Riccardo & Florian" />
+  <meta name="creator" content="Riccardo & Florian" />
+  <meta name="publisher" content="Ambient" />
+  <meta name="keywords" content="Make Software, software manifesto, playful software, small software, personal software, weird software, creative coding, AI authorship, local internet" />
+  <meta name="application-name" content="Make Software" />
+  <meta name="apple-mobile-web-app-title" content="Make Software" />
   <meta name="msapplication-TileColor" content="#103dff" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="make software" />
-  <meta property="og:description" content="A community for making small, personal, weird, playful software." />
-  <meta property="og:site_name" content="make software" />
+  <meta property="og:title" content="Make Software" />
+  <meta property="og:description" content="A manifesto for playful, personal, small, weird software. Bring back magical computers, use AI with authorship, finish tiny things, and learn near others." />
+  <meta property="og:site_name" content="Make Software" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:image" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260413" />
-  <meta property="og:image:url" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260413" />
-  <meta property="og:image:secure_url" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260413" />
+  <meta property="og:image" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260612" />
+  <meta property="og:image:url" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260612" />
+  <meta property="og:image:secure_url" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260612" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="make software banner in white on a vivid blue background" />
+  <meta property="og:image:alt" content="Make Software social card with hand-drawn blue lettering on a light paper background" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="make software" />
-  <meta name="twitter:description" content="A community for making small, personal, weird, playful software." />
-  <meta name="twitter:image" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260413" />
-  <meta name="twitter:image:alt" content="make software banner in white on a vivid blue background" />
+  <meta name="twitter:title" content="Make Software" />
+  <meta name="twitter:description" content="A manifesto for playful, personal, small, weird software. Bring back magical computers, use AI with authorship, finish tiny things, and learn near others." />
+  <meta name="twitter:image" content="https://makesoftware.fun/assets/branding/social-card.png?v=20260612" />
+  <meta name="twitter:image:alt" content="Make Software social card with hand-drawn blue lettering on a light paper background" />
 
-  <link rel="icon" href="/assets/branding/logo.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/branding/favicon.svg" sizes="any" type="image/svg+xml" />
   <link rel="icon" href="/assets/branding/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/assets/branding/favicon-16.png" sizes="16x16" type="image/png" />
-  <link rel="shortcut icon" href="/assets/branding/logo.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/assets/branding/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/assets/branding/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -195,12 +199,24 @@
       box-sizing: border-box;
       border: var(--line-strong) solid #fffdf5;
       border-radius: 50%;
-      background:
-        conic-gradient(from 0deg, transparent 0deg 22deg, var(--blue) 22deg 28deg, transparent 28deg 142deg, var(--blue) 142deg 148deg, transparent 148deg 360deg),
-        repeating-radial-gradient(circle, #fffdf5 0 6px, var(--blue) 6px 7px, #fffdf5 7px 12px);
+      background: #fffdf5;
       outline: var(--line-strong) solid var(--blue);
       outline-offset: 0;
       transform-origin: center;
+    }
+
+    .logo-disc::before {
+      content: '';
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      background:
+        linear-gradient(var(--blue), var(--blue)) center top / 2px 50% no-repeat,
+        linear-gradient(var(--blue), var(--blue)) center bottom / 2px 50% no-repeat,
+        linear-gradient(90deg, var(--blue), var(--blue)) left center / 50% 2px no-repeat,
+        linear-gradient(90deg, var(--blue), var(--blue)) right center / 50% 2px no-repeat,
+        linear-gradient(45deg, transparent calc(50% - 1px), var(--blue) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+        linear-gradient(-45deg, transparent calc(50% - 1px), var(--blue) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
     }
 
     .logo-disc::after {
@@ -278,7 +294,7 @@
 
     .parallax-title::before,
     .parallax-title::after {
-      content: 'make\Asoftware';
+      content: 'Make\ASoftware';
       position: absolute;
       inset: 0;
       white-space: pre;
@@ -436,6 +452,15 @@
 
     .letter p + p {
       margin-top: 1rem;
+    }
+
+    .brand-word {
+      font-family: var(--display);
+      font-size: 0.92em;
+      line-height: 1;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      color: var(--blue);
     }
 
     .values {
@@ -938,9 +963,9 @@
 
   <main class="page">
     <section class="hero" aria-labelledby="manifesto-title">
-      <h1 class="parallax-title" aria-label="make software">
-        <span class="word">make</span>
-        <span class="word">software</span>
+      <h1 class="parallax-title" aria-label="Make Software">
+        <span class="word">Make</span>
+        <span class="word">Software</span>
       </h1>
       <button class="logo-player" id="sound-toggle" type="button" data-state="paused" aria-pressed="false" aria-label="Play music">
         <span class="logo-disc-shell" aria-hidden="true">
@@ -960,7 +985,7 @@
 
           <h2 id="manifesto-title">Computers are toys again.</h2>
           <p>
-            Make Software is a community for people who want to create with computers the way others paint, write, or play music. Builders, creatives, and curious minds are welcome here.
+            <span class="brand-word">Make Software</span> is a community for people who want to create with computers the way others paint, write, or play music. Builders, creatives, and curious minds are welcome here.
           </p>
           <p class="manifesto">
             We make software without needing to justify it through profit, scale, business models, or users. We want computers to feel magical, personal, and fun again. The work matters more than the image of the work. Broken demos, ugly code, and unfinished ideas are welcome.
