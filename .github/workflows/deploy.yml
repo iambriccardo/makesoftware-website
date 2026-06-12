@@ -28,10 +28,18 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare static site
+        run: |
+          mkdir -p _site
+          cp index.html site.webmanifest _site/
+          cp -R assets fonts _site/
+          find _site -name '.DS_Store' -delete
+          touch _site/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
