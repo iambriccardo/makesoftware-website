@@ -7,7 +7,18 @@
   <meta name="description" content="A scroll-tracked RGB dot morph experiment." />
   <meta name="theme-color" content="#f7f4ec" />
   <meta name="color-scheme" content="light" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=block" rel="stylesheet" />
   <style>
+    @font-face {
+      font-family: 'Departure Mono';
+      src: url('fonts/DepartureMono-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -20,8 +31,8 @@
       --green: #00f21e;
       --blue: #1027ff;
       --line: rgba(16, 16, 16, 0.22);
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      --serif: Georgia, "Times New Roman", serif;
+      --mono: 'Departure Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --serif: 'Cormorant Garamond', Georgia, "Times New Roman", serif;
     }
 
     html {
@@ -58,7 +69,7 @@
     }
 
     .scroll-track {
-      min-height: 390vh;
+      min-height: 620vh;
     }
 
     .pin {
@@ -156,7 +167,7 @@
     }
 
     .scroll-space {
-      height: 80vh;
+      height: 0;
     }
 
     .sr-only {
@@ -169,9 +180,127 @@
       clip-path: inset(50%);
     }
 
+    .experiment-footer {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(20rem, 1.05fr);
+      gap: clamp(1rem, 2.5vw, 2rem);
+      align-items: stretch;
+      width: min(100%, 1180px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: clamp(1rem, 3vw, 2rem);
+      pointer-events: auto;
+    }
+
+    .experiment-footer a,
+    .experiment-footer iframe {
+      pointer-events: auto;
+    }
+
+    .footer-panel {
+      border: 1px solid rgba(16, 16, 16, 0.16);
+      border-radius: 1.3rem;
+      background: rgba(247, 244, 236, 0.72);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+        0 1.6rem 4rem rgba(16, 16, 16, 0.08);
+      backdrop-filter: blur(5px);
+    }
+
+    .footer-copy-panel {
+      padding: clamp(1rem, 2.4vw, 1.6rem);
+    }
+
+    .footer-kicker {
+      margin: 0 0 0.75rem;
+      font-family: var(--mono);
+      font-size: clamp(0.72rem, 0.95vw, 0.84rem);
+      text-transform: uppercase;
+    }
+
+    .footer-title {
+      max-width: 10ch;
+      margin: 0 0 1rem;
+      font-family: var(--serif);
+      font-size: clamp(3rem, 8vw, 6.8rem);
+      font-weight: 600;
+      line-height: 0.82;
+    }
+
+    .footer-text {
+      max-width: 34rem;
+      margin: 0 0 1.5rem;
+      font-family: var(--mono);
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    .footer-link {
+      display: inline-flex;
+      min-height: 2.5rem;
+      align-items: center;
+      border: 1px dotted currentColor;
+      border-radius: 999px;
+      padding: 0.5rem 0.8rem;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.86rem;
+      text-decoration: none;
+      background: rgba(255, 255, 250, 0.5);
+    }
+
+    .footer-ambient {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-top: 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    .ambient-dot {
+      display: grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: 50%;
+      background: #101010;
+    }
+
+    .ambient-dot img {
+      width: 1.2rem;
+      height: 1.2rem;
+      display: block;
+    }
+
+    .footer-event-panel {
+      overflow: hidden;
+      align-self: stretch;
+      min-height: clamp(26rem, 70vh, 39rem);
+      padding: 0.8rem;
+    }
+
+    .footer-event-panel iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 25rem;
+      border: 0;
+      border-radius: 0.85rem;
+      filter: saturate(0.94) contrast(1.02);
+    }
+
     @media (max-width: 760px) {
       .scroll-track {
-        min-height: 430vh;
+        min-height: 560vh;
       }
 
       .value-grid {
@@ -197,6 +326,25 @@
       p {
         max-width: none;
         font-size: 0.86rem;
+      }
+
+      .experiment-footer {
+        grid-template-columns: 1fr;
+        align-content: end;
+        gap: 0.8rem;
+      }
+
+      .footer-title {
+        max-width: 12ch;
+        font-size: clamp(2.6rem, 15vw, 4.6rem);
+      }
+
+      .footer-event-panel {
+        min-height: 19rem;
+      }
+
+      .footer-event-panel iframe {
+        min-height: 18rem;
       }
     }
 
@@ -239,6 +387,33 @@
     </section>
     <div class="scroll-space" aria-hidden="true"></div>
   </main>
+  <section class="experiment-footer" aria-labelledby="footer-title">
+    <div class="footer-panel footer-copy-panel">
+      <p class="footer-kicker">Come make with us</p>
+      <h2 class="footer-title" id="footer-title">Tiny software, near others.</h2>
+      <p class="footer-text">
+        Bring a strange idea, a half-working demo, a tiny tool, or a question. Make Software is for computers that feel personal, playful, and alive.
+      </p>
+      <div class="footer-links">
+        <a class="footer-link" href="mailto:riccardob36@gmail.com">riccardob36@gmail.com</a>
+        <a class="footer-link" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma calendar</a>
+      </div>
+      <div class="footer-ambient" aria-label="A project by Ambient">
+        <span class="ambient-dot" aria-hidden="true">
+          <img src="assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+        </span>
+        <span>Made by Ambient, Vienna</span>
+      </div>
+    </div>
+    <div class="footer-panel footer-event-panel">
+      <iframe
+        src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
+        title="Make Software upcoming events"
+        loading="lazy"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
@@ -266,21 +441,24 @@
           key: 'what',
           label: 'WHAT',
           title: 'Playful software.',
-          body: 'Tiny, personal, strange software is worth making.',
+          body: 'Tiny tools worth making.',
+          mobileBody: 'Tiny tools.',
           color: palette.red
         },
         {
           key: 'why',
           label: 'WHY',
           title: 'Computers are toys again.',
-          body: 'The work matters more than the image of the work.',
+          body: 'Work over image.',
+          mobileBody: 'Work first.',
           color: palette.green
         },
         {
           key: 'how',
           label: 'HOW',
           title: 'AI with authorship.',
-          body: 'Move faster with AI. Keep your taste and judgment.',
+          body: 'Keep taste. Keep judgment.',
+          mobileBody: 'Keep taste.',
           color: palette.blue
         }
       ];
@@ -290,8 +468,11 @@
       let dpr = 1;
       let particles = [];
       let textParticles = [];
+      let textZones = [];
+      let networkNodes = [];
       let scrollProgress = reduceMotion.matches ? 1 : 0;
       let renderedProgress = scrollProgress;
+      let lastDrawnProgress = -1;
       let rafId = 0;
       let lenis = null;
 
@@ -354,14 +535,26 @@
         return lines;
       }
 
+      function drawMaskText(text, x, y, strokeWidth) {
+        textCtx.lineJoin = 'round';
+        textCtx.lineCap = 'round';
+        textCtx.strokeStyle = '#000';
+        textCtx.fillStyle = '#000';
+        textCtx.lineWidth = strokeWidth;
+        if (strokeWidth > 0) {
+          textCtx.strokeText(text, x, y);
+        }
+        textCtx.fillText(text, x, y);
+      }
+
       function getLayout() {
         const short = Math.min(width, height);
         const isMobile = width < 760;
         const triadR = clamp(short * (isMobile ? 0.108 : 0.15), 42, 150);
         const distance = triadR * 2.04;
         const centerX = width * 0.5;
-        const centerY = height * (isMobile ? 0.38 : 0.43);
-        const topY = centerY - triadR * 0.62;
+        const centerY = height * 0.5;
+        const topY = centerY - distance * 0.866 / 3;
 
         const triad = [
           { x: centerX - distance * 0.5, y: topY, r: triadR },
@@ -385,15 +578,58 @@
               return { x: margin + index * (w + gap), y: panelTop, w, h: panelHeight };
             });
 
-        return { triad, panels, short, isMobile };
+        const footer = {
+          x: margin,
+          y: isMobile ? height * 0.08 : height * 0.16,
+          w: width - margin * 2,
+          h: isMobile ? height * 0.82 : height * 0.68
+        };
+
+        return { triad, panels, short, isMobile, footer };
+      }
+
+      function buildNetworkNodes(layout) {
+        const { panels, footer, isMobile, short } = layout;
+        const center = { x: footer.x + footer.w * 0.5, y: footer.y + footer.h * 0.48 };
+        const colors = [palette.red, palette.green, palette.blue];
+        const nodeLayout = isMobile
+          ? [
+              [-0.28, -0.28, 0], [0.22, -0.26, 1], [-0.04, -0.02, 2],
+              [0.32, 0.05, 0], [-0.28, 0.22, 1], [0.08, 0.29, 2], [0.0, -0.46, 1]
+            ]
+          : [
+              [-0.42, -0.18, 0], [-0.23, 0.25, 2], [-0.10, -0.30, 1], [0.02, 0.08, 1],
+              [0.22, -0.22, 0], [0.34, 0.14, 2], [0.44, -0.02, 1], [-0.38, 0.08, 0], [0.08, -0.44, 2]
+            ];
+        const radiusX = isMobile ? footer.w * 0.86 : footer.w * 0.78;
+        const radiusY = isMobile ? footer.h * 0.62 : footer.h * 0.58;
+
+        return nodeLayout.map(([nx, ny, colorIndex], index) => {
+          const sourcePanel = panels[index % panels.length];
+          const source = {
+            x: sourcePanel.x + sourcePanel.w * (0.24 + hash(index + 3) * 0.52),
+            y: sourcePanel.y + sourcePanel.h * (0.22 + hash(index + 12) * 0.48)
+          };
+          return {
+            source,
+            x: center.x + nx * radiusX,
+            y: center.y + ny * radiusY,
+            r: clamp(short * (isMobile ? 0.032 : 0.036), isMobile ? 15 : 22, isMobile ? 24 : 34) * (index % 3 === 0 ? 1.14 : 1),
+            color: colors[colorIndex],
+            phase: hash(index + 88) * Math.PI * 2,
+            label: ['idea', 'tool', 'taste', 'demo', 'friend', 'room', 'weird', 'craft', 'AI', 'finish'][index]
+          };
+        });
       }
 
       function buildTextTargets(layout) {
         const { panels, triad, isMobile, short } = layout;
         const targets = [];
-        const sampleStep = clamp(short / (isMobile ? 150 : 240), 2.35, 3.2);
-        const headingSize = clamp(isMobile ? width * 0.105 : width * 0.043, isMobile ? 33 : 44, isMobile ? 48 : 70);
-        const bodySize = clamp(isMobile ? width * 0.044 : width * 0.019, 16, isMobile ? 20 : 27);
+        textZones = [];
+        const sampleStep = clamp(short / (isMobile ? 150 : 235), 2.35, 3.25);
+        const labelSize = clamp(isMobile ? width * 0.062 : width * 0.016, isMobile ? 22 : 18, isMobile ? 25 : 22);
+        const headingSize = clamp(isMobile ? width * 0.112 : width * 0.047, isMobile ? 36 : 50, isMobile ? 54 : 78);
+        const bodySize = clamp(isMobile ? width * 0.062 : width * 0.023, isMobile ? 22 : 19, isMobile ? 27 : 32);
 
         textCanvas.width = Math.max(1, Math.round(width));
         textCanvas.height = Math.max(1, Math.round(height));
@@ -404,24 +640,40 @@
         panels.forEach((panel, index) => {
           const card = cards[index];
           const pad = clamp(panel.w * (isMobile ? 0.045 : 0.07), 16, 30);
-          const headingFont = `500 ${headingSize}px Georgia, "Times New Roman", serif`;
-          const bodyFont = `700 ${bodySize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+          const labelFont = `400 ${labelSize}px "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+          const headingFont = `600 ${headingSize}px "Cormorant Garamond", Georgia, "Times New Roman", serif`;
+          const bodyFont = `400 ${bodySize}px "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
           const textWidth = panel.w - pad * 2;
           const headingLines = wrapLines(card.title, textWidth, headingFont).slice(0, isMobile ? 2 : 3);
-          const bodyLines = wrapLines(card.body, textWidth, bodyFont).slice(0, isMobile ? 3 : 3);
+          const bodyLines = wrapLines(isMobile ? card.mobileBody : card.body, textWidth, bodyFont).slice(0, 2);
           let y = panel.y + pad + clamp(panel.h * 0.035, 10, 30);
+          const zoneTop = y - clamp(sampleStep * 3, 8, 13);
+
+          textCtx.font = labelFont;
+          drawMaskText(card.label, panel.x + pad, y, clamp(sampleStep * 0.22, 0.4, 0.75));
+          y += labelSize * 2.35;
 
           textCtx.font = headingFont;
           headingLines.forEach((line) => {
-            textCtx.fillText(line, panel.x + pad, y);
+            drawMaskText(line, panel.x + pad, y, clamp(sampleStep * 0.16, 0.35, 0.7));
             y += headingSize * 0.9;
           });
 
           y += clamp(panel.h * 0.045, 12, 28);
+          const bodyTop = y;
           textCtx.font = bodyFont;
           bodyLines.forEach((line) => {
-            textCtx.fillText(line, panel.x + pad, y);
+            drawMaskText(line, panel.x + pad, y, clamp(sampleStep * 0.32, 0.65, 1.05));
             y += bodySize * 1.45;
+          });
+
+          textZones.push({
+            x: panel.x + pad - clamp(sampleStep * 3, 8, 14),
+            y: zoneTop,
+            w: textWidth + clamp(sampleStep * 6, 16, 28),
+            h: y - zoneTop + clamp(sampleStep * 3, 8, 16),
+            r: clamp(sampleStep * 3, 8, 13),
+            bodyTop
           });
         });
 
@@ -429,7 +681,7 @@
         for (let y = 0; y < height; y += sampleStep) {
           for (let x = 0; x < width; x += sampleStep) {
             const alpha = pixels[(Math.floor(y) * textCanvas.width + Math.floor(x)) * 4 + 3];
-            if (alpha < 80) continue;
+            if (alpha < 96) continue;
             const panelIndex = panels.findIndex((panel) => (
               x >= panel.x && x <= panel.x + panel.w && y >= panel.y && y <= panel.y + panel.h
             ));
@@ -441,6 +693,7 @@
             const fan = pointInCircle(s2, s1, width * 0.5, height * 0.5, short * (0.18 + s1 * 0.14));
             targets.push({
               channel: panelIndex,
+              kind: y >= textZones[panelIndex].bodyTop ? 'body' : 'heading',
               seed: s1,
               phase: s2 * Math.PI * 2,
               color: cards[panelIndex].color,
@@ -457,11 +710,13 @@
       function buildParticles() {
         const layout = getLayout();
         const { triad, panels, short } = layout;
-        const density = width < 760 ? 88 : 112;
-        const count = Math.round(clamp((width * height) / density, 3900, 12500));
+        const density = width < 760 ? 130 : 170;
+        const count = Math.round(clamp((width * height) / density, 2600, 6500));
         const dot = clamp(short / 310, 1.55, 3.65);
         particles = [];
         textParticles = buildTextTargets(layout);
+        networkNodes = buildNetworkNodes(layout);
+        const nodeSums = networkNodes.map(() => ({ x: 0, y: 0, count: 0 }));
 
         for (let i = 0; i < count; i += 1) {
           const channel = i % 3;
@@ -474,6 +729,9 @@
           const dotStart = pointInCircle(s1, s2, circle.x, circle.y, circle.r);
           const fan = pointInCircle(s2, s3, width * 0.5, height * 0.5, short * (0.22 + s4 * 0.16));
           const finalPoint = pointInPanel(s1, s2, panel, clamp(panel.w * 0.075, 16, 36));
+          const nodeIndex = Math.floor((i / 3) % networkNodes.length);
+          const node = networkNodes[nodeIndex];
+          const nodePoint = pointInCircle(s3, s4, node.x, node.y, node.r * 0.76);
           const side = Math.floor(s1 * 4);
           const edgePoint = side === 0
             ? { x: mix(panel.x, panel.x + panel.w, s2), y: panel.y }
@@ -485,16 +743,31 @@
 
           particles.push({
             channel,
+            nodeIndex,
             seed: s4,
             phase: hash(i + 99.3) * Math.PI * 2,
             color: cards[channel].color,
+            networkColor: node.color,
             dot,
             start: dotStart,
             fan,
             edge: edgePoint,
-            end: finalPoint
+            end: finalPoint,
+            network: nodePoint
           });
+
+          nodeSums[nodeIndex].x += finalPoint.x;
+          nodeSums[nodeIndex].y += finalPoint.y;
+          nodeSums[nodeIndex].count += 1;
         }
+
+        nodeSums.forEach((sum, index) => {
+          if (!sum.count) return;
+          networkNodes[index].source = {
+            x: sum.x / sum.count,
+            y: sum.y / sum.count
+          };
+        });
       }
 
       function resize() {
@@ -508,11 +781,12 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         buildParticles();
         draw(renderedProgress);
+        lastDrawnProgress = renderedProgress;
       }
 
       function drawHalftone(progress) {
-        const step = clamp(Math.min(width, height) / 86, 5.5, 10);
-        const alpha = mix(0.06, 0.18, smooth(0.22, 0.78, progress));
+        const step = clamp(Math.min(width, height) / 58, 8, 14);
+        const alpha = mix(0.035, 0.072, smooth(0.22, 0.78, progress));
         ctx.save();
         ctx.fillStyle = `rgba(16, 16, 16, ${alpha})`;
         for (let y = -step; y < height + step; y += step) {
@@ -527,7 +801,7 @@
         ctx.restore();
       }
 
-      function drawPanelFields(progress) {
+      function drawPanelFields(progress, opacity = 1) {
         const { panels } = getLayout();
         const appear = smooth(0.42, 0.86, progress);
         ctx.save();
@@ -540,7 +814,7 @@
           const cy = panel.y + panel.h * 0.5;
           const radius = Math.max(panel.w, panel.h) * 0.62;
           const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-          gradient.addColorStop(0, rgb(color, 0.075 * appear));
+          gradient.addColorStop(0, rgb(color, 0.055 * appear * opacity));
           gradient.addColorStop(1, rgb(color, 0));
           ctx.fillStyle = gradient;
           ctx.fillRect(panel.x - panel.w * 0.2, panel.y - panel.h * 0.1, panel.w * 1.4, panel.h * 1.2);
@@ -549,13 +823,13 @@
         ctx.restore();
       }
 
-      function drawPanelDotBorders(progress) {
+      function drawPanelDotBorders(progress, opacity = 1) {
         const { panels } = getLayout();
         const appear = smooth(0.5, 0.94, progress);
         if (appear <= 0.01) return;
         const spacing = clamp(Math.min(width, height) / 78, 5.2, 9);
         ctx.save();
-        ctx.globalAlpha = appear * 0.88;
+        ctx.globalAlpha = appear * 0.88 * opacity;
 
         panels.forEach((panel, index) => {
           const color = cards[index].color;
@@ -585,8 +859,8 @@
 
       function particlePosition(particle, progress) {
         const lift = smooth(0.06, 0.28, progress);
-        const grid = smooth(0.28, 0.82, progress);
-        const settle = smooth(0.76, 1, progress);
+        const grid = smooth(0.24, 0.64, progress);
+        const settle = smooth(0.56, 0.88, progress);
         const midX = mix(particle.start.x, particle.fan.x, ease(lift));
         const midY = mix(particle.start.y, particle.fan.y, ease(lift));
         const edgeX = mix(midX, particle.edge.x, ease(grid));
@@ -600,37 +874,102 @@
 
       function textParticlePosition(particle, progress) {
         const lift = smooth(0.08, 0.32, progress);
-        const settle = smooth(0.56, 1, progress);
+        const settle = smooth(0.36, 0.76, progress);
         const midX = mix(particle.start.x, particle.fan.x, ease(lift));
         const midY = mix(particle.start.y, particle.fan.y, ease(lift));
         const x = mix(midX, particle.end.x, ease(settle));
         const y = mix(midY, particle.end.y, ease(settle));
-        const drift = Math.sin(progress * Math.PI * 5 + particle.phase) * (1 - settle) * 8;
-        const curl = Math.cos(progress * Math.PI * 4.2 + particle.phase) * (1 - settle) * 6;
+        const drift = Math.sin(progress * Math.PI * 5 + particle.phase) * (1 - settle) * 5;
+        const curl = Math.cos(progress * Math.PI * 4.2 + particle.phase) * (1 - settle) * 4;
         return { x: x + drift, y: y + curl };
       }
 
+      function networkParticlePosition(particle, progress) {
+        const travel = ease(smooth(0.02, 0.92, progress));
+        const breathe = Math.sin(progress * Math.PI * 3 + particle.phase) * (1 - travel) * 14;
+        const source = particle.end;
+        const bendX = (source.x + particle.network.x) * 0.5 + Math.sin(particle.phase) * Math.min(width, height) * 0.06;
+        const bendY = (source.y + particle.network.y) * 0.5 + Math.cos(particle.phase) * Math.min(width, height) * 0.045;
+        const aX = mix(source.x, bendX, travel);
+        const aY = mix(source.y, bendY, travel);
+        const bX = mix(bendX, particle.network.x, travel);
+        const bY = mix(bendY, particle.network.y, travel);
+        return {
+          x: mix(aX, bX, travel) + Math.sin(particle.phase + progress * 6) * breathe,
+          y: mix(aY, bY, travel) + Math.cos(particle.phase + progress * 5) * breathe
+        };
+      }
+
+      function drawNetworkConnections(progress, fadeOut) {
+        const appear = smooth(0.08, 0.55, progress);
+        if (appear <= 0.01) return;
+
+        const settle = smooth(0.26, 0.9, progress);
+        const visibility = 1 - fadeOut;
+        const lineAlpha = appear * visibility;
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const connections = [
+          [0, 2], [2, 4], [4, 6], [6, 5], [5, 3], [3, 1], [1, 0], [7, 1], [7, 2], [8, 4], [8, 5]
+        ];
+
+        for (const [from, to] of connections) {
+          if (!networkNodes[from] || !networkNodes[to]) continue;
+          const a = networkNodes[from];
+          const b = networkNodes[to];
+          const ax = mix(a.source.x, a.x, ease(settle));
+          const ay = mix(a.source.y, a.y, ease(settle));
+          const bx = mix(b.source.x, b.x, ease(settle));
+          const by = mix(b.source.y, b.y, ease(settle));
+          ctx.strokeStyle = rgb(a.color, lineAlpha * 0.58);
+          ctx.lineWidth = mix(1.1, 2.5, appear) * visibility;
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          const mx = (ax + bx) * 0.5 + Math.sin(progress * Math.PI * 2 + a.phase) * 10 * (1 - settle);
+          const my = (ay + by) * 0.5 + Math.cos(progress * Math.PI * 2 + b.phase) * 10 * (1 - settle);
+          ctx.quadraticCurveTo(mx, my, bx, by);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
       function draw(progress) {
-        const bg = blend(palette.paper, palette.white, smooth(0.18, 0.7, progress) * 0.34);
+        const valuesProgress = clamp(progress / 0.42, 0, 1);
+        const networkProgress = smooth(0.64, 0.9, progress);
+        const networkFade = smooth(0.93, 1, progress);
+        const valuesOpacity = 1 - smooth(0.62, 0.74, progress);
+        const bg = blend(palette.paper, palette.white, smooth(0.18, 0.7, valuesProgress) * 0.34);
         ctx.fillStyle = rgb(bg, 1);
         ctx.fillRect(0, 0, width, height);
 
-        drawPanelFields(progress);
-        drawHalftone(progress);
+        drawPanelFields(valuesProgress, valuesOpacity);
+        drawHalftone(valuesProgress);
+        drawNetworkConnections(networkProgress, networkFade);
 
-        const morph = smooth(0.05, 0.92, progress);
-        const finalTextSpace = smooth(0.68, 1, progress);
-        const textSettle = smooth(0.58, 1, progress);
+        const morph = smooth(0.05, 0.92, valuesProgress);
+        const finalTextSpace = smooth(0.68, 1, valuesProgress);
+        const textSettle = smooth(0.58, 1, valuesProgress);
         ctx.save();
         ctx.globalCompositeOperation = 'source-over';
 
         for (const particle of particles) {
-          const pos = particlePosition(particle, progress);
-          const innerLight = smooth(0.78, 1, progress) * (0.16 + particle.seed * 0.12);
-          const color = blend(particle.color, palette.white, innerLight);
-          const pulse = 0.9 + Math.sin(progress * Math.PI * 7 + particle.phase) * 0.14 * (1 - finalTextSpace);
-          const size = particle.dot * mix(1.35, 0.88, morph) * pulse;
-          const alpha = clamp(mix(0.96, 0.1, finalTextSpace) + particle.seed * 0.06, 0.08, 1);
+          const valuePos = particlePosition(particle, valuesProgress);
+          const networkPos = networkParticlePosition(particle, networkProgress);
+          const travel = smooth(0.05, 0.95, networkProgress);
+          const pos = {
+            x: mix(valuePos.x, networkPos.x, ease(travel)),
+            y: mix(valuePos.y, networkPos.y, ease(travel))
+          };
+          const color = blend(particle.color, particle.networkColor, smooth(0.16, 0.82, networkProgress));
+          const pulse = 0.95 + Math.sin((valuesProgress + networkProgress) * Math.PI * 7 + particle.phase) * 0.11 * (1 - smooth(0.82, 1, networkProgress));
+          const size = particle.dot * mix(mix(1.22, 0.88, morph), 1.42, smooth(0.2, 1, networkProgress)) * pulse;
+          const panelAlpha = clamp(mix(0.96, 0.065, finalTextSpace) + particle.seed * 0.04, 0.05, 1) * valuesOpacity;
+          const networkAlpha = smooth(0.04, 0.34, networkProgress) * (1 - networkFade);
+          const alpha = Math.max(panelAlpha, networkAlpha);
           ctx.fillStyle = rgb(color, alpha);
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, Math.max(0.7, size), 0, Math.PI * 2);
@@ -638,10 +977,13 @@
         }
 
         for (const particle of textParticles) {
-          const pos = textParticlePosition(particle, progress);
-          const color = blend(particle.color, palette.ink, smooth(0.34, 0.92, textSettle));
-          const alpha = clamp(mix(0.56, 1, textSettle), 0, 1);
-          const size = clamp(Math.min(width, height) / 430, 1.05, 1.75) * mix(1.2, 0.9, textSettle);
+          const pos = textParticlePosition(particle, valuesProgress);
+          const color = blend(particle.color, palette.ink, smooth(0.22, 0.82, textSettle));
+          const alpha = clamp(smooth(0.22, 0.58, valuesProgress) * mix(0.7, 1, textSettle), 0, 1) * valuesOpacity;
+          const textBase = width < 760
+            ? clamp(Math.min(width, height) / 310, 1.18, 1.58)
+            : clamp(Math.min(width, height) / 500, 1.02, 1.42);
+          const size = textBase * (particle.kind === 'body' ? 0.9 : 1.08) * mix(1.08, 1, textSettle);
           ctx.fillStyle = rgb(color, alpha);
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
@@ -649,14 +991,20 @@
         }
 
         ctx.restore();
-        drawPanelDotBorders(progress);
+        drawPanelDotBorders(valuesProgress, valuesOpacity);
       }
 
       function animate() {
         const catchup = reduceMotion.matches ? 1 : 0.12;
         renderedProgress += (scrollProgress - renderedProgress) * catchup;
-        document.documentElement.style.setProperty('--progress', renderedProgress.toFixed(4));
-        draw(renderedProgress);
+        if (
+          Math.abs(renderedProgress - lastDrawnProgress) > 0.00025 ||
+          Math.abs(scrollProgress - renderedProgress) > 0.00025
+        ) {
+          document.documentElement.style.setProperty('--progress', renderedProgress.toFixed(4));
+          draw(renderedProgress);
+          lastDrawnProgress = renderedProgress;
+        }
         rafId = requestAnimationFrame(animate);
       }
 
@@ -688,10 +1036,15 @@
             }
           });
         } else {
+          const updateNativeProgress = () => {
+            const start = track.offsetTop;
+            const distance = Math.max(1, track.offsetHeight - window.innerHeight);
+            scrollProgress = clamp((window.scrollY - start) / distance, 0, 1);
+          };
           window.addEventListener('scroll', () => {
-            const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-            scrollProgress = clamp(window.scrollY / max, 0, 1);
+            updateNativeProgress();
           }, { passive: true });
+          updateNativeProgress();
         }
       }
 
@@ -708,10 +1061,14 @@
           ScrollTrigger.refresh();
         }
         draw(renderedProgress);
+        lastDrawnProgress = renderedProgress;
       }
 
-      function start() {
+      async function start() {
         cancelAnimationFrame(rafId);
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
         resize();
         setupScroll();
         animate();
