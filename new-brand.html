@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RGB Values Morph Study</title>
+  <meta name="description" content="A scroll-tracked RGB dot morph experiment." />
+  <meta name="theme-color" content="#f7f4ec" />
+  <meta name="color-scheme" content="light" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --progress: 0;
+      --paper: #f7f4ec;
+      --ink: #101010;
+      --red: #ff160d;
+      --green: #00f21e;
+      --blue: #1027ff;
+      --line: rgba(16, 16, 16, 0.22);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    html {
+      min-width: 320px;
+      min-height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--mono);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 24% 22%, rgba(255, 22, 13, 0.08), transparent 26rem),
+        radial-gradient(circle at 74% 24%, rgba(0, 242, 30, 0.08), transparent 26rem),
+        radial-gradient(circle at 50% 72%, rgba(16, 39, 255, 0.08), transparent 28rem),
+        var(--paper);
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='.42'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+      opacity: 0.08;
+    }
+
+    .scroll-track {
+      min-height: 390vh;
+    }
+
+    .pin {
+      position: sticky;
+      top: 0;
+      min-height: 100svh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .values {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+      pointer-events: none;
+    }
+
+    .value-grid {
+      --card-opacity: clamp(0, calc((var(--progress) - 0.68) * 3.5), 1);
+      --card-y: calc((1 - var(--card-opacity)) * 2.2rem);
+      display: grid;
+      width: min(100%, 1180px);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(0.7rem, 2vw, 1.2rem);
+      opacity: var(--card-opacity);
+      transform: translateY(var(--card-y));
+    }
+
+    .value-card {
+      min-height: clamp(23rem, 64vh, 40rem);
+      overflow: hidden;
+      padding: clamp(1rem, 2.2vw, 1.55rem);
+      border: 1px solid var(--line);
+      border-radius: clamp(1.15rem, 2.2vw, 1.65rem);
+      background: rgba(247, 244, 236, 0.45);
+      backdrop-filter: blur(2px);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+      transform: scale(calc(0.985 + var(--card-opacity) * 0.015));
+    }
+
+    .value-card:nth-child(1) { --accent: var(--red); }
+    .value-card:nth-child(2) { --accent: var(--green); }
+    .value-card:nth-child(3) { --accent: var(--blue); }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 0 0 clamp(2rem, 7vh, 4.2rem);
+      color: rgba(16, 16, 16, 0.72);
+      font-size: clamp(0.68rem, 0.92vw, 0.8rem);
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::after {
+      content: '';
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 1.4rem var(--accent);
+    }
+
+    h2 {
+      margin: 0 0 clamp(1.2rem, 4vh, 2rem);
+      font-family: var(--serif);
+      font-size: clamp(2.1rem, 4.7vw, 4.45rem);
+      font-weight: 500;
+      line-height: 0.9;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
+    }
+
+    p {
+      max-width: 22rem;
+      margin: 0;
+      color: rgba(16, 16, 16, 0.76);
+      font-size: clamp(0.92rem, 1.35vw, 1.08rem);
+      line-height: 1.45;
+    }
+
+    .scroll-space {
+      height: 80vh;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    @media (max-width: 760px) {
+      .scroll-track {
+        min-height: 430vh;
+      }
+
+      .value-grid {
+        grid-template-columns: 1fr;
+        gap: 0.72rem;
+      }
+
+      .value-card {
+        min-height: auto;
+        padding: 0.9rem;
+        border-radius: 1rem;
+      }
+
+      .eyebrow {
+        margin-bottom: 1.1rem;
+      }
+
+      h2 {
+        margin-bottom: 0.65rem;
+        font-size: clamp(1.8rem, 12vw, 3.35rem);
+      }
+
+      p {
+        max-width: none;
+        font-size: 0.86rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-track {
+        min-height: 100vh;
+      }
+
+      .value-grid {
+        --card-opacity: 1;
+        --card-y: 0rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="scroll-track" id="morph-track">
+    <section class="pin" aria-labelledby="study-title">
+      <canvas aria-hidden="true"></canvas>
+      <h1 class="sr-only" id="study-title">RGB dots morph into What Why How value panels</h1>
+      <div class="values" aria-hidden="false">
+        <div class="value-grid">
+          <article class="value-card">
+            <div class="eyebrow">What</div>
+            <h2>Playful software.</h2>
+            <p>We make software that can be tiny, personal, strange, unfinished, and still worth making.</p>
+          </article>
+          <article class="value-card">
+            <div class="eyebrow">Why</div>
+            <h2>Computers are toys again.</h2>
+            <p>The work matters more than the image of the work. We want computers to feel magical and fun again.</p>
+          </article>
+          <article class="value-card">
+            <div class="eyebrow">How</div>
+            <h2>AI with authorship.</h2>
+            <p>Use AI to move faster, but keep your own taste, judgment, intention, and care for tiny finished things.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    <div class="scroll-space" aria-hidden="true"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.3.23/dist/lenis.min.js"></script>
+  <script>
+    (() => {
+      const canvas = document.querySelector('canvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const textCanvas = document.createElement('canvas');
+      const textCtx = textCanvas.getContext('2d', { willReadFrequently: true });
+      const track = document.querySelector('#morph-track');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      const palette = {
+        red: [255, 22, 13],
+        green: [0, 242, 30],
+        blue: [16, 39, 255],
+        paper: [247, 244, 236],
+        ink: [16, 16, 16],
+        white: [255, 255, 250]
+      };
+
+      const cards = [
+        {
+          key: 'what',
+          label: 'WHAT',
+          title: 'Playful software.',
+          body: 'Tiny, personal, strange software is worth making.',
+          color: palette.red
+        },
+        {
+          key: 'why',
+          label: 'WHY',
+          title: 'Computers are toys again.',
+          body: 'The work matters more than the image of the work.',
+          color: palette.green
+        },
+        {
+          key: 'how',
+          label: 'HOW',
+          title: 'AI with authorship.',
+          body: 'Move faster with AI. Keep your taste and judgment.',
+          color: palette.blue
+        }
+      ];
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let particles = [];
+      let textParticles = [];
+      let scrollProgress = reduceMotion.matches ? 1 : 0;
+      let renderedProgress = scrollProgress;
+      let rafId = 0;
+      let lenis = null;
+
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const mix = (a, b, t) => a + (b - a) * t;
+      const smooth = (edge0, edge1, x) => {
+        const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+      };
+      const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2;
+      const rgb = (color, alpha = 1) => `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
+      const blend = (a, b, t) => [
+        Math.round(mix(a[0], b[0], t)),
+        Math.round(mix(a[1], b[1], t)),
+        Math.round(mix(a[2], b[2], t))
+      ];
+
+      function fract(value) {
+        return value - Math.floor(value);
+      }
+
+      function hash(seed) {
+        return fract(Math.sin(seed * 12.9898) * 43758.5453123);
+      }
+
+      function pointInCircle(seedA, seedB, cx, cy, r) {
+        const angle = seedA * Math.PI * 2;
+        const radius = Math.sqrt(seedB) * r;
+        return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius };
+      }
+
+      function pointInPanel(seedA, seedB, panel, inset) {
+        const x = mix(panel.x + inset, panel.x + panel.w - inset, seedA);
+        const y = mix(panel.y + inset, panel.y + panel.h - inset, seedB);
+        return { x, y };
+      }
+
+      function wrapLines(text, maxWidth, font) {
+        textCtx.font = font;
+        const words = text.split(' ');
+        const lines = [];
+        let line = '';
+
+        for (const word of words) {
+          const test = line ? `${line} ${word}` : word;
+          if (textCtx.measureText(test).width <= maxWidth || !line) {
+            line = test;
+          } else {
+            lines.push(line);
+            line = word;
+          }
+        }
+
+        if (line) lines.push(line);
+        return lines;
+      }
+
+      function getLayout() {
+        const short = Math.min(width, height);
+        const isMobile = width < 760;
+        const triadR = clamp(short * (isMobile ? 0.108 : 0.15), 42, 150);
+        const distance = triadR * 2.04;
+        const centerX = width * 0.5;
+        const centerY = height * (isMobile ? 0.38 : 0.43);
+        const topY = centerY - triadR * 0.62;
+
+        const triad = [
+          { x: centerX - distance * 0.5, y: topY, r: triadR },
+          { x: centerX + distance * 0.5, y: topY, r: triadR },
+          { x: centerX, y: topY + distance * 0.866, r: triadR }
+        ];
+
+        const margin = clamp(width * 0.045, 16, 58);
+        const gap = clamp(width * 0.018, 10, 20);
+        const panelTop = isMobile ? height * 0.08 : height * 0.13;
+        const panelHeight = isMobile ? height * 0.25 : height * 0.72;
+        const panels = isMobile
+          ? cards.map((_, index) => ({
+              x: margin,
+              y: panelTop + index * (panelHeight + gap),
+              w: width - margin * 2,
+              h: panelHeight
+            }))
+          : cards.map((_, index) => {
+              const w = (width - margin * 2 - gap * 2) / 3;
+              return { x: margin + index * (w + gap), y: panelTop, w, h: panelHeight };
+            });
+
+        return { triad, panels, short, isMobile };
+      }
+
+      function buildTextTargets(layout) {
+        const { panels, triad, isMobile, short } = layout;
+        const targets = [];
+        const sampleStep = clamp(short / (isMobile ? 150 : 240), 2.35, 3.2);
+        const headingSize = clamp(isMobile ? width * 0.105 : width * 0.043, isMobile ? 33 : 44, isMobile ? 48 : 70);
+        const bodySize = clamp(isMobile ? width * 0.044 : width * 0.019, 16, isMobile ? 20 : 27);
+
+        textCanvas.width = Math.max(1, Math.round(width));
+        textCanvas.height = Math.max(1, Math.round(height));
+        textCtx.clearRect(0, 0, width, height);
+        textCtx.fillStyle = '#fff';
+        textCtx.textBaseline = 'top';
+
+        panels.forEach((panel, index) => {
+          const card = cards[index];
+          const pad = clamp(panel.w * (isMobile ? 0.045 : 0.07), 16, 30);
+          const headingFont = `500 ${headingSize}px Georgia, "Times New Roman", serif`;
+          const bodyFont = `700 ${bodySize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+          const textWidth = panel.w - pad * 2;
+          const headingLines = wrapLines(card.title, textWidth, headingFont).slice(0, isMobile ? 2 : 3);
+          const bodyLines = wrapLines(card.body, textWidth, bodyFont).slice(0, isMobile ? 3 : 3);
+          let y = panel.y + pad + clamp(panel.h * 0.035, 10, 30);
+
+          textCtx.font = headingFont;
+          headingLines.forEach((line) => {
+            textCtx.fillText(line, panel.x + pad, y);
+            y += headingSize * 0.9;
+          });
+
+          y += clamp(panel.h * 0.045, 12, 28);
+          textCtx.font = bodyFont;
+          bodyLines.forEach((line) => {
+            textCtx.fillText(line, panel.x + pad, y);
+            y += bodySize * 1.45;
+          });
+        });
+
+        const pixels = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height).data;
+        for (let y = 0; y < height; y += sampleStep) {
+          for (let x = 0; x < width; x += sampleStep) {
+            const alpha = pixels[(Math.floor(y) * textCanvas.width + Math.floor(x)) * 4 + 3];
+            if (alpha < 80) continue;
+            const panelIndex = panels.findIndex((panel) => (
+              x >= panel.x && x <= panel.x + panel.w && y >= panel.y && y <= panel.y + panel.h
+            ));
+            if (panelIndex === -1) continue;
+
+            const s1 = hash(x * 0.71 + y * 0.33 + panelIndex * 19);
+            const s2 = hash(x * 0.29 + y * 0.87 + panelIndex * 41);
+            const start = pointInCircle(s1, s2, triad[panelIndex].x, triad[panelIndex].y, triad[panelIndex].r);
+            const fan = pointInCircle(s2, s1, width * 0.5, height * 0.5, short * (0.18 + s1 * 0.14));
+            targets.push({
+              channel: panelIndex,
+              seed: s1,
+              phase: s2 * Math.PI * 2,
+              color: cards[panelIndex].color,
+              start,
+              fan,
+              end: { x, y }
+            });
+          }
+        }
+
+        return targets;
+      }
+
+      function buildParticles() {
+        const layout = getLayout();
+        const { triad, panels, short } = layout;
+        const density = width < 760 ? 88 : 112;
+        const count = Math.round(clamp((width * height) / density, 3900, 12500));
+        const dot = clamp(short / 310, 1.55, 3.65);
+        particles = [];
+        textParticles = buildTextTargets(layout);
+
+        for (let i = 0; i < count; i += 1) {
+          const channel = i % 3;
+          const s1 = hash(i + 1.2);
+          const s2 = hash(i + 7.8);
+          const s3 = hash(i + 18.1);
+          const s4 = hash(i + 31.6);
+          const circle = triad[channel];
+          const panel = panels[channel];
+          const dotStart = pointInCircle(s1, s2, circle.x, circle.y, circle.r);
+          const fan = pointInCircle(s2, s3, width * 0.5, height * 0.5, short * (0.22 + s4 * 0.16));
+          const finalPoint = pointInPanel(s1, s2, panel, clamp(panel.w * 0.075, 16, 36));
+          const side = Math.floor(s1 * 4);
+          const edgePoint = side === 0
+            ? { x: mix(panel.x, panel.x + panel.w, s2), y: panel.y }
+            : side === 1
+              ? { x: panel.x + panel.w, y: mix(panel.y, panel.y + panel.h, s2) }
+              : side === 2
+                ? { x: mix(panel.x, panel.x + panel.w, s2), y: panel.y + panel.h }
+                : { x: panel.x, y: mix(panel.y, panel.y + panel.h, s2) };
+
+          particles.push({
+            channel,
+            seed: s4,
+            phase: hash(i + 99.3) * Math.PI * 2,
+            color: cards[channel].color,
+            dot,
+            start: dotStart,
+            fan,
+            edge: edgePoint,
+            end: finalPoint
+          });
+        }
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        buildParticles();
+        draw(renderedProgress);
+      }
+
+      function drawHalftone(progress) {
+        const step = clamp(Math.min(width, height) / 86, 5.5, 10);
+        const alpha = mix(0.06, 0.18, smooth(0.22, 0.78, progress));
+        ctx.save();
+        ctx.fillStyle = `rgba(16, 16, 16, ${alpha})`;
+        for (let y = -step; y < height + step; y += step) {
+          for (let x = -step; x < width + step; x += step) {
+            const wave = 0.5 + 0.5 * Math.sin(x * 0.022 + y * 0.018 + progress * 9);
+            const r = step * (0.12 + wave * 0.13);
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawPanelFields(progress) {
+        const { panels } = getLayout();
+        const appear = smooth(0.42, 0.86, progress);
+        ctx.save();
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.filter = `blur(${clamp(Math.min(width, height) * 0.022, 10, 26)}px)`;
+
+        panels.forEach((panel, index) => {
+          const color = cards[index].color;
+          const cx = panel.x + panel.w * 0.5;
+          const cy = panel.y + panel.h * 0.5;
+          const radius = Math.max(panel.w, panel.h) * 0.62;
+          const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+          gradient.addColorStop(0, rgb(color, 0.075 * appear));
+          gradient.addColorStop(1, rgb(color, 0));
+          ctx.fillStyle = gradient;
+          ctx.fillRect(panel.x - panel.w * 0.2, panel.y - panel.h * 0.1, panel.w * 1.4, panel.h * 1.2);
+        });
+
+        ctx.restore();
+      }
+
+      function drawPanelDotBorders(progress) {
+        const { panels } = getLayout();
+        const appear = smooth(0.5, 0.94, progress);
+        if (appear <= 0.01) return;
+        const spacing = clamp(Math.min(width, height) / 78, 5.2, 9);
+        ctx.save();
+        ctx.globalAlpha = appear * 0.88;
+
+        panels.forEach((panel, index) => {
+          const color = cards[index].color;
+          ctx.fillStyle = rgb(color, 0.84);
+          const perimeter = [
+            [panel.x, panel.y, panel.x + panel.w, panel.y],
+            [panel.x + panel.w, panel.y, panel.x + panel.w, panel.y + panel.h],
+            [panel.x + panel.w, panel.y + panel.h, panel.x, panel.y + panel.h],
+            [panel.x, panel.y + panel.h, panel.x, panel.y]
+          ];
+          perimeter.forEach(([x1, y1, x2, y2]) => {
+            const distance = Math.hypot(x2 - x1, y2 - y1);
+            const steps = Math.max(2, Math.floor(distance / spacing));
+            for (let i = 0; i <= steps; i += 1) {
+              const t = i / steps;
+              const x = mix(x1, x2, t);
+              const y = mix(y1, y2, t);
+              ctx.beginPath();
+              ctx.arc(x, y, spacing * 0.22, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+        });
+
+        ctx.restore();
+      }
+
+      function particlePosition(particle, progress) {
+        const lift = smooth(0.06, 0.28, progress);
+        const grid = smooth(0.28, 0.82, progress);
+        const settle = smooth(0.76, 1, progress);
+        const midX = mix(particle.start.x, particle.fan.x, ease(lift));
+        const midY = mix(particle.start.y, particle.fan.y, ease(lift));
+        const edgeX = mix(midX, particle.edge.x, ease(grid));
+        const edgeY = mix(midY, particle.edge.y, ease(grid));
+        const x = mix(edgeX, particle.end.x, ease(settle));
+        const y = mix(edgeY, particle.end.y, ease(settle));
+        const drift = Math.sin(progress * Math.PI * 4 + particle.phase) * (1 - settle) * 7;
+        const curl = Math.cos(progress * Math.PI * 3.2 + particle.phase) * (1 - settle) * 5;
+        return { x: x + drift, y: y + curl };
+      }
+
+      function textParticlePosition(particle, progress) {
+        const lift = smooth(0.08, 0.32, progress);
+        const settle = smooth(0.56, 1, progress);
+        const midX = mix(particle.start.x, particle.fan.x, ease(lift));
+        const midY = mix(particle.start.y, particle.fan.y, ease(lift));
+        const x = mix(midX, particle.end.x, ease(settle));
+        const y = mix(midY, particle.end.y, ease(settle));
+        const drift = Math.sin(progress * Math.PI * 5 + particle.phase) * (1 - settle) * 8;
+        const curl = Math.cos(progress * Math.PI * 4.2 + particle.phase) * (1 - settle) * 6;
+        return { x: x + drift, y: y + curl };
+      }
+
+      function draw(progress) {
+        const bg = blend(palette.paper, palette.white, smooth(0.18, 0.7, progress) * 0.34);
+        ctx.fillStyle = rgb(bg, 1);
+        ctx.fillRect(0, 0, width, height);
+
+        drawPanelFields(progress);
+        drawHalftone(progress);
+
+        const morph = smooth(0.05, 0.92, progress);
+        const finalTextSpace = smooth(0.68, 1, progress);
+        const textSettle = smooth(0.58, 1, progress);
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+
+        for (const particle of particles) {
+          const pos = particlePosition(particle, progress);
+          const innerLight = smooth(0.78, 1, progress) * (0.16 + particle.seed * 0.12);
+          const color = blend(particle.color, palette.white, innerLight);
+          const pulse = 0.9 + Math.sin(progress * Math.PI * 7 + particle.phase) * 0.14 * (1 - finalTextSpace);
+          const size = particle.dot * mix(1.35, 0.88, morph) * pulse;
+          const alpha = clamp(mix(0.96, 0.1, finalTextSpace) + particle.seed * 0.06, 0.08, 1);
+          ctx.fillStyle = rgb(color, alpha);
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, Math.max(0.7, size), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        for (const particle of textParticles) {
+          const pos = textParticlePosition(particle, progress);
+          const color = blend(particle.color, palette.ink, smooth(0.34, 0.92, textSettle));
+          const alpha = clamp(mix(0.56, 1, textSettle), 0, 1);
+          const size = clamp(Math.min(width, height) / 430, 1.05, 1.75) * mix(1.2, 0.9, textSettle);
+          ctx.fillStyle = rgb(color, alpha);
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+        drawPanelDotBorders(progress);
+      }
+
+      function animate() {
+        const catchup = reduceMotion.matches ? 1 : 0.12;
+        renderedProgress += (scrollProgress - renderedProgress) * catchup;
+        document.documentElement.style.setProperty('--progress', renderedProgress.toFixed(4));
+        draw(renderedProgress);
+        rafId = requestAnimationFrame(animate);
+      }
+
+      function setupScroll() {
+        if (reduceMotion.matches) {
+          scrollProgress = 1;
+          renderedProgress = 1;
+          document.documentElement.style.setProperty('--progress', '1');
+          return;
+        }
+
+        if (window.gsap && window.ScrollTrigger) {
+          gsap.registerPlugin(ScrollTrigger);
+
+          if (window.Lenis) {
+            lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9, touchMultiplier: 1.15 });
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => lenis.raf(time * 1000));
+            gsap.ticker.lagSmoothing(0);
+          }
+
+          ScrollTrigger.create({
+            trigger: track,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.85,
+            onUpdate: (self) => {
+              scrollProgress = self.progress;
+            }
+          });
+        } else {
+          window.addEventListener('scroll', () => {
+            const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            scrollProgress = clamp(window.scrollY / max, 0, 1);
+          }, { passive: true });
+        }
+      }
+
+      function forceOpeningState() {
+        if (window.location.hash) return;
+        if (lenis && typeof lenis.scrollTo === 'function') {
+          lenis.scrollTo(0, { immediate: true });
+        }
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        scrollProgress = reduceMotion.matches ? 1 : 0;
+        renderedProgress = scrollProgress;
+        document.documentElement.style.setProperty('--progress', String(scrollProgress));
+        if (window.ScrollTrigger) {
+          ScrollTrigger.refresh();
+        }
+        draw(renderedProgress);
+      }
+
+      function start() {
+        cancelAnimationFrame(rafId);
+        resize();
+        setupScroll();
+        animate();
+        requestAnimationFrame(forceOpeningState);
+        setTimeout(forceOpeningState, 120);
+      }
+
+      window.addEventListener('resize', resize, { passive: true });
+      window.addEventListener('pageshow', forceOpeningState);
+      reduceMotion.addEventListener('change', () => window.location.reload());
+      start();
+    })();
+  </script>
+</body>
+</html>
