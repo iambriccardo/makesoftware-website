@@ -87,22 +87,7 @@
       min-width: 320px;
       min-height: 100vh;
       overflow-x: hidden;
-      background:
-        repeating-linear-gradient(
-          0deg,
-          transparent 0 2.85rem,
-          #dfe5f1 2.85rem calc(2.85rem + 1px),
-          transparent calc(2.85rem + 1px) 5.7rem
-        ),
-        repeating-linear-gradient(
-          90deg,
-          #f6f3ec 0 14rem,
-          #f1f2ef 14rem 28rem,
-          #f5f3ee 28rem 42rem,
-          #eff2f0 42rem 56rem
-        ),
-        linear-gradient(180deg, #f7f4ec 0%, #eef0f2 100%);
-      background-attachment: fixed;
+      background: var(--bg);
     }
 
     body::before {
@@ -132,6 +117,43 @@
     #loader.done {
       opacity: 0;
       pointer-events: none;
+    }
+
+    .shape-field {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .shape-field--back {
+      z-index: 0;
+    }
+
+    .shape-field--front {
+      z-index: 2;
+    }
+
+    .bg-shape {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--shape-size);
+      height: var(--shape-size);
+      overflow: visible;
+      transform:
+        translate3d(var(--shape-x, 0px), var(--shape-y, 0px), 0)
+        rotate(var(--shape-rotate, 0deg));
+      will-change: transform;
+    }
+
+    .bg-shape-mark {
+      fill: var(--shape-bg);
+      stroke: var(--shape-border);
+      stroke-width: var(--line-strong);
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
     }
 
     .page {
@@ -342,18 +364,7 @@
     .letter {
       position: relative;
       padding: clamp(1.55rem, 4vw, 3.25rem);
-      background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.74' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.67 0 0 0 0 0.61 0 0 0 0 0.48 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)'/%3E%3C/svg%3E"),
-        radial-gradient(circle at 18% 22%, #efe6d2 0 0.045rem, transparent 0.052rem),
-        radial-gradient(circle at 76% 34%, #e7dfcd 0 0.035rem, transparent 0.045rem),
-        radial-gradient(circle at 42% 72%, #f2ead9 0 0.04rem, transparent 0.048rem),
-        linear-gradient(#fffdf5, #fffdf5);
-      background-size:
-        140px 140px,
-        5.7rem 5.1rem,
-        6.4rem 4.8rem,
-        5.2rem 6.2rem,
-        auto;
+      background: #fffdf5 url('assets/textures/paper-background.png') center / cover no-repeat;
       border: var(--line-strong) solid var(--blue);
       transform: rotate(-1.1deg);
       transform-origin: center center;
@@ -371,22 +382,6 @@
       border: var(--line) solid #b7c1ff;
       pointer-events: none;
       z-index: 1;
-    }
-
-    .letter::after {
-      content: '';
-      position: absolute;
-      inset: calc(0.75rem + var(--line));
-      z-index: 0;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          transparent 0,
-          transparent 2.05rem,
-          #d7ddff 2.075rem,
-          transparent 2.1rem
-        );
     }
 
     .letter-kicker {
@@ -476,7 +471,7 @@
       min-height: 7.65rem;
       padding: 0.9rem 0.95rem 0.95rem;
       border: var(--line) solid #b7c1ff;
-      background: #fffdf5;
+      background: rgb(255 253 245 / 0.58);
     }
 
     .value dt {
@@ -976,10 +971,6 @@
         inset: 0.42rem;
       }
 
-      .letter::after {
-        inset: calc(0.42rem + var(--line));
-      }
-
       .letter-kicker {
         align-items: start;
       }
@@ -1142,15 +1133,17 @@
 </head>
 <body>
 
+  <div class="shape-field shape-field--back" id="shape-field-back" aria-hidden="true"></div>
+  <h1 class="parallax-title" aria-label="Make Software">
+    <span class="word">Make</span>
+    <span class="word">Software</span>
+  </h1>
+  <div class="shape-field shape-field--front" id="shape-field-front" aria-hidden="true"></div>
   <div id="loader"></div>
   <audio id="site-audio" src="assets/audio/song.mp3" preload="auto" loop></audio>
 
   <main class="page">
     <section class="hero" aria-labelledby="manifesto-title">
-      <h1 class="parallax-title" aria-label="Make Software">
-        <span class="word">Make</span>
-        <span class="word">Software</span>
-      </h1>
       <button class="logo-player" id="sound-toggle" type="button" data-state="paused" aria-pressed="false" aria-label="Play music">
         <span class="logo-disc-shell" aria-hidden="true">
           <span class="logo-disc"></span>
@@ -1446,16 +1439,16 @@
     }
 
     const colorThemes = [
-        { bg: '#103dff', fg: '#fffdf5' },
-        { bg: '#fffdf5', fg: '#103dff' },
-        { bg: '#ffd429', fg: '#103dff' },
-        { bg: '#103dff', fg: '#ffd429' },
-        { bg: '#111827', fg: '#fffdf5' },
-        { bg: '#ff5a47', fg: '#111827' },
-        { bg: '#17b978', fg: '#111827' },
-        { bg: '#8c4dff', fg: '#fffdf5' },
-        { bg: '#00b7c7', fg: '#0b2470' },
-        { bg: '#ff8a00', fg: '#111827' }
+        { bg: '#103dff', fg: '#fffdf5', accent: '#ffd429' },
+        { bg: '#fffdf5', fg: '#103dff', accent: '#ff5a47' },
+        { bg: '#ffd429', fg: '#103dff', accent: '#111827' },
+        { bg: '#103dff', fg: '#ffd429', accent: '#fffdf5' },
+        { bg: '#111827', fg: '#fffdf5', accent: '#00b7c7' },
+        { bg: '#ff5a47', fg: '#111827', accent: '#fffdf5' },
+        { bg: '#17b978', fg: '#111827', accent: '#fffdf5' },
+        { bg: '#8c4dff', fg: '#fffdf5', accent: '#ffd429' },
+        { bg: '#00b7c7', fg: '#0b2470', accent: '#fffdf5' },
+        { bg: '#ff8a00', fg: '#111827', accent: '#103dff' }
       ];
 
     function randomTheme(excludeIndex) {
@@ -1465,6 +1458,263 @@
       }
 
       return { index: next, theme: colorThemes[next] };
+    }
+
+    function initBackgroundShapes() {
+      const fields = [
+        document.getElementById('shape-field-back'),
+        document.getElementById('shape-field-front')
+      ].filter(Boolean);
+      if (!fields.length) return;
+
+      const title = document.querySelector('.parallax-title');
+      const svgNs = 'http://www.w3.org/2000/svg';
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const shapeTypes = ['circle', 'square', 'diamond', 'hex', 'star', 'triangle', 'plus', 'capsule', 'spark'];
+      const shapes = [];
+      const pointer = { x: -9999, y: -9999, active: false };
+
+      function viewport() {
+        return {
+          width: Math.max(window.innerWidth, 320),
+          height: Math.max(window.innerHeight, 480)
+        };
+      }
+
+      function pickTheme(index) {
+        return colorThemes[index % colorThemes.length];
+      }
+
+      function shuffle(items) {
+        for (let index = items.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+        }
+
+        return items;
+      }
+
+      function createDistributedPositions(count, vp) {
+        const columns = Math.max(4, Math.round(Math.sqrt(count * (vp.width / vp.height))));
+        const rows = Math.ceil(count / columns);
+        const cellWidth = vp.width / columns;
+        const cellHeight = vp.height / rows;
+        const cells = [];
+
+        for (let row = 0; row < rows; row += 1) {
+          for (let column = 0; column < columns; column += 1) {
+            cells.push({ row, column });
+          }
+        }
+
+        return shuffle(cells).slice(0, count).map(cell => ({
+          x: (cell.column + 0.2 + Math.random() * 0.6) * cellWidth,
+          y: (cell.row + 0.2 + Math.random() * 0.6) * cellHeight
+        }));
+      }
+
+      function createShapeNode(type) {
+        const svg = document.createElementNS(svgNs, 'svg');
+        let mark;
+
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.classList.add('bg-shape', `bg-shape--${type}`);
+
+        if (type === 'circle') {
+          mark = document.createElementNS(svgNs, 'circle');
+          mark.setAttribute('cx', '50');
+          mark.setAttribute('cy', '50');
+          mark.setAttribute('r', '38');
+        } else if (type === 'square') {
+          mark = document.createElementNS(svgNs, 'rect');
+          mark.setAttribute('x', '16');
+          mark.setAttribute('y', '16');
+          mark.setAttribute('width', '68');
+          mark.setAttribute('height', '68');
+        } else if (type === 'capsule') {
+          mark = document.createElementNS(svgNs, 'rect');
+          mark.setAttribute('x', '11');
+          mark.setAttribute('y', '28');
+          mark.setAttribute('width', '78');
+          mark.setAttribute('height', '44');
+          mark.setAttribute('rx', '22');
+        } else {
+          mark = document.createElementNS(svgNs, 'path');
+          const paths = {
+            diamond: 'M50 8 L92 50 L50 92 L8 50 Z',
+            hex: 'M27 10 H73 L94 50 L73 90 H27 L6 50 Z',
+            star: 'M50 7 L61 36 L92 37 L67 56 L77 88 L50 70 L23 88 L33 56 L8 37 L39 36 Z',
+            triangle: 'M50 8 L93 88 H7 Z',
+            plus: 'M38 10 H62 V38 H90 V62 H62 V90 H38 V62 H10 V38 H38 Z',
+            spark: 'M50 5 L60 38 L95 50 L60 62 L50 95 L40 62 L5 50 L40 38 Z'
+          };
+
+          mark.setAttribute('d', paths[type] || paths.spark);
+        }
+
+        mark.classList.add('bg-shape-mark');
+        svg.appendChild(mark);
+        return svg;
+      }
+
+      function createShapes() {
+        fields.forEach(field => field.replaceChildren());
+        shapes.length = 0;
+
+        const vp = viewport();
+        const count = Math.min(46, Math.max(24, Math.round(vp.width / 38)));
+        const positions = createDistributedPositions(count, vp);
+        const sizeBoost = {
+          capsule: 12,
+          plus: 8,
+          spark: 8,
+          star: 8,
+          triangle: 4
+        };
+
+        for (let index = 0; index < count; index += 1) {
+          const layer = index % 5 === 0 || index % 5 === 2 ? 1 : 0;
+          const field = fields[layer] || fields[0];
+          const type = shapeTypes[(index + Math.floor(Math.random() * shapeTypes.length)) % shapeTypes.length];
+          const theme = pickTheme(index + Math.floor(Math.random() * colorThemes.length));
+          const size = Math.round(30 + Math.random() * 38 + (layer ? 6 : 0) + (sizeBoost[type] || 0));
+          const shape = createShapeNode(type);
+          const position = positions[index];
+          const crossesProjection = layer && index % 4 === 0;
+          const x = crossesProjection
+            ? vp.width * (0.12 + Math.random() * 0.76) - size / 2
+            : position.x - size / 2;
+          const y = crossesProjection
+            ? vp.height * (0.24 + Math.random() * 0.52) - size / 2
+            : position.y - size / 2;
+
+          shape.style.setProperty('--shape-size', `${size}px`);
+          shape.style.setProperty('--shape-bg', theme.bg);
+          shape.style.setProperty('--shape-border', theme.fg);
+          field.appendChild(shape);
+
+          shapes.push({
+            node: shape,
+            layer,
+            x,
+            y,
+            rx: 0,
+            ry: 0,
+            tx: 0,
+            ty: 0,
+            size,
+            speedX: (Math.random() - 0.5) * 0.025,
+            speedY: (Math.random() - 0.5) * 0.025,
+            phase: Math.random() * Math.PI * 2,
+            radius: 6 + Math.random() * 16,
+            rotate: Math.random() * 360,
+            rotateSpeed: (Math.random() - 0.5) * 0.015
+          });
+        }
+      }
+
+      function titleRepel(shape, centerX, centerY, titleRect) {
+        if (!titleRect) return { x: 0, y: 0 };
+
+        const nearestX = Math.max(titleRect.left, Math.min(centerX, titleRect.right));
+        const nearestY = Math.max(titleRect.top, Math.min(centerY, titleRect.bottom));
+        let dx = centerX - nearestX;
+        let dy = centerY - nearestY;
+        let distance = Math.hypot(dx, dy);
+        const reach = 92 + shape.size * 0.85;
+
+        if (distance > reach) return { x: 0, y: 0 };
+
+        if (distance < 1) {
+          const titleCenterX = titleRect.left + titleRect.width / 2;
+          const titleCenterY = titleRect.top + titleRect.height / 2;
+          dx = centerX - titleCenterX;
+          dy = centerY - titleCenterY;
+          distance = Math.max(1, Math.hypot(dx, dy));
+        }
+
+        const strength = 1 - Math.min(distance / reach, 1);
+        const force = Math.min(48, Math.max(18, shape.size * 0.42)) * strength;
+
+        return {
+          x: (dx / distance) * force,
+          y: (dy / distance) * force
+        };
+      }
+
+      function renderShape(shape, time, titleRect) {
+        const driftX = Math.cos(time * 0.00007 + shape.phase) * shape.radius;
+        const driftY = Math.sin(time * 0.00006 + shape.phase) * shape.radius;
+        const centerX = shape.x + driftX + shape.size / 2;
+        const centerY = shape.y + driftY + shape.size / 2;
+
+        let targetRepelX = 0;
+        let targetRepelY = 0;
+        const titleForce = titleRepel(shape, centerX, centerY, titleRect);
+
+        if (pointer.active) {
+          const dx = centerX - pointer.x;
+          const dy = centerY - pointer.y;
+          const distance = Math.hypot(dx, dy);
+          const reach = 150;
+
+          if (distance > 0 && distance < reach) {
+            const strength = (1 - distance / reach) * 16;
+            targetRepelX = (dx / distance) * strength;
+            targetRepelY = (dy / distance) * strength;
+          }
+        }
+
+        shape.rx += (targetRepelX - shape.rx) * 0.09;
+        shape.ry += (targetRepelY - shape.ry) * 0.09;
+        shape.tx += (titleForce.x - shape.tx) * 0.16;
+        shape.ty += (titleForce.y - shape.ty) * 0.16;
+        shape.x += shape.speedX;
+        shape.y += shape.speedY;
+        shape.rotate += shape.rotateSpeed;
+
+        const vp = viewport();
+        if (shape.x < -140) shape.x = vp.width + 80;
+        if (shape.x > vp.width + 140) shape.x = -80;
+        if (shape.y < -140) shape.y = vp.height + 80;
+        if (shape.y > vp.height + 140) shape.y = -80;
+
+        shape.node.style.setProperty('--shape-x', `${shape.x + driftX + shape.rx + shape.tx}px`);
+        shape.node.style.setProperty('--shape-y', `${shape.y + driftY + shape.ry + shape.ty}px`);
+        shape.node.style.setProperty('--shape-title-x', `${shape.tx}px`);
+        shape.node.style.setProperty('--shape-title-y', `${shape.ty}px`);
+        shape.node.style.setProperty('--shape-rotate', `${shape.rotate}deg`);
+      }
+
+      function animate(time) {
+        const titleRect = title ? title.getBoundingClientRect() : null;
+        shapes.forEach(shape => renderShape(shape, time, titleRect));
+        window.requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('pointermove', event => {
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+        pointer.active = true;
+      }, { passive: true });
+
+      window.addEventListener('pointerleave', () => {
+        pointer.active = false;
+      });
+
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(createShapes, 180);
+      }, { passive: true });
+
+      createShapes();
+      if (reducedMotion.matches) {
+        shapes.forEach(shape => renderShape(shape, 0, null));
+      } else {
+        window.requestAnimationFrame(animate);
+      }
     }
 
     function initCalloutColors() {
@@ -1480,12 +1730,11 @@
         }
 
         const theme = colorThemes[index];
-        const accent = colorThemes.find(candidate => candidate.fg === theme.bg && candidate.bg !== theme.fg)?.bg || '#ffd429';
 
         callout.dataset.themeIndex = String(index);
         callout.style.setProperty('--callout-bg', theme.bg);
         callout.style.setProperty('--callout-fg', theme.fg);
-        callout.style.setProperty('--callout-accent', accent);
+        callout.style.setProperty('--callout-accent', theme.accent);
         usedIndexes.add(index);
       });
     }
@@ -1564,6 +1813,7 @@
       loader.addEventListener('transitionend', () => loader.remove(), { once: true });
       initAudioPlayer();
       initLeetGlitch();
+      initBackgroundShapes();
       initParallaxTitle();
       initLetterHover();
       initCalloutColors();
