@@ -25,6 +25,32 @@
       --rim-glow: rgba(255, 255, 255, 0.34);
       --rim-shade: rgba(45, 37, 14, 0.12);
       --cast-shadow: rgba(45, 79, 105, 0.18);
+      --mac-shadow-rest:
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        inset 0 -0.7rem 1.1rem rgba(45, 37, 14, 0.07),
+        0 0.45rem 1.05rem rgba(35, 64, 86, 0.12),
+        0 1.35rem 2.3rem rgba(35, 64, 86, 0.16),
+        0 2.9rem 4.4rem rgba(35, 64, 86, 0.09);
+      --mac-shadow-hover:
+        inset 0 1px 0 rgba(255, 255, 255, 0.88),
+        inset 0 -0.75rem 1.15rem rgba(45, 37, 14, 0.075),
+        0 0.58rem 1.18rem rgba(35, 64, 86, 0.14),
+        0 1.7rem 2.8rem rgba(35, 64, 86, 0.2),
+        0 3.6rem 5.2rem rgba(35, 64, 86, 0.12);
+      --mac-shadow-window:
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 1.1rem 1.6rem rgba(255, 255, 255, 0.18),
+        inset 0 -0.9rem 1.45rem rgba(45, 37, 14, 0.06),
+        0 0.45rem 0.85rem rgba(45, 37, 14, 0.14),
+        0 1.45rem 2.45rem rgba(35, 64, 86, 0.28),
+        0 4.2rem 6.8rem rgba(24, 48, 66, 0.2);
+      --mac-shadow-window-front:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 1.25rem 1.65rem rgba(255, 255, 255, 0.22),
+        inset 0 -0.95rem 1.5rem rgba(45, 37, 14, 0.07),
+        0 0.65rem 1rem rgba(45, 37, 14, 0.16),
+        0 1.95rem 3.1rem rgba(35, 64, 86, 0.34),
+        0 5rem 7.8rem rgba(24, 48, 66, 0.24);
       --pressed-shadow:
         inset 0 0.18rem 0.34rem rgba(45, 37, 14, 0.16),
         inset 0 -1px 0 rgba(255, 255, 255, 0.34),
@@ -35,19 +61,9 @@
         0 0.18rem 0 rgba(45, 37, 14, 0.18),
         0 0.54rem 0.72rem rgba(45, 79, 105, 0.14);
       --surface-shadow:
-        inset 0 1px 0 var(--rim-light),
-        inset 0 1.1rem 1.4rem rgba(255, 255, 255, 0.16),
-        inset 0 -0.62rem 1rem rgba(45, 37, 14, 0.08),
-        0 0.22rem 0 var(--rim-glow),
-        0 0.82rem 1rem var(--cast-shadow),
-        0 2.2rem 2.8rem rgba(45, 79, 105, 0.09);
+        var(--mac-shadow-rest);
       --surface-shadow-hover:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        inset 0 1.2rem 1.5rem rgba(255, 255, 255, 0.2),
-        inset 0 -0.72rem 1rem rgba(45, 37, 14, 0.09),
-        0 0.32rem 0 rgba(255, 255, 255, 0.32),
-        0 1.05rem 1.25rem rgba(45, 79, 105, 0.22),
-        0 2.7rem 3.4rem rgba(45, 79, 105, 0.12);
+        var(--mac-shadow-hover);
       --surface-border: rgba(45, 37, 14, 0.72);
       --mono: 'Departure Mono', monospace;
       --sans: 'Instrument Sans', sans-serif;
@@ -431,26 +447,11 @@
     }
 
     .scene-logo::before {
-      content: '';
-      position: absolute;
-      inset: 0.34rem 0.5rem auto;
-      height: 30%;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
-      filter: blur(0.08rem);
-      pointer-events: none;
+      content: none;
     }
 
     .scene-logo::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -0.38rem 0.78rem rgba(45, 37, 14, 0.1),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-      pointer-events: none;
+      content: none;
     }
 
     .scene-logo img {
@@ -622,8 +623,8 @@
       z-index: -2;
       border-radius: 999px;
       background:
-        radial-gradient(ellipse at 50% 50%, rgba(255, 253, 245, 0.34) 0 36%, rgba(255, 253, 245, 0.2) 56%, rgba(255, 253, 245, 0) 78%),
-        radial-gradient(ellipse at 50% 55%, rgba(93, 178, 235, 0.2) 0 42%, rgba(93, 178, 235, 0) 76%);
+        radial-gradient(ellipse at 50% 50%, rgba(255, 253, 245, 0.38) 0 36%, rgba(255, 253, 245, 0.22) 56%, rgba(255, 253, 245, 0) 78%),
+        radial-gradient(ellipse at 50% 55%, rgba(93, 178, 235, 0.18) 0 42%, rgba(93, 178, 235, 0) 76%);
       filter: blur(1.25rem);
       transform: scaleX(1.08);
     }
@@ -641,11 +642,7 @@
       font-style: italic;
       letter-spacing: 0;
       line-height: 0.78;
-      text-shadow:
-        0 1px 0 rgba(255, 253, 245, 0.7),
-        0 -1px 0 rgba(45, 37, 14, 0.1),
-        0 0.18rem 0.18rem rgba(45, 37, 14, 0.08),
-        0 0.72rem 0.82rem rgba(45, 79, 105, 0.18);
+      text-shadow: none;
       transform: translateZ(20px);
     }
 
@@ -666,9 +663,7 @@
     .artifact {
       position: absolute;
       z-index: 10;
-      filter:
-        drop-shadow(0 0.16rem 0 rgba(255, 255, 255, 0.22))
-        drop-shadow(0 1rem 0.8rem rgba(45, 79, 105, 0.18));
+      filter: none;
     }
 
     .map-app,
@@ -734,7 +729,7 @@
 
     .mini-app.is-hover-target {
       z-index: 90;
-      filter: drop-shadow(0 1.4rem 1rem rgba(45, 79, 105, 0.24));
+      filter: none;
       box-shadow: var(--surface-shadow-hover);
       outline: 0;
       --active-pop: 1.16;
@@ -756,7 +751,7 @@
 
     .mini-app.is-front {
       z-index: 100;
-      filter: drop-shadow(0 1.55rem 1.08rem rgba(45, 79, 105, 0.27));
+      filter: none;
     }
 
     .mini-app button,
@@ -2222,12 +2217,7 @@
         linear-gradient(145deg, var(--window-a, rgba(255, 255, 255, 0.96)), var(--window-b, rgba(255, 253, 245, 0.92)) 45%, var(--window-c, rgba(255, 253, 245, 0.88))),
         rgba(255, 253, 245, 0.86);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.82),
-        inset 0 1.2rem 1.8rem rgba(255, 255, 255, 0.2),
-        inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.055),
-        0 0.2rem 0 rgba(255, 255, 255, 0.22),
-        0 1.2rem 1.6rem rgba(45, 79, 105, 0.18),
-        0 3.2rem 4rem rgba(45, 79, 105, 0.11);
+        var(--mac-shadow-window);
       outline: 1px solid rgba(255, 255, 255, 0.28);
       outline-offset: -4px;
       -webkit-backdrop-filter: blur(22px) saturate(1.22) contrast(1.04) brightness(1.03);
@@ -2291,12 +2281,7 @@
     .desktop-window.is-dragging {
       --window-depth: 34px;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.88),
-        inset 0 1.4rem 1.8rem rgba(255, 255, 255, 0.24),
-        inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.06),
-        0 0.35rem 0 rgba(255, 255, 255, 0.24),
-        0 1.55rem 1.9rem rgba(45, 79, 105, 0.24),
-        0 4rem 4.8rem rgba(45, 79, 105, 0.13);
+        var(--mac-shadow-window-front);
     }
 
     .desktop-window.is-dragging {
@@ -3485,12 +3470,7 @@
           rotate(var(--window-rotate, 0deg));
         box-shadow:
           inset 0 0 0 2px rgba(45, 37, 14, 0.86),
-          inset 0 1px 0 rgba(255, 255, 255, 0.82),
-          inset 0 1.2rem 1.8rem rgba(255, 255, 255, 0.2),
-          inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.055),
-          0 0.2rem 0 rgba(255, 255, 255, 0.22),
-          0 1.2rem 1.6rem rgba(45, 79, 105, 0.18),
-          0 3.2rem 4rem rgba(45, 79, 105, 0.11);
+          var(--mac-shadow-window);
         transition: box-shadow 180ms ease;
       }
 
@@ -3500,12 +3480,7 @@
         --window-depth: 0px;
         box-shadow:
           inset 0 0 0 2px rgba(45, 37, 14, 0.86),
-          inset 0 1px 0 rgba(255, 255, 255, 0.88),
-          inset 0 1.2rem 1.8rem rgba(255, 255, 255, 0.24),
-          inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.06),
-          0 0.2rem 0 rgba(255, 255, 255, 0.24),
-          0 1.25rem 1.65rem rgba(45, 79, 105, 0.2),
-          0 3.2rem 4rem rgba(45, 79, 105, 0.11);
+          var(--mac-shadow-window-front);
       }
 
       .window-chrome {

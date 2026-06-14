@@ -1114,8 +1114,8 @@ function DesktopWindow({ index, className, title, action, children }) {
       ref={ref}
       className={`desktop-window ${className}`}
       data-window
-      initial={{ opacity: 0, filter: "blur(14px)" }}
-      whileInView={{ opacity: 1, filter: "blur(0px)" }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.18 }}
       transition={{
         delay: 0.08 + index * 0.08,
