@@ -161,6 +161,51 @@ function stickerCenterPenalty(point, width, height, config) {
   return clamp(1 - Math.max(normalizedX, normalizedY), 0, 1);
 }
 
+function stickerOverlapsExclusion(point, size, exclusionZones) {
+  const inset = size * 0.56;
+  return exclusionZones.some((zone) => (
+    point.x > zone.left - inset
+    && point.x < zone.right + inset
+    && point.y > zone.top - inset
+    && point.y < zone.bottom + inset
+  ));
+}
+
+function fallbackStickerPoint(index, total, seed, width, height, size, exclusionZones) {
+  const config = stickerViewportConfig(width);
+  const safeLeft = clamp(width * config.marginX, size * 0.72, 160);
+  const safeRight = clamp(width * config.marginX, size * 0.72, 160);
+  const safeTop = clamp(height * config.marginTop, size * 0.78, 140);
+  const safeBottom = clamp(height * config.marginBottom, size * 0.9, 180);
+  const columns = 9;
+  const rows = 7;
+  const step = spreadStep(columns * rows);
+  const offset = Math.floor(seededNoise(seed + index * 4.71) * columns * rows);
+
+  for (let attempt = 0; attempt < columns * rows * 2; attempt += 1) {
+    const cell = (offset + (index + attempt) * step) % (columns * rows);
+    const column = cell % columns;
+    const row = Math.floor(cell / columns);
+    const xNoise = seededNoise(seed + index * 10.9 + attempt * 3.13);
+    const yNoise = seededNoise(seed + index * 12.7 + attempt * 4.91);
+    const x = safeLeft + ((column + 0.25 + xNoise * 0.5) / columns) * Math.max(width - safeLeft - safeRight, 1);
+    const y = safeTop + ((row + 0.25 + yNoise * 0.5) / rows) * Math.max(height - safeTop - safeBottom, 1);
+    const point = clampStickerPoint(x, y, size);
+    if (!stickerOverlapsExclusion(point, size, exclusionZones)) return point;
+  }
+
+  const edgePoints = [
+    { x: safeLeft, y: safeTop },
+    { x: width - safeRight, y: safeTop },
+    { x: safeLeft, y: height - safeBottom },
+    { x: width - safeRight, y: height - safeBottom },
+    { x: width * 0.5, y: safeTop },
+    { x: width * 0.5, y: height - safeBottom }
+  ];
+  return edgePoints.find((point) => !stickerOverlapsExclusion(point, size, exclusionZones))
+    || clampStickerPoint(width * 0.5, safeTop, size);
+}
+
 function generateStickerCandidates(index, total, seed, width, height, size, config) {
   const safeLeft = clamp(width * config.marginX, size * 0.72, 160);
   const safeRight = clamp(width * config.marginX, size * 0.72, 160);
@@ -197,20 +242,20 @@ function generateStickerCandidates(index, total, seed, width, height, size, conf
     );
   }
 
-  const ringCount = Math.max(10, total * 2);
-  const centerX = width * 0.5;
-  const centerY = height * 0.5;
-  for (let attempt = 0; attempt < ringCount; attempt += 1) {
-    const angle = Math.PI * 2 * seededNoise(seed + index * 13.7 + attempt * 1.91);
-    const radiusX = width * (0.36 + seededNoise(seed + attempt * 4.3) * 0.12);
-    const radiusY = height * (0.34 + seededNoise(seed + attempt * 5.1) * 0.14);
-    push(centerX + Math.cos(angle) * radiusX, centerY + Math.sin(angle) * radiusY, 0.7 + attempt * 0.02);
+  const randomCount = Math.max(24, total * 7);
+  for (let attempt = 0; attempt < randomCount; attempt += 1) {
+    const wave = seed + index * 17.31 + attempt * 11.17;
+    const xNoise = seededNoise(wave + 5.3);
+    const yNoise = seededNoise(wave + 7.9);
+    const x = safeLeft + usableWidth * xNoise;
+    const y = safeTop + usableHeight * yNoise;
+    push(x, y, 0.16 + attempt * 0.014);
   }
 
   return candidates;
 }
 
-function placeStickerPoints(total, seed, width, height, size) {
+function placeStickerPoints(total, seed, width, height, size, exclusionZones = []) {
   const config = stickerViewportConfig(width);
   const placed = [];
   const minGap = Math.max(size * 0.42, 30);
@@ -221,32 +266,69 @@ function placeStickerPoints(total, seed, width, height, size) {
     let best = null;
 
     for (const candidate of candidates) {
+      if (stickerOverlapsExclusion(candidate, size, exclusionZones)) continue;
       const nearest = placed.length
         ? Math.min(...placed.map((point) => stickerDistance(candidate, point)))
         : minDistance * 1.8;
       const overlapPenalty = nearest < minDistance ? (minDistance - nearest) * 95 : 0;
-      const centerPenalty = stickerCenterPenalty(candidate, width, height, config) * size * 5.5;
+      const centerPenalty = stickerCenterPenalty(candidate, width, height, config) * size * 0.58;
       const edgeDistance = Math.min(candidate.x, width - candidate.x, candidate.y, height - candidate.y);
       const edgePenalty = Math.max(0, size * 0.62 - edgeDistance) * 6;
       const spacingReward = Math.min(nearest, minDistance * 1.8);
-      const score = spacingReward - overlapPenalty - centerPenalty - edgePenalty - candidate.rankBias;
+      const organicNoise = (seededNoise(seed + index * 23.13 + candidate.x * 0.017 + candidate.y * 0.019) - 0.5) * size * 0.34;
+      const score = spacingReward + organicNoise - overlapPenalty - centerPenalty - edgePenalty - candidate.rankBias;
 
       if (!best || score > best.score) best = { ...candidate, score };
     }
 
-    const point = best ? { x: best.x, y: best.y } : clampStickerPoint(width * 0.5, height * 0.5, size);
+    const point = best ? { x: best.x, y: best.y } : fallbackStickerPoint(index, total, seed, width, height, size, exclusionZones);
     placed.push(point);
   }
 
   return placed;
 }
 
-function clampStickerPoint(x, y, size) {
+function getStickerPageHeight() {
+  return Math.max(
+    window.innerHeight,
+    document.documentElement.scrollHeight,
+    document.body?.scrollHeight || 0
+  );
+}
+
+function clampStickerPoint(x, y, size, bounds = {}) {
   const gutter = Math.max(12, size * 0.45);
+  const maxY = Math.max(window.innerHeight, bounds.height || getStickerPageHeight());
   return {
     x: clamp(x, gutter, window.innerWidth - gutter),
-    y: clamp(y, gutter, window.innerHeight - gutter)
+    y: clamp(y, gutter, maxY - gutter)
   };
+}
+
+function getStickerExclusionZones(width, height, size) {
+  const wordmark = document.querySelector(".scene-wordmark");
+  const padding = Math.max(10, size * 0.12);
+
+  if (wordmark) {
+    const rect = wordmark.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      return [{
+        left: clamp(rect.left - padding, 0, width),
+        top: clamp(rect.top - padding, 0, height),
+        right: clamp(rect.right + padding, 0, width),
+        bottom: clamp(rect.bottom + padding, 0, height)
+      }];
+    }
+  }
+
+  const fallbackWidth = width <= 640 ? Math.min(width * 0.9, 360) : Math.min(width * 0.78, 1040);
+  const fallbackHeight = width <= 640 ? Math.min(height * 0.38, 250) : Math.min(height * 0.42, 360);
+  return [{
+    left: (width - fallbackWidth) * 0.5,
+    top: (height - fallbackHeight) * 0.5,
+    right: (width + fallbackWidth) * 0.5,
+    bottom: (height + fallbackHeight) * 0.5
+  }];
 }
 
 function usePointerParallax(sceneRef) {
@@ -432,7 +514,11 @@ function Sticker({ sticker, seed, index }) {
     lastMoveY: sticker.y,
     lastMoveTime: performance.now(),
     releaseVelocityX: 0,
-    releaseVelocityY: 0
+    releaseVelocityY: 0,
+    lastClientX: 0,
+    lastClientY: 0,
+    autoScrollFrame: 0,
+    autoScrollY: 0
   });
 
   const updatePosition = useCallback((x, y) => {
@@ -478,9 +564,9 @@ function Sticker({ sticker, seed, index }) {
 
     const animation = element.animate(
       [
-        { offset: 0, scale: "0.9 0.94", translate: `${(-direction * 2.5).toFixed(2)}px ${(-drop).toFixed(2)}px`, rotate: `${(-twist * 0.75).toFixed(2)}deg`, easing: "cubic-bezier(.2,.72,.18,1)" },
-        { offset: 0.3, scale: "1.08 0.91", translate: `${(direction * 1.5).toFixed(2)}px 3px`, rotate: `${twist.toFixed(2)}deg`, easing: "cubic-bezier(.12,.82,.16,1)" },
-        { offset: 0.48, scale: "0.96 1.045", translate: `${(-direction * 0.7).toFixed(2)}px -1px`, rotate: `${(-twist * 0.34).toFixed(2)}deg`, easing: "cubic-bezier(.18,.7,.18,1)" },
+        { offset: 0, scale: "0.84 0.9", translate: `${(-direction * 2.5).toFixed(2)}px ${(-drop).toFixed(2)}px`, rotate: `${(-twist * 0.75).toFixed(2)}deg`, easing: "cubic-bezier(.2,.72,.18,1)" },
+        { offset: 0.26, scale: "1.11 0.89", translate: `${(direction * 1.5).toFixed(2)}px 3px`, rotate: `${twist.toFixed(2)}deg`, easing: "cubic-bezier(.12,.82,.16,1)" },
+        { offset: 0.48, scale: "0.95 1.055", translate: `${(-direction * 0.7).toFixed(2)}px -1px`, rotate: `${(-twist * 0.34).toFixed(2)}deg`, easing: "cubic-bezier(.18,.7,.18,1)" },
         { offset: 0.68, scale: "1.025 0.985", translate: "0 0.5px", rotate: `${(twist * 0.16).toFixed(2)}deg`, easing: "cubic-bezier(.16,.84,.18,1)" },
         { offset: 1, scale: "1", translate: "0 0", rotate: "0deg" }
       ],
@@ -489,13 +575,70 @@ function Sticker({ sticker, seed, index }) {
     animation.id = "sticker-attach";
   };
 
+  const updateDragFromClient = useCallback((clientX, clientY) => {
+    const current = state.current;
+    if (current.pointerId === null) return;
+    const next = clampStickerPoint(
+      current.originX + clientX - current.startX,
+      current.originY + clientY + window.scrollY - current.startY,
+      sticker.size
+    );
+    const now = performance.now();
+    const elapsed = Math.max(now - current.lastMoveTime, 16);
+    current.releaseVelocityX = ((next.x - current.lastMoveX) / elapsed) * 16.67;
+    current.releaseVelocityY = ((next.y - current.lastMoveY) / elapsed) * 16.67;
+    current.lastMoveX = next.x;
+    current.lastMoveY = next.y;
+    current.lastMoveTime = now;
+    updatePosition(next.x, next.y);
+  }, [sticker.size, updatePosition]);
+
+  const stopAutoScroll = useCallback(() => {
+    const current = state.current;
+    if (current.autoScrollFrame) cancelAnimationFrame(current.autoScrollFrame);
+    current.autoScrollFrame = 0;
+    current.autoScrollY = 0;
+  }, []);
+
+  const updateAutoScroll = useCallback((clientY) => {
+    const current = state.current;
+    const edge = Math.min(110, window.innerHeight * 0.18);
+    const bottomDistance = window.innerHeight - clientY;
+    const topPressure = clientY < edge ? clamp((edge - clientY) / edge, 0, 1.25) : 0;
+    const bottomPressure = bottomDistance < edge ? clamp((edge - bottomDistance) / edge, 0, 1.25) : 0;
+    current.autoScrollY = (bottomPressure - topPressure) * 18;
+
+    if (Math.abs(current.autoScrollY) < 0.5) {
+      stopAutoScroll();
+      return;
+    }
+
+    if (current.autoScrollFrame) return;
+    const tick = () => {
+      const active = state.current;
+      if (active.pointerId === null || Math.abs(active.autoScrollY) < 0.5) {
+        active.autoScrollFrame = 0;
+        return;
+      }
+      const before = window.scrollY;
+      window.scrollBy({ top: active.autoScrollY, left: 0, behavior: "auto" });
+      if (window.scrollY !== before) updateDragFromClient(active.lastClientX, active.lastClientY);
+      active.autoScrollFrame = requestAnimationFrame(tick);
+    };
+    current.autoScrollFrame = requestAnimationFrame(tick);
+  }, [stopAutoScroll, updateDragFromClient]);
+
+  useEffect(() => () => stopAutoScroll(), [stopAutoScroll]);
+
   const onPointerDown = (event) => {
     if (event.button && event.button !== 0) return;
     event.preventDefault();
     const current = state.current;
     current.pointerId = event.pointerId;
     current.startX = event.clientX;
-    current.startY = event.clientY;
+    current.startY = event.clientY + window.scrollY;
+    current.lastClientX = event.clientX;
+    current.lastClientY = event.clientY;
     current.originX = current.currentX;
     current.originY = current.currentY;
     current.lastMoveX = current.currentX;
@@ -510,21 +653,17 @@ function Sticker({ sticker, seed, index }) {
   const onPointerMove = (event) => {
     const current = state.current;
     if (current.pointerId !== event.pointerId) return;
-    const next = clampStickerPoint(current.originX + event.clientX - current.startX, current.originY + event.clientY - current.startY, sticker.size);
-    const now = performance.now();
-    const elapsed = Math.max(now - current.lastMoveTime, 16);
-    current.releaseVelocityX = ((next.x - current.lastMoveX) / elapsed) * 16.67;
-    current.releaseVelocityY = ((next.y - current.lastMoveY) / elapsed) * 16.67;
-    current.lastMoveX = next.x;
-    current.lastMoveY = next.y;
-    current.lastMoveTime = now;
-    updatePosition(next.x, next.y);
+    current.lastClientX = event.clientX;
+    current.lastClientY = event.clientY;
+    updateDragFromClient(event.clientX, event.clientY);
+    updateAutoScroll(event.clientY);
   };
   const endDrag = (event) => {
     const current = state.current;
     if (current.pointerId !== event.pointerId) return;
     ref.current?.releasePointerCapture(current.pointerId);
     current.pointerId = null;
+    stopAutoScroll();
     ref.current?.classList.remove("is-dragging");
     attachSticker();
   };
@@ -560,14 +699,17 @@ function Sticker({ sticker, seed, index }) {
 function StickerBoard({ style }) {
   const seed = useMemo(() => Math.random() * 10000, []);
   const [stickers, setStickers] = useState([]);
+  const [boardHeight, setBoardHeight] = useState(0);
 
   useLayoutEffect(() => {
     const build = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      setBoardHeight(getStickerPageHeight());
       const visibleAssets = selectStickerAssetsForViewport(stickerAssets, seed, width);
       const size = stickerViewportConfig(width).size;
-      const points = placeStickerPoints(visibleAssets.length, seed, width, height, size);
+      const exclusionZones = getStickerExclusionZones(width, height, size);
+      const points = placeStickerPoints(visibleAssets.length, seed, width, height, size, exclusionZones);
       setStickers(
         visibleAssets.map((src, index) => {
           const point = points[index];
@@ -590,7 +732,12 @@ function StickerBoard({ style }) {
   }, [seed]);
 
   return (
-    <motion.div className="sticker-board" data-sticker-board aria-label="Draggable sticker layer" style={style}>
+    <motion.div
+      className="sticker-board"
+      data-sticker-board
+      aria-label="Draggable sticker layer"
+      style={{ ...style, "--sticker-board-height": boardHeight ? `${boardHeight}px` : "100svh" }}
+    >
       {stickers.map((sticker, index) => (
         <Sticker key={sticker.id} sticker={sticker} index={index} seed={seed} />
       ))}
@@ -635,9 +782,9 @@ function BurstLayer({ bursts }) {
             width: burst.size
           }}
           initial={{ opacity: 0.74, scale: 0.36, rotate: 0 }}
-          animate={{ opacity: 0, scale: 2.9, rotate: 34 }}
+          animate={{ opacity: 0, scale: 2.35, rotate: 18 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.72, ease: [0.16, 0.84, 0.18, 1] }}
+          transition={{ duration: 0.62, ease: [0.18, 0.86, 0.2, 1] }}
         />
       ))}
     </AnimatePresence>
@@ -804,7 +951,7 @@ function MiniApps({ state, activate, clock }) {
       </MiniApp>
 
       <MiniApp id="music" className={`music-app${state.musicPlaying ? " is-playing" : ""}`} label="Tiny music player" onActivate={activate}>
-        <span />
+        <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
         <button className="music-toggle" type="button" data-action="music" aria-label="Play tiny music" tabIndex={-1}>{state.musicPlaying ? "pause" : "play"}</button>
       </MiniApp>
 
@@ -826,6 +973,7 @@ function MiniApps({ state, activate, clock }) {
 
       <MiniApp id="voice" className={`voice-app${state.voiceRecording ? " is-recording" : ""}`} label="Tiny voice recorder" onActivate={activate}>
         <span className="voice-title">voice</span>
+        <span className="voice-status">{state.voiceRecording ? "recording" : "ready"}</span>
         <span className="voice-bars"><i /><i /><i /><i /><i /></span>
         <button className="app-action voice-toggle" type="button" data-action="voice" tabIndex={-1}>{state.voiceRecording ? "stop" : "rec"}</button>
       </MiniApp>
@@ -879,8 +1027,10 @@ function DesktopWindow({ index, className, title, action, children }) {
       viewport={{ once: true, amount: 0.18 }}
       transition={{
         delay: 0.08 + index * 0.08,
-        duration: 0.72,
-        ease: [0.18, 0.86, 0.2, 1]
+        type: "spring",
+        stiffness: 150,
+        damping: 18,
+        mass: 0.72
       }}
     >
       <div className="window-chrome" data-drag-handle>
@@ -968,7 +1118,7 @@ function DetailsDesktop() {
           <span className="letter-badge" aria-hidden="true">M</span>
           <div className="letter-copy">
             <span className="letter-kicker-app">Manifesto / Make Software</span>
-            <h2>Computers are toys again.</h2>
+            <h2>Computers are fun again.</h2>
             <p>Make Software is a community for people who want to create with computers the way others paint, write, or play music.</p>
             <p className="letter-note">Broken demos, ugly code, unfinished ideas, tiny tools, and strange scripts are welcome.</p>
           </div>
@@ -1068,7 +1218,7 @@ export default function App() {
         className="toy-page"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, ease: [0.18, 0.86, 0.2, 1] }}
+        transition={{ duration: 0.78, ease: [0.18, 0.86, 0.2, 1] }}
       >
         <CloudLayer />
         <section className="hero" aria-labelledby="page-title">
@@ -1084,7 +1234,7 @@ export default function App() {
         aria-label="Made by Ambient, coming soon to Vienna"
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.45, duration: 0.68, ease: [0.18, 0.86, 0.2, 1] }}
+        transition={{ delay: 0.36, type: "spring", stiffness: 170, damping: 16, mass: 0.76 }}
       >
         <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
         <span className="floating-ambient-mark" aria-hidden="true">
