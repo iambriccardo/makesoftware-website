@@ -89,40 +89,46 @@
       initial-value: 0;
     }
 
-    @property --scroll-out-x {
-      syntax: '<length>';
-      inherits: false;
-      initial-value: 0px;
-    }
-
-    @property --scroll-out-y {
-      syntax: '<length>';
-      inherits: false;
-      initial-value: 0px;
-    }
-
-    @property --scroll-back-z {
-      syntax: '<length>';
-      inherits: false;
-      initial-value: 0px;
-    }
-
-    @property --wordmark-scroll-blur {
-      syntax: '<length>';
-      inherits: false;
-      initial-value: 0px;
-    }
-
-    @property --scroll-scale {
+    @property --scene-progress {
       syntax: '<number>';
-      inherits: false;
+      inherits: true;
+      initial-value: 0;
+    }
+
+    @property --item-opacity {
+      syntax: '<number>';
+      inherits: true;
       initial-value: 1;
     }
 
-    @property --scroll-opacity {
+    @property --item-scale {
       syntax: '<number>';
-      inherits: false;
+      inherits: true;
       initial-value: 1;
+    }
+
+    @property --wordmark-opacity {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 1;
+    }
+
+    @property --wordmark-scale {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 1;
+    }
+
+    @property --wordmark-depth {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 0;
+    }
+
+    @property --wordmark-blur {
+      syntax: '<length>';
+      inherits: true;
+      initial-value: 0px;
     }
 
     @property --details-opacity {
@@ -131,10 +137,10 @@
       initial-value: 0;
     }
 
-    @property --details-y {
-      syntax: '<length>';
+    @property --footer-progress {
+      syntax: '<number>';
       inherits: true;
-      initial-value: 4rem;
+      initial-value: 0;
     }
 
     html {
@@ -144,7 +150,6 @@
       color: var(--ink);
       font-family: var(--sans);
       -webkit-font-smoothing: antialiased;
-      scroll-behavior: smooth;
     }
 
     body {
@@ -172,11 +177,18 @@
 
     .toy-page {
       position: relative;
-      min-height: 220svh;
+      min-height: 520svh;
       isolation: isolate;
       perspective: 1200px;
       --details-opacity: 0;
-      --details-y: 4rem;
+      --footer-progress: 0;
+      --scene-progress: 0;
+      --item-opacity: 1;
+      --item-scale: 1;
+      --wordmark-opacity: 1;
+      --wordmark-scale: 1;
+      --wordmark-depth: 0;
+      --wordmark-blur: 0px;
     }
 
     .cloud-filter-defs {
@@ -457,7 +469,6 @@
       opacity: var(--stickers-opacity, 1);
       pointer-events: none;
       contain: layout style;
-      transition: opacity 180ms linear;
       will-change: opacity;
     }
 
@@ -480,12 +491,8 @@
       touch-action: none;
       transform:
         translate3d(-50%, -50%, 0)
-        translate3d(var(--sticker-scroll-x, 0px), var(--sticker-scroll-y, 0px), 0)
         rotate(var(--sticker-rotate, 0deg))
-        scale(calc(var(--sticker-scale, 1) * var(--sticker-scroll-scale, 1)));
-      transition:
-        opacity 260ms ease,
-        transform 180ms cubic-bezier(.16, .84, .18, 1);
+        scale(var(--sticker-scale, 1));
       user-select: none;
       -webkit-user-drag: none;
       will-change: transform, opacity;
@@ -530,9 +537,6 @@
       cursor: grabbing;
       filter: none;
       opacity: 1;
-      transition:
-        opacity 120ms ease,
-        transform 120ms cubic-bezier(.16, .84, .18, 1);
     }
 
     .floating-sticker img {
@@ -556,8 +560,8 @@
         rotateX(calc(var(--scene-tilt-y) * -0.22deg))
         rotateY(calc(var(--scene-tilt-x) * 0.28deg));
       transform-style: preserve-3d;
-      transition: transform 280ms ease-out;
       contain: layout style;
+      will-change: transform;
     }
 
     .scene-wordmark {
@@ -576,18 +580,17 @@
       isolation: isolate;
       transform:
         translate3d(
-          calc(-50% + (var(--float-x, 0px) * var(--parallax, 0.7)) + var(--scroll-out-x, 0px)),
-          calc(-50% + (var(--float-y, 0px) * var(--parallax, 0.7)) + var(--scroll-out-y, 0px)),
-          calc(92px - var(--scroll-back-z, 0px))
+          calc(-50% + (var(--float-x, 0px) * var(--parallax, 0.7)) + (var(--scatter-x, 0px) * var(--scene-progress, 0))),
+          calc(-50% + (var(--float-y, 0px) * var(--parallax, 0.7)) + (var(--scatter-y, 0px) * var(--scene-progress, 0))),
+          calc(92px - (var(--wordmark-depth, 0) * 540px))
         )
         rotateX(calc(var(--scene-tilt-y) * -0.22deg))
         rotateY(calc(var(--scene-tilt-x) * 0.22deg))
-        scale(var(--scroll-scale, 1));
-      filter: blur(var(--wordmark-scroll-blur, 0px));
+        scale(var(--wordmark-scale, 1));
+      filter: blur(var(--wordmark-blur, 0px));
       transform-style: preserve-3d;
       transform-origin: 50% 50%;
-      transition: filter 160ms linear;
-      opacity: var(--scroll-opacity, 1);
+      opacity: var(--wordmark-opacity, 1);
       backface-visibility: hidden;
       will-change: transform, opacity, filter;
     }
@@ -692,27 +695,22 @@
       box-shadow: var(--surface-shadow);
       transform:
         translate3d(
-          calc(var(--drag-x) + var(--avoid-x) + (var(--float-x) * var(--parallax, 1)) + var(--scroll-out-x, 0px)),
-          calc(var(--drag-y) + var(--avoid-y) + (var(--float-y) * var(--parallax, 1)) + var(--scroll-out-y, 0px)),
+          calc(var(--drag-x) + var(--avoid-x) + (var(--float-x) * var(--parallax, 1)) + (var(--scatter-x, 0px) * var(--scene-progress, 0))),
+          calc(var(--drag-y) + var(--avoid-y) + (var(--float-y) * var(--parallax, 1)) + (var(--scatter-y, 0px) * var(--scene-progress, 0))),
           var(--depth)
         )
         rotateX(calc(var(--scene-tilt-y) * var(--tilt-mult, -0.45deg)))
         rotateY(calc(var(--scene-tilt-x) * var(--tilt-mult, 0.45deg)))
         rotate(var(--app-rotate, 0deg))
-        scale(calc((1 + (var(--active-pop) * 0.04) + (var(--app-pulse) * 0.035)) * var(--scroll-scale, 1)));
+        scale(calc((1 + (var(--active-pop) * 0.04) + (var(--app-pulse) * 0.035)) * var(--item-scale, 1)));
       transition:
-        transform 220ms cubic-bezier(.16, .84, .18, 1),
         filter 180ms ease,
         box-shadow 180ms ease,
         background-color 240ms ease;
-      animation:
-        floaty var(--app-speed, 7.6s) ease-in-out infinite,
-        app-wobble calc(var(--app-speed, 7.6s) * 1.7) ease-in-out infinite;
-      animation-delay: var(--app-delay, 0s);
       transform-style: preserve-3d;
       backface-visibility: hidden;
-      will-change: transform, filter;
-      opacity: var(--scroll-opacity, 1);
+      will-change: transform, opacity, filter;
+      opacity: var(--item-opacity, 1);
     }
 
     .mini-app.is-hover-target {
@@ -2043,13 +2041,12 @@
       opacity: var(--details-opacity, 0);
       pointer-events: none;
       transform:
-        translate3d(0, var(--details-y, 4rem), 0)
+        translate3d(0, calc((1 - var(--details-opacity, 0)) * 52px), 0)
         rotateX(calc(var(--scene-tilt-y) * -0.18deg))
         rotateY(calc(var(--scene-tilt-x) * 0.18deg))
-        scale(0.92);
+        scale(calc(0.94 + (var(--details-opacity, 0) * 0.06)));
       transform-style: flat;
       transform-origin: 50% 42%;
-      transition: opacity 160ms linear;
       backface-visibility: hidden;
       contain: layout style;
       overscroll-behavior: auto;
@@ -2058,6 +2055,11 @@
 
     body.is-details-active .details-desktop {
       pointer-events: auto;
+    }
+
+    body:not(.is-scene-complete) .details-desktop,
+    body:not(.is-scene-complete) .floating-ambient-footer {
+      pointer-events: none;
     }
 
     body.is-details-active .collage {
@@ -2268,6 +2270,7 @@
         inset 0 0.5rem 0.9rem rgba(45, 37, 14, 0.05),
         0 1px 0 rgba(255, 255, 255, 0.72),
         0 0.45rem 0.8rem rgba(45, 79, 105, 0.12);
+      pointer-events: none;
     }
 
     .contact-window {
@@ -2415,9 +2418,9 @@
       --chrome-a: rgba(255, 243, 110, 0.24);
       --chrome-b: rgba(99, 167, 255, 0.22);
       left: 5%;
-      top: 46%;
+      top: 34%;
       width: 36%;
-      min-height: 15.5rem;
+      min-height: 14.5rem;
     }
 
     .values-window {
@@ -2429,9 +2432,9 @@
       --chrome-a: rgba(96, 209, 48, 0.2);
       --chrome-b: rgba(251, 120, 166, 0.26);
       right: 4%;
-      top: 49%;
+      top: 32%;
       width: 38%;
-      min-height: 15rem;
+      min-height: 14.25rem;
     }
 
     .letter-window-body {
@@ -2596,12 +2599,12 @@
         0 1.25rem 2.2rem rgba(45, 79, 105, 0.26);
       -webkit-backdrop-filter: blur(20px) saturate(1.32) contrast(1.04);
       backdrop-filter: blur(20px) saturate(1.32) contrast(1.04);
-      opacity: 0;
+      opacity: var(--footer-progress, 0);
       pointer-events: none;
-      transform: translate3d(-50%, 0.75rem, 0) scale(0.98);
-      transition:
-        opacity 220ms ease,
-        transform 320ms cubic-bezier(.16, .84, .18, 1);
+      transform:
+        translate3d(-50%, calc((1 - var(--footer-progress, 0)) * 0.75rem), 0)
+        scale(calc(0.98 + var(--footer-progress, 0) * 0.02));
+      will-change: transform, opacity;
     }
 
     .floating-ambient-footer::before,
@@ -2633,10 +2636,8 @@
       z-index: -1;
     }
 
-    body.is-details-active .floating-ambient-footer {
-      opacity: 1;
+    body.is-footer-active .floating-ambient-footer {
       pointer-events: auto;
-      transform: translate3d(-50%, 0, 0) scale(1);
     }
 
     .floating-ambient-mark {
@@ -2887,7 +2888,7 @@
 
     @media (max-width: 640px) {
       .toy-page {
-        min-height: 240svh;
+        min-height: 560svh;
       }
 
       .scene-logo {
@@ -2938,7 +2939,7 @@
         overflow-y: auto;
         padding: 0 0.1rem clamp(8.75rem, 21svh, 11rem);
         scroll-padding-bottom: clamp(8.75rem, 21svh, 11rem);
-        transform: translate3d(0, var(--details-y, 4rem), 0);
+        transform: translate3d(0, calc((1 - var(--details-opacity, 0)) * 52px), 0);
       }
 
       .desktop-window {
@@ -3236,6 +3237,35 @@
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
         transition-duration: 1ms !important;
+      }
+
+      .toy-page {
+        min-height: auto;
+        --details-opacity: 1;
+        --footer-progress: 1;
+        --scene-progress: 0;
+        --item-opacity: 1;
+        --item-scale: 1;
+        --wordmark-opacity: 1;
+        --wordmark-scale: 1;
+        --wordmark-depth: 0;
+        --wordmark-blur: 0px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+      }
+
+      .details-desktop,
+      .floating-ambient-footer {
+        position: relative;
+        inset: auto;
+        left: auto;
+        bottom: auto;
+        opacity: 1;
+        margin: 1rem auto;
+        transform: none;
       }
     }
   </style>
@@ -3557,6 +3587,7 @@
   <script>
     const root = document.documentElement;
     const scene = document.querySelector('.toy-page');
+    const collage = document.querySelector('.collage');
     const miniApps = [...document.querySelectorAll('.mini-app')];
     const floaters = [...document.querySelectorAll('.mini-app, .scene-wordmark')];
     const scrollSceneItems = [...document.querySelectorAll('.mini-app, .scene-wordmark')];
@@ -3925,164 +3956,146 @@
       return Math.min(max, Math.max(min, value));
     }
 
-    function easeOutCubic(value) {
-      return 1 - Math.pow(1 - value, 3);
+    function smoothstep(value) {
+      const t = clamp(value);
+      return t * t * (3 - 2 * t);
     }
 
     function initScrollScene() {
-      const scatter = new Map();
+      if (!scene) return;
+
       const scrollState = {
-        targetRaw: 0,
+        targetProgress: 0,
         raf: 0,
         resizeRaf: 0,
         viewportWidth: window.innerWidth,
         viewportHeight: window.innerHeight,
-        detailsActive: false
+        sectionTop: 0,
+        scrollBudget: 1,
+        detailsActive: false,
+        footerActive: false,
+        stickersHidden: false,
+        sceneComplete: false,
+        lastVars: new Map()
       };
 
+      function readLayoutViewportHeight() {
+        return document.documentElement.clientHeight || window.innerHeight || 1;
+      }
+
+      function setVar(target, name, value) {
+        const key = `${target === root ? 'root' : 'scene'}:${name}`;
+        if (scrollState.lastVars.get(key) === value) return;
+        scrollState.lastVars.set(key, value);
+        target.style.setProperty(name, value);
+      }
+
       function buildScatter() {
-        scatter.clear();
         scrollState.viewportWidth = window.innerWidth;
-        scrollState.viewportHeight = window.innerHeight;
-
-        const previousScrollStyles = scrollSceneItems.map(item => ({
-          item,
-          x: item.style.getPropertyValue('--scroll-out-x'),
-          y: item.style.getPropertyValue('--scroll-out-y'),
-          z: item.style.getPropertyValue('--scroll-back-z'),
-          scale: item.style.getPropertyValue('--scroll-scale'),
-          opacity: item.style.getPropertyValue('--scroll-opacity'),
-          blur: item.style.getPropertyValue('--wordmark-scroll-blur')
-        }));
-
-        previousScrollStyles.forEach(({ item }) => {
-          item.style.setProperty('--scroll-out-x', '0px');
-          item.style.setProperty('--scroll-out-y', '0px');
-          item.style.setProperty('--scroll-back-z', '0px');
-          item.style.setProperty('--scroll-scale', '1');
-          item.style.setProperty('--scroll-opacity', '1');
-          item.style.setProperty('--wordmark-scroll-blur', '0px');
-        });
+        scrollState.viewportHeight = readLayoutViewportHeight();
+        const sceneRect = scene.getBoundingClientRect();
+        const collageRect = collage?.getBoundingClientRect();
+        scrollState.sectionTop = window.scrollY + sceneRect.top;
+        scrollState.scrollBudget = Math.max(scene.offsetHeight - scrollState.viewportHeight, scrollState.viewportHeight);
 
         scrollSceneItems.forEach((item, index) => {
-          const rect = item.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
+          const isWordmark = item.classList.contains('scene-wordmark');
+          const centerX = collageRect
+            ? collageRect.left + item.offsetLeft + (isWordmark ? 0 : item.offsetWidth / 2)
+            : item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
+          const centerY = collageRect
+            ? collageRect.top + item.offsetTop + (isWordmark ? 0 : item.offsetHeight / 2)
+            : item.getBoundingClientRect().top + item.getBoundingClientRect().height / 2;
           const fromCenterX = centerX - scrollState.viewportWidth / 2;
           const fromCenterY = centerY - scrollState.viewportHeight / 2;
           const length = Math.hypot(fromCenterX, fromCenterY) || 1;
           const wave = index * 1.618;
-          const strength = item.classList.contains('scene-wordmark') ? 0.68 : 1;
+          const strength = isWordmark ? 0 : 1;
 
-          scatter.set(item, {
-            x: ((fromCenterX / length) * scrollState.viewportWidth * 0.72 + Math.cos(wave) * 140) * strength,
-            y: ((fromCenterY / length) * scrollState.viewportHeight * 0.68 + Math.sin(wave) * 120) * strength
-          });
-        });
+          const x = ((fromCenterX / length) * scrollState.viewportWidth * 0.58 + Math.cos(wave) * 96) * strength;
+          const y = ((fromCenterY / length) * scrollState.viewportHeight * 0.52 + Math.sin(wave) * 88) * strength;
 
-        previousScrollStyles.forEach(({ item, x, y, z, scale, opacity, blur }) => {
-          item.style.setProperty('--scroll-out-x', x || '0px');
-          item.style.setProperty('--scroll-out-y', y || '0px');
-          item.style.setProperty('--scroll-back-z', z || '0px');
-          item.style.setProperty('--scroll-scale', scale || '1');
-          item.style.setProperty('--scroll-opacity', opacity || '1');
-          item.style.setProperty('--wordmark-scroll-blur', blur || '0px');
+          item.style.setProperty('--scatter-x', `${x.toFixed(2)}px`);
+          item.style.setProperty('--scatter-y', `${y.toFixed(2)}px`);
         });
       }
 
-      function readScrollRaw() {
-        const viewportHeight = window.visualViewport?.height || window.innerHeight;
-        return window.scrollY / Math.max(viewportHeight * 0.86, 1);
+      function readTimelineProgress() {
+        return clamp((window.scrollY - scrollState.sectionTop) / scrollState.scrollBudget);
       }
 
-      function updateStickerScroll(stickerProgress) {
-        const stickers = stickerBoard ? [...stickerBoard.querySelectorAll('.floating-sticker')] : [];
-        if (!stickers.length) return;
-
-        const centerX = window.innerWidth * 0.5;
-        const centerY = window.innerHeight * 0.46;
-
-        stickers.forEach((sticker, index) => {
-          const x = parseFloat(sticker.style.getPropertyValue('--sticker-x')) || centerX;
-          const y = parseFloat(sticker.style.getPropertyValue('--sticker-y')) || centerY;
-          const dx = x - centerX;
-          const dy = y - centerY;
-          const distance = Math.hypot(dx, dy) || 1;
-          const fallbackAngle = index * 2.399 + 0.7;
-          const unitX = distance > 8 ? dx / distance : Math.cos(fallbackAngle);
-          const unitY = distance > 8 ? dy / distance : Math.sin(fallbackAngle);
-          const travel = 140 + seededNoise(index + 27.5) * 120;
-          const lift = 20 + seededNoise(index + 8.9) * 36;
-
-          sticker.style.setProperty('--sticker-scroll-x', `${(unitX * travel * stickerProgress).toFixed(2)}px`);
-          sticker.style.setProperty('--sticker-scroll-y', `${((unitY * travel - lift) * stickerProgress).toFixed(2)}px`);
-          sticker.style.setProperty('--sticker-scroll-scale', (1 - stickerProgress * 0.26).toFixed(3));
-        });
-      }
-
-      function applyScroll(raw) {
-        const progress = easeOutCubic(clamp(raw));
-        const detailsProgress = easeOutCubic(clamp((raw - 0.38) / 0.5));
-        const itemOpacity = clamp(1 - raw * 1.08);
-        const itemScale = 1 - progress * 0.22;
-        const detailsActive = detailsProgress > 0.55;
-        const stickerProgress = easeOutCubic(clamp((raw - 0.08) / 0.48));
+      function applyScroll(timelineProgress) {
+        const progress = smoothstep((timelineProgress - 0.02) / 0.42);
+        const wordmarkExit = smoothstep((timelineProgress - 0.02) / 0.46);
+        const detailsProgress = smoothstep((timelineProgress - 0.4) / 0.32);
+        const footerProgress = smoothstep((timelineProgress - 0.42) / 0.32);
+        const detailsActive = detailsProgress > 0.06;
+        const footerActive = footerProgress > 0.08;
+        const stickerProgress = smoothstep((timelineProgress - 0.06) / 0.32);
         const stickersOpacity = clamp(1 - stickerProgress * 1.12);
+        const itemOpacity = clamp(1 - progress * 1.12);
+        const itemScale = 1 - progress * 0.18;
+        const wordmarkOpacity = clamp(1 - wordmarkExit * 1.15);
+        const wordmarkScale = 1 - wordmarkExit * 0.38;
+        const wordmarkBlur = wordmarkExit * 8.5;
+        const stickersHidden = stickersOpacity < 0.08 || detailsActive;
+        const sceneComplete = timelineProgress > 0.965;
 
-        scene.style.setProperty('--details-opacity', detailsProgress.toFixed(3));
-        scene.style.setProperty('--details-y', `${((1 - detailsProgress) * 52).toFixed(2)}px`);
-        root.style.setProperty('--stickers-opacity', stickersOpacity.toFixed(3));
-        updateStickerScroll(stickerProgress);
+        setVar(scene, '--scene-progress', progress.toFixed(4));
+        setVar(scene, '--item-opacity', itemOpacity.toFixed(4));
+        setVar(scene, '--item-scale', itemScale.toFixed(4));
+        setVar(scene, '--wordmark-opacity', wordmarkOpacity.toFixed(4));
+        setVar(scene, '--wordmark-scale', wordmarkScale.toFixed(4));
+        setVar(scene, '--wordmark-depth', wordmarkExit.toFixed(4));
+        setVar(scene, '--wordmark-blur', `${wordmarkBlur.toFixed(2)}px`);
+        setVar(scene, '--details-opacity', detailsProgress.toFixed(4));
+        setVar(root, '--stickers-opacity', stickersOpacity.toFixed(3));
+        setVar(root, '--footer-progress', footerProgress.toFixed(3));
 
         if (detailsActive !== scrollState.detailsActive) {
           scrollState.detailsActive = detailsActive;
           document.body.classList.toggle('is-details-active', detailsActive);
+          if (detailsActive) {
+            miniApps.forEach(widget => {
+              widget.classList.remove('is-hover-target');
+              restoreMiniAppLayer(widget);
+            });
+          }
         }
 
-        document.body.classList.toggle('is-stickers-hidden', stickersOpacity < 0.08 || detailsActive);
+        if (footerActive !== scrollState.footerActive) {
+          scrollState.footerActive = footerActive;
+          document.body.classList.toggle('is-footer-active', footerActive);
+        }
 
-        scrollSceneItems.forEach(item => {
-          const vector = scatter.get(item);
-          if (!vector) return;
+        if (stickersHidden !== scrollState.stickersHidden) {
+          scrollState.stickersHidden = stickersHidden;
+          document.body.classList.toggle('is-stickers-hidden', stickersHidden);
+        }
 
-          if (item.classList.contains('scene-wordmark')) {
-            const wordmarkOpacity = clamp(1 - raw * 1.34);
-            const wordmarkScale = 1 - progress * 0.46;
-            item.style.setProperty('--scroll-out-x', '0px');
-            item.style.setProperty('--scroll-out-y', '0px');
-            item.style.setProperty('--scroll-scale', wordmarkScale.toFixed(3));
-            item.style.setProperty('--scroll-opacity', wordmarkOpacity.toFixed(3));
-            item.style.setProperty('--scroll-back-z', `${(progress * 660).toFixed(2)}px`);
-            item.style.setProperty('--wordmark-scroll-blur', `${(progress * 9).toFixed(2)}px`);
-            return;
-          }
-
-          item.style.setProperty('--scroll-out-x', `${(vector.x * progress).toFixed(2)}px`);
-          item.style.setProperty('--scroll-out-y', `${(vector.y * progress).toFixed(2)}px`);
-          item.style.setProperty('--scroll-scale', itemScale.toFixed(3));
-          item.style.setProperty('--scroll-opacity', itemOpacity.toFixed(3));
-          item.style.setProperty('--scroll-back-z', '0px');
-          item.style.setProperty('--wordmark-scroll-blur', '0px');
-        });
+        if (sceneComplete !== scrollState.sceneComplete) {
+          scrollState.sceneComplete = sceneComplete;
+          document.body.classList.toggle('is-scene-complete', sceneComplete);
+        }
       }
 
       function scheduleScrollUpdate({ immediate = false } = {}) {
-        scrollState.targetRaw = readScrollRaw();
+        scrollState.targetProgress = readTimelineProgress();
 
         if (immediate) {
           if (scrollState.raf) {
-            window.cancelAnimationFrame(scrollState.raf);
+              window.cancelAnimationFrame(scrollState.raf);
             scrollState.raf = 0;
           }
-          applyScroll(scrollState.targetRaw);
+          applyScroll(scrollState.targetProgress);
           return;
         }
 
         if (!scrollState.raf) {
           scrollState.raf = window.requestAnimationFrame(() => {
             scrollState.raf = 0;
-            scrollState.targetRaw = readScrollRaw();
-            applyScroll(scrollState.targetRaw);
+            scrollState.targetProgress = readTimelineProgress();
+            applyScroll(scrollState.targetProgress);
           });
         }
       }
@@ -4093,6 +4106,16 @@
       }
 
       function scheduleRebuild() {
+        const nextWidth = window.innerWidth;
+        const nextHeight = readLayoutViewportHeight();
+        const widthChanged = Math.abs(nextWidth - scrollState.viewportWidth) >= 1;
+        const heightChanged = Math.abs(nextHeight - scrollState.viewportHeight) >= 140;
+
+        if (!widthChanged && !heightChanged) {
+          scheduleScrollUpdate();
+          return;
+        }
+
         if (scrollState.resizeRaf) return;
         scrollState.resizeRaf = window.requestAnimationFrame(() => {
           scrollState.resizeRaf = 0;
@@ -4105,8 +4128,9 @@
 
       window.addEventListener('scroll', () => scheduleScrollUpdate(), { passive: true });
       window.addEventListener('resize', scheduleRebuild, { passive: true });
-
       window.visualViewport?.addEventListener('resize', scheduleRebuild, { passive: true });
+      window.addEventListener('load', () => rebuildAndUpdate({ immediate: true }), { once: true });
+      document.fonts?.ready?.then(() => rebuildAndUpdate({ immediate: true }));
 
       window.addEventListener('pagehide', () => {
         if (scrollState.raf) window.cancelAnimationFrame(scrollState.raf);
@@ -4964,10 +4988,6 @@
     initScrollScene();
     initDesktopWindows();
     initStickerLayer();
-
-    if (!window.location.hash) {
-      window.requestAnimationFrame(() => window.scrollTo(0, 0));
-    }
   </script>
 </body>
 </html>
