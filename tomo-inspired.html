@@ -177,9 +177,15 @@
       --details-y: 4rem;
     }
 
+    .cloud-filter-defs {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
     .sky-layer,
-    .cloud-layer,
-    .grass-layer {
+    .cloud-layer {
       position: fixed;
       inset: 0;
       pointer-events: none;
@@ -194,31 +200,157 @@
     .cloud-layer {
       z-index: 1;
       overflow: hidden;
+      contain: layout style paint;
     }
 
-    .cloud-track {
+    .soft-cloud {
       position: absolute;
-      inset: 0 -10vw;
-      width: 120vw;
-      background: url('assets/branding/clouds.png') center / cover no-repeat;
-      opacity: 0.94;
-      animation: background-cloud-drift 38s ease-in-out infinite alternate;
+      left: var(--cloud-left, 10vw);
+      top: var(--cloud-top, 16vh);
+      width: var(--cloud-width, 20rem);
+      height: calc(var(--cloud-width, 20rem) * var(--cloud-ratio, 0.38));
+      opacity: var(--cloud-opacity, 0.88);
+      transform:
+        translate3d(var(--cloud-x, 0), var(--cloud-y, 0), 0)
+        scale(var(--cloud-scale, 1))
+        rotate(var(--cloud-rotate, 0deg));
+      filter:
+        url(#cloud-squish)
+        drop-shadow(0 0.16rem 0 rgba(255, 255, 255, 0.42))
+        drop-shadow(0 1.05rem 1.1rem rgba(45, 79, 105, 0.11));
+      animation: cloud-float var(--cloud-speed, 34s) ease-in-out infinite alternate;
+      animation-delay: var(--cloud-delay, 0s);
+      transform-origin: 50% 56%;
       will-change: transform;
     }
 
-    .cloud-track::after {
+    .soft-cloud::before,
+    .soft-cloud::after,
+    .soft-cloud span {
       content: '';
       position: absolute;
-      inset: 0;
-      background: inherit;
-      opacity: 0.5;
-      transform: translateX(7vw) translateY(-0.5vw) scale(1.02);
-      animation: background-cloud-drift-soft 54s ease-in-out infinite alternate-reverse;
+      display: block;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.98), transparent 24%),
+        radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.82), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #fbfdff 52%, #dfeef8 100%);
+      box-shadow:
+        inset 0 0.16rem 0.16rem rgba(255, 255, 255, 0.92),
+        inset 0 -0.72rem 1.1rem rgba(111, 158, 184, 0.18),
+        inset 0 -0.08rem 0 rgba(45, 79, 105, 0.08);
     }
 
-    .grass-layer {
-      z-index: 2;
-      background: url('assets/branding/grass.png') center bottom / cover no-repeat;
+    .soft-cloud::before {
+      left: 5%;
+      right: 5%;
+      bottom: 0;
+      height: 58%;
+    }
+
+    .soft-cloud::after {
+      left: 18%;
+      top: 6%;
+      width: 42%;
+      height: 76%;
+      border-radius: 50%;
+    }
+
+    .soft-cloud span:nth-child(1) {
+      left: 42%;
+      top: -4%;
+      width: 34%;
+      height: 84%;
+      border-radius: 50%;
+    }
+
+    .soft-cloud span:nth-child(2) {
+      right: 9%;
+      top: 20%;
+      width: 32%;
+      height: 62%;
+      border-radius: 50%;
+    }
+
+    .soft-cloud span:nth-child(3) {
+      left: 2%;
+      top: 28%;
+      width: 28%;
+      height: 48%;
+      border-radius: 50%;
+    }
+
+    .soft-cloud span:nth-child(4) {
+      right: 2%;
+      bottom: 4%;
+      width: 22%;
+      height: 42%;
+      border-radius: 50%;
+      opacity: 0.92;
+    }
+
+    .cloud-a {
+      --cloud-left: -8vw;
+      --cloud-top: 66vh;
+      --cloud-width: clamp(17rem, 34vw, 34rem);
+      --cloud-opacity: 0.78;
+      --cloud-speed: 42s;
+      --cloud-delay: -9s;
+      --cloud-rotate: -1.5deg;
+    }
+
+    .cloud-b {
+      --cloud-left: 64vw;
+      --cloud-top: 9vh;
+      --cloud-width: clamp(13rem, 25vw, 26rem);
+      --cloud-opacity: 0.72;
+      --cloud-speed: 36s;
+      --cloud-delay: -17s;
+      --cloud-scale: 0.88;
+      --cloud-rotate: 2deg;
+    }
+
+    .cloud-c {
+      --cloud-left: 72vw;
+      --cloud-top: 61vh;
+      --cloud-width: clamp(15rem, 31vw, 32rem);
+      --cloud-opacity: 0.82;
+      --cloud-speed: 48s;
+      --cloud-delay: -3s;
+      --cloud-rotate: 1.2deg;
+    }
+
+    .cloud-d {
+      --cloud-left: 12vw;
+      --cloud-top: 21vh;
+      --cloud-width: clamp(9rem, 18vw, 18rem);
+      --cloud-opacity: 0.46;
+      --cloud-speed: 52s;
+      --cloud-delay: -24s;
+      --cloud-scale: 0.78;
+      --cloud-rotate: -4deg;
+    }
+
+    .cloud-e {
+      --cloud-left: 31vw;
+      --cloud-top: 78vh;
+      --cloud-width: clamp(11rem, 22vw, 23rem);
+      --cloud-opacity: 0.54;
+      --cloud-speed: 58s;
+      --cloud-delay: -31s;
+      --cloud-scale: 0.72;
+      --cloud-rotate: 2.8deg;
+    }
+
+    .cloud-f {
+      --cloud-left: -10vw;
+      --cloud-top: 4vh;
+      --cloud-width: clamp(10rem, 20vw, 22rem);
+      --cloud-opacity: 0.4;
+      --cloud-speed: 46s;
+      --cloud-delay: -14s;
+      --cloud-scale: 0.7;
+      --cloud-rotate: 3deg;
     }
 
     .sr-only {
@@ -485,7 +617,7 @@
     }
 
     .wordmark-software {
-      margin-top: clamp(-0.55rem, -1vw, -0.2rem);
+      margin-top: clamp(-0.18rem, -0.35vw, -0.04rem);
       font-size: clamp(4.4rem, 11vw, 9.3rem);
     }
 
@@ -550,7 +682,7 @@
         rotate(var(--app-rotate, 0deg))
         scale(calc((1 + (var(--active-pop) * 0.04) + (var(--app-pulse) * 0.035)) * var(--scroll-scale, 1)));
       transition:
-        transform 260ms cubic-bezier(.16, .84, .18, 1),
+        transform 220ms cubic-bezier(.16, .84, .18, 1),
         filter 180ms ease,
         box-shadow 180ms ease,
         background-color 240ms ease;
@@ -564,19 +696,17 @@
       opacity: var(--scroll-opacity, 1);
     }
 
-    .mini-app:hover,
-    .mini-app:focus-visible,
     .mini-app.is-hover-target {
       filter: drop-shadow(0 1.4rem 1rem rgba(45, 79, 105, 0.24));
       box-shadow: var(--surface-shadow-hover);
       outline: 0;
-      --active-pop: 1;
-      --depth: 96px;
+      --active-pop: 1.16;
+      --depth: 118px;
     }
 
-    .mini-app.is-hover-target {
-      --active-pop: 1.35;
-      --depth: 126px;
+    .mini-app:focus-visible {
+      outline: 2px solid #2D250E;
+      outline-offset: 0.2rem;
     }
 
     .mini-app.is-active {
@@ -1902,7 +2032,7 @@
       transform-origin: 50% 42%;
       transition: opacity 160ms linear;
       backface-visibility: hidden;
-      contain: layout style paint;
+      contain: layout style;
       overscroll-behavior: auto;
       will-change: transform, opacity;
     }
@@ -1994,6 +2124,12 @@
       --window-depth: 72px;
       cursor: grabbing;
       transition: box-shadow 120ms ease;
+    }
+
+    .desktop-window.is-resetting {
+      transition:
+        box-shadow 180ms ease,
+        transform 460ms cubic-bezier(.16, .84, .18, 1);
     }
 
     .window-chrome {
@@ -2636,7 +2772,7 @@
         translate: 0 0;
       }
       50% {
-        translate: 0 -0.8rem;
+        translate: 0 -0.36rem;
       }
     }
 
@@ -2645,28 +2781,25 @@
         rotate: 0deg;
       }
       30% {
-        rotate: 0.9deg;
+        rotate: 0.32deg;
       }
       68% {
-        rotate: -0.72deg;
+        rotate: -0.26deg;
       }
     }
 
-    @keyframes background-cloud-drift {
+    @keyframes cloud-float {
       0% {
-        transform: translate3d(-3.5vw, -0.3vh, 0) scale(1.015);
+        transform:
+          translate3d(calc(var(--cloud-x, 0px) - 2.6vw), calc(var(--cloud-y, 0px) - 0.35vh), 0)
+          scale(var(--cloud-scale, 1))
+          rotate(var(--cloud-rotate, 0deg));
       }
       100% {
-        transform: translate3d(3.5vw, 0.5vh, 0) scale(1.035);
-      }
-    }
-
-    @keyframes background-cloud-drift-soft {
-      0% {
-        transform: translate3d(5vw, -0.8vh, 0) scale(1.03);
-      }
-      100% {
-        transform: translate3d(-5vw, 0.4vh, 0) scale(1.05);
+        transform:
+          translate3d(calc(var(--cloud-x, 0px) + 3.2vw), calc(var(--cloud-y, 0px) + 0.55vh), 0)
+          scale(calc(var(--cloud-scale, 1) * 1.018))
+          rotate(calc(var(--cloud-rotate, 0deg) * -1));
       }
     }
 
@@ -2712,6 +2845,12 @@
         --sticker-size: clamp(4.8rem, 14vw, 6.8rem);
       }
 
+      .stamp-app,
+      .voice-app,
+      .mail-app {
+        display: none;
+      }
+
       .hero {
         min-height: 100svh;
         padding-top: 1.2rem;
@@ -2737,6 +2876,19 @@
 
       .floating-sticker {
         --sticker-size: clamp(4rem, 21vw, 5.8rem);
+      }
+
+      .stamp-app,
+      .palette-app,
+      .terminal-app,
+      .mail-app,
+      .chat-badge,
+      .music-app,
+      .timer-app,
+      .voice-app,
+      .slider-app,
+      .coin-app {
+        display: none;
       }
 
       .hero {
@@ -3056,11 +3208,25 @@
   <div class="sticker-board" data-sticker-board aria-label="Draggable sticker layer"></div>
 
   <main class="toy-page">
+    <svg class="cloud-filter-defs" aria-hidden="true" focusable="false">
+      <filter id="cloud-squish" x="-18%" y="-30%" width="136%" height="172%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.045" numOctaves="3" seed="9" result="texture" />
+        <feDisplacementMap in="SourceGraphic" in2="texture" scale="10" xChannelSelector="R" yChannelSelector="G" result="ruffled" />
+        <feGaussianBlur in="ruffled" stdDeviation="0.28" result="softened" />
+        <feComponentTransfer in="softened">
+          <feFuncA type="gamma" amplitude="1" exponent="0.9" offset="0" />
+        </feComponentTransfer>
+      </filter>
+    </svg>
     <div class="sky-layer" aria-hidden="true"></div>
     <div class="cloud-layer" aria-hidden="true">
-      <div class="cloud-track"></div>
+      <div class="soft-cloud cloud-a"><span></span><span></span><span></span><span></span></div>
+      <div class="soft-cloud cloud-b"><span></span><span></span><span></span><span></span></div>
+      <div class="soft-cloud cloud-c"><span></span><span></span><span></span><span></span></div>
+      <div class="soft-cloud cloud-d"><span></span><span></span><span></span><span></span></div>
+      <div class="soft-cloud cloud-e"><span></span><span></span><span></span><span></span></div>
+      <div class="soft-cloud cloud-f"><span></span><span></span><span></span><span></span></div>
     </div>
-    <div class="grass-layer" aria-hidden="true"></div>
 
     <section class="hero" aria-labelledby="page-title">
       <div class="collage">
@@ -3359,7 +3525,7 @@
     const stickerBoard = document.querySelector('[data-sticker-board]');
     const canAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let activeMiniAppZ = 24;
-    const stickerStorageKey = 'make-software-sticker-positions-v2';
+    const stickerPlacementSeed = Math.random() * 10000;
     const fallbackStickerAssets = [
       'assets/stickers/freud.png',
       'assets/stickers/hundertwasser.png',
@@ -3923,18 +4089,59 @@
           windowEl.style.zIndex = String(activeWindowZ);
         }
 
+        function resetWindowPosition() {
+          if (pointerId !== null) return;
+
+          bringToFront();
+          windowEl.classList.add('is-resetting');
+          windowEl.dataset.dragX = '0';
+          windowEl.dataset.dragY = '0';
+          windowEl.style.setProperty('--window-drag-x', '0px');
+          windowEl.style.setProperty('--window-drag-y', '0px');
+
+          window.setTimeout(() => {
+            windowEl.classList.remove('is-resetting');
+          }, 520);
+        }
+
         let startX = 0;
         let startY = 0;
         let originX = 0;
         let originY = 0;
-        let dragScale = 1;
         let pointerId = null;
+        let dragScale = 1;
 
         windowEl.addEventListener('pointerdown', bringToFront);
         windowEl.addEventListener('focusin', bringToFront);
 
+        function moveDrag(event) {
+          if (pointerId !== event.pointerId) return;
+          event.preventDefault();
+          const nextX = originX + (event.clientX - startX) / dragScale;
+          const nextY = originY + (event.clientY - startY) / dragScale;
+          windowEl.dataset.dragX = String(nextX);
+          windowEl.dataset.dragY = String(nextY);
+          windowEl.style.setProperty('--window-drag-x', `${nextX}px`);
+          windowEl.style.setProperty('--window-drag-y', `${nextY}px`);
+        }
+
+        function endDrag(event) {
+          if (pointerId !== event.pointerId) return;
+          const activePointerId = pointerId;
+          window.removeEventListener('pointermove', moveDrag);
+          window.removeEventListener('pointerup', endDrag);
+          window.removeEventListener('pointercancel', endDrag);
+          if (handle.hasPointerCapture(activePointerId)) {
+            handle.releasePointerCapture(activePointerId);
+          }
+          pointerId = null;
+          windowEl.classList.remove('is-dragging');
+          dragScale = 1;
+        }
+
         handle.addEventListener('pointerdown', event => {
           if (event.button !== 0) return;
+          if (event.detail > 1) return;
           event.preventDefault();
           pointerId = event.pointerId;
           startX = event.clientX;
@@ -3948,47 +4155,16 @@
           bringToFront();
           windowEl.classList.add('is-dragging');
           handle.setPointerCapture(pointerId);
+          window.addEventListener('pointermove', moveDrag, { passive: false });
+          window.addEventListener('pointerup', endDrag);
+          window.addEventListener('pointercancel', endDrag);
         });
 
-        handle.addEventListener('pointermove', event => {
-          if (pointerId !== event.pointerId) return;
+        handle.addEventListener('dblclick', event => {
           event.preventDefault();
-          const nextX = originX + (event.clientX - startX) / dragScale;
-          const nextY = originY + (event.clientY - startY) / dragScale;
-          windowEl.dataset.dragX = String(nextX);
-          windowEl.dataset.dragY = String(nextY);
-          windowEl.style.setProperty('--window-drag-x', `${nextX}px`);
-          windowEl.style.setProperty('--window-drag-y', `${nextY}px`);
+          resetWindowPosition();
         });
-
-        function endDrag(event) {
-          if (pointerId !== event.pointerId) return;
-          if (handle.hasPointerCapture(pointerId)) {
-            handle.releasePointerCapture(pointerId);
-          }
-          pointerId = null;
-          windowEl.classList.remove('is-dragging');
-        }
-
-        handle.addEventListener('pointerup', endDrag);
-        handle.addEventListener('pointercancel', endDrag);
       });
-    }
-
-    function readStoredStickerPositions() {
-      try {
-        return JSON.parse(window.localStorage.getItem(stickerStorageKey) || '{}');
-      } catch {
-        return {};
-      }
-    }
-
-    function writeStoredStickerPositions(positions) {
-      try {
-        window.localStorage.setItem(stickerStorageKey, JSON.stringify(positions));
-      } catch {
-        // Stickers still work when storage is blocked; positions just reset on reload.
-      }
     }
 
     function stickerIdFromSrc(src) {
@@ -4019,38 +4195,127 @@
       return step;
     }
 
+    function stickerViewportConfig() {
+      const width = window.innerWidth;
+
+      if (width <= 480) {
+        return {
+          count: 6,
+          size: Math.round(clamp(width * 0.13, 46, 54)),
+          marginX: 0.16,
+          marginTop: 0.14,
+          marginBottom: 0.2,
+          avoidWidth: 0.45,
+          avoidHeight: 0.34
+        };
+      }
+
+      if (width <= 640) {
+        return {
+          count: 7,
+          size: Math.round(clamp(width * 0.12, 52, 62)),
+          marginX: 0.14,
+          marginTop: 0.13,
+          marginBottom: 0.18,
+          avoidWidth: 0.42,
+          avoidHeight: 0.32
+        };
+      }
+
+      if (width <= 920) {
+        return {
+          count: 10,
+          size: 72,
+          marginX: 0.11,
+          marginTop: 0.11,
+          marginBottom: 0.16,
+          avoidWidth: 0.38,
+          avoidHeight: 0.3
+        };
+      }
+
+      return {
+        count: Number.POSITIVE_INFINITY,
+        size: Math.round(clamp(width * 0.075, 88, 112)),
+        marginX: 0.08,
+        marginTop: 0.1,
+        marginBottom: 0.14,
+        avoidWidth: 0.34,
+        avoidHeight: 0.28
+      };
+    }
+
+    function selectStickerAssetsForViewport(assets) {
+      const { count } = stickerViewportConfig();
+      const limit = Math.min(assets.length, count);
+      if (limit >= assets.length) return assets;
+
+      return assets
+        .map((src, index) => ({
+          src,
+          rank: seededNoise(stickerPlacementSeed + index * 5.73 + assets.length * 0.41)
+        }))
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, limit)
+        .map(item => item.src);
+    }
+
     function randomStickerPosition(index, total) {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const config = stickerViewportConfig();
       const aspect = width / Math.max(height, 1);
-      const safeLeft = clamp(width * 0.08, 46, 138);
-      const safeRight = clamp(width * 0.08, 46, 138);
-      const safeTop = clamp(height * 0.1, 54, 118);
-      const safeBottom = clamp(height * 0.14, 72, 154);
+      const safeLeft = clamp(width * config.marginX, 46, 150);
+      const safeRight = clamp(width * config.marginX, 46, 150);
+      const safeTop = clamp(height * config.marginTop, 54, 132);
+      const safeBottom = clamp(height * config.marginBottom, 72, 172);
       const usableWidth = Math.max(width - safeLeft - safeRight, 1);
       const usableHeight = Math.max(height - safeTop - safeBottom, 1);
       const columns = Math.max(2, Math.ceil(Math.sqrt(total * aspect)));
       const rows = Math.max(2, Math.ceil(total / columns));
       const cellCount = columns * rows;
-      const cell = (index * spreadStep(cellCount) + Math.floor(columns / 2)) % cellCount;
+      const cellOffset = Math.floor(seededNoise(stickerPlacementSeed + total * 1.91) * cellCount);
+      const cell = (index * spreadStep(cellCount) + cellOffset) % cellCount;
       const column = cell % columns;
       const row = Math.floor(cell / columns);
       const cellWidth = usableWidth / columns;
       const cellHeight = usableHeight / rows;
-      const wave = index * 2.399 + total * 0.17;
+      const wave = stickerPlacementSeed + index * 2.399 + total * 0.17;
       const jitterX = (seededNoise(wave) - 0.5) * cellWidth * 0.5;
       const jitterY = (seededNoise(wave + 7.13) - 0.5) * cellHeight * 0.5;
       let x = safeLeft + (column + 0.5) * cellWidth + jitterX;
       let y = safeTop + (row + 0.5) * cellHeight + jitterY;
       const centerX = width * 0.5;
-      const centerY = height * 0.46;
+      const centerY = height * 0.48;
       const centerDx = x - centerX;
       const centerDy = y - centerY;
+      const avoidWidth = width * config.avoidWidth;
+      const avoidHeight = height * config.avoidHeight;
 
-      if (Math.abs(centerDx) < width * 0.2 && Math.abs(centerDy) < height * 0.18) {
-        const direction = Math.atan2(centerDy || seededNoise(index + 18.3) - 0.5, centerDx || seededNoise(index + 2.7) - 0.5);
-        x += Math.cos(direction) * width * 0.13;
-        y += Math.sin(direction) * height * 0.12;
+      if (Math.abs(centerDx) < avoidWidth && Math.abs(centerDy) < avoidHeight) {
+        const direction = Math.atan2(
+          centerDy || seededNoise(stickerPlacementSeed + index + 18.3) - 0.5,
+          centerDx || seededNoise(stickerPlacementSeed + index + 2.7) - 0.5
+        );
+        const horizontalPush = avoidWidth - Math.abs(centerDx) + width * 0.075;
+        const verticalPush = avoidHeight - Math.abs(centerDy) + height * 0.065;
+        x += Math.cos(direction) * horizontalPush;
+        y += Math.sin(direction) * verticalPush;
+      }
+
+      const escapedDx = x - centerX;
+      const escapedDy = y - centerY;
+      if (Math.abs(escapedDx) < avoidWidth && Math.abs(escapedDy) < avoidHeight) {
+        const signX = escapedDx < 0 ? -1 : 1;
+        const signY = escapedDy < 0 ? -1 : 1;
+        const escapeX = avoidWidth - Math.abs(escapedDx);
+        const escapeY = avoidHeight - Math.abs(escapedDy);
+
+        if (escapeX < escapeY) {
+          x = centerX + signX * (avoidWidth + width * 0.045);
+        } else {
+          y = centerY + signY * (avoidHeight + height * 0.045);
+        }
       }
 
       return {
@@ -4094,17 +4359,15 @@
       }
     }
 
-    function mountSticker(src, index, total, storedPositions, savePositions, instanceId = stickerIdFromSrc(src)) {
+    function mountSticker(src, index, total, instanceId = stickerIdFromSrc(src)) {
       const sticker = document.createElement('button');
       const image = document.createElement('img');
       const id = instanceId;
       const label = stickerIdFromSrc(src);
-      const saved = storedPositions[id];
-      const densityScale = clamp(1 - Math.max(total - 10, 0) * 0.015, 0.82, 1);
-      const size = Math.round(clamp(window.innerWidth * (0.068 + seededNoise(index + 3) * 0.03) * densityScale, 72, 142));
+      const size = stickerViewportConfig().size;
       const randomPoint = randomStickerPosition(index, total);
-      const point = clampStickerPoint(saved?.x ?? randomPoint.x, saved?.y ?? randomPoint.y, size);
-      const rotate = saved?.rotate ?? ((seededNoise(index + 12.7) - 0.5) * 22);
+      const point = clampStickerPoint(randomPoint.x, randomPoint.y, size);
+      const rotate = (seededNoise(stickerPlacementSeed + index + 12.7) - 0.5) * 22;
 
       sticker.className = 'floating-sticker';
       sticker.type = 'button';
@@ -4141,15 +4404,6 @@
         const nextZ = Number(stickerBoard.dataset.nextZ || 80) + 1;
         stickerBoard.dataset.nextZ = String(nextZ);
         sticker.style.setProperty('--sticker-z', String(nextZ));
-      }
-
-      function persist() {
-        storedPositions[id] = {
-          x: Math.round(currentX),
-          y: Math.round(currentY),
-          rotate: Number(rotate.toFixed(2))
-        };
-        savePositions();
       }
 
       function attachSticker(velocityX = 0, velocityY = 0) {
@@ -4283,7 +4537,6 @@
         sticker.releasePointerCapture(pointerId);
         pointerId = null;
         sticker.classList.remove('is-dragging');
-        persist();
         attachSticker(releaseVelocityX, releaseVelocityY);
       }
 
@@ -4303,7 +4556,6 @@
           currentY = next.y;
           sticker.style.setProperty('--sticker-x', `${currentX}px`);
           sticker.style.setProperty('--sticker-y', `${currentY}px`);
-          persist();
         }
       };
     }
@@ -4312,10 +4564,9 @@
       if (!stickerBoard) return;
 
       const assets = await loadStickerAssets();
-      const storedPositions = readStoredStickerPositions();
-      const savePositions = () => writeStoredStickerPositions(storedPositions);
-      const mountedStickers = assets.map((src, index) => (
-        mountSticker(src, index, assets.length, storedPositions, savePositions, stickerIdFromSrc(src))
+      const visibleAssets = selectStickerAssetsForViewport(assets);
+      const mountedStickers = visibleAssets.map((src, index) => (
+        mountSticker(src, index, visibleAssets.length, stickerIdFromSrc(src))
       ));
 
       window.addEventListener('resize', () => {
@@ -4323,12 +4574,32 @@
       }, { passive: true });
     }
 
-    function bringMiniAppToFront(widget, { animate = true } = {}) {
+    function cacheMiniAppLayer(widget) {
+      if (!widget) return;
+      if (widget.dataset.layerCached === 'true') return;
+
+      widget.dataset.layerCached = 'true';
+      widget.dataset.baseInlineZIndex = widget.style.zIndex || '';
+    }
+
+    function bringMiniAppToFront(widget) {
       if (!widget) return;
 
-      activeMiniAppZ += 1;
-      widget.style.zIndex = String(activeMiniAppZ);
+      cacheMiniAppLayer(widget);
+      widget.style.zIndex = String(activeMiniAppZ + 120);
       widget.classList.add('is-front');
+    }
+
+    function restoreMiniAppLayer(widget) {
+      if (!widget) return;
+
+      const baseInlineZIndex = widget.dataset.baseInlineZIndex;
+      if (baseInlineZIndex) {
+        widget.style.zIndex = baseInlineZIndex;
+      } else {
+        widget.style.removeProperty('z-index');
+      }
+      widget.classList.remove('is-front');
     }
 
     function activateMiniApp(widget) {
@@ -4400,7 +4671,10 @@
       let raf = 0;
 
       function clearHoverField() {
-        hoverTarget?.classList.remove('is-hover-target');
+        if (hoverTarget) {
+          hoverTarget.classList.remove('is-hover-target');
+          restoreMiniAppLayer(hoverTarget);
+        }
         hoverTarget = null;
         miniApps.forEach(widget => {
           widget.style.setProperty('--avoid-x', '0px');
@@ -4429,10 +4703,14 @@
             dy,
             distance: Math.hypot(dx, dy)
           };
-        });
+        }).filter(info => info.rect.width > 1 && info.rect.height > 1);
 
-        const targetInfo = appRects.reduce((best, current) => {
-          const hitRadius = Math.max(current.rect.width, current.rect.height) * 0.72 + 42;
+        const currentInfo = hoverTarget ? appRects.find(info => info.widget === hoverTarget) : null;
+        const currentRadius = currentInfo ? Math.max(currentInfo.rect.width, currentInfo.rect.height) * 0.9 + 58 : 0;
+        const targetInfo = currentInfo && currentInfo.distance <= currentRadius
+          ? currentInfo
+          : appRects.reduce((best, current) => {
+          const hitRadius = Math.max(current.rect.width, current.rect.height) * 0.62 + 34;
           if (current.distance > hitRadius) return best;
           if (!best || current.distance < best.distance) return current;
           return best;
@@ -4440,11 +4718,14 @@
 
         const nextTarget = targetInfo?.widget || null;
         if (nextTarget !== hoverTarget) {
-          hoverTarget?.classList.remove('is-hover-target');
+          if (hoverTarget) {
+            hoverTarget.classList.remove('is-hover-target');
+            restoreMiniAppLayer(hoverTarget);
+          }
           hoverTarget = nextTarget;
           if (hoverTarget) {
             hoverTarget.classList.add('is-hover-target');
-            bringMiniAppToFront(hoverTarget, { animate: false });
+            bringMiniAppToFront(hoverTarget);
           }
         }
 
@@ -4456,27 +4737,9 @@
           return;
         }
 
-        appRects.forEach(info => {
-          if (info.widget === nextTarget) {
-            info.widget.style.setProperty('--avoid-x', '0px');
-            info.widget.style.setProperty('--avoid-y', '0px');
-            return;
-          }
-
-          const fromTargetX = info.centerX - targetInfo.centerX;
-          const fromTargetY = info.centerY - targetInfo.centerY;
-          const fromTargetDistance = Math.max(Math.hypot(fromTargetX, fromTargetY), 1);
-          const influence = clamp(1 - fromTargetDistance / 330);
-          const push = influence * influence * 58;
-
-          if (push < 0.5) {
-            info.widget.style.setProperty('--avoid-x', '0px');
-            info.widget.style.setProperty('--avoid-y', '0px');
-            return;
-          }
-
-          info.widget.style.setProperty('--avoid-x', `${(fromTargetX / fromTargetDistance * push).toFixed(2)}px`);
-          info.widget.style.setProperty('--avoid-y', `${(fromTargetY / fromTargetDistance * push).toFixed(2)}px`);
+        miniApps.forEach(widget => {
+          widget.style.setProperty('--avoid-x', '0px');
+          widget.style.setProperty('--avoid-y', '0px');
         });
       }
 
@@ -4536,6 +4799,7 @@
     }, activeMiniAppZ);
 
     miniApps.forEach((widget, index) => {
+      cacheMiniAppLayer(widget);
       widget.dataset.depth = String((index % 6) + 2);
       widget.querySelectorAll('[data-action]').forEach(control => {
         control.tabIndex = -1;
@@ -4545,7 +4809,6 @@
 
       widget.addEventListener('pointerdown', event => {
         if (event.button && event.button !== 0) return;
-        bringMiniAppToFront(widget);
         tapStart = {
           id: event.pointerId,
           x: event.clientX,
@@ -4570,11 +4833,18 @@
         if (distance <= 14) {
           activateMiniApp(widget);
         }
+
+        if (!widget.classList.contains('is-hover-target')) {
+          restoreMiniAppLayer(widget);
+        }
       });
 
       widget.addEventListener('pointercancel', () => {
         tapStart = null;
         widget.dataset.touchHandledAt = String(Date.now());
+        if (!widget.classList.contains('is-hover-target')) {
+          restoreMiniAppLayer(widget);
+        }
       });
 
       widget.addEventListener('click', event => {
@@ -4590,12 +4860,13 @@
       widget.addEventListener('keydown', event => {
         if (event.target !== widget || (event.key !== 'Enter' && event.key !== ' ')) return;
         event.preventDefault();
-        bringMiniAppToFront(widget);
         activateMiniApp(widget);
       });
 
-      widget.addEventListener('focus', () => {
-        bringMiniAppToFront(widget, { animate: false });
+      widget.addEventListener('blur', () => {
+        if (!widget.classList.contains('is-hover-target')) {
+          restoreMiniAppLayer(widget);
+        }
       });
     });
 
