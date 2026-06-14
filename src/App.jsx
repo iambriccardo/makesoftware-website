@@ -1234,6 +1234,153 @@ function DetailsDesktop() {
   );
 }
 
+function LogoPlayer() {
+  const audioRef = useRef(null);
+  const pressRef = useRef({ pointerId: null, startedAt: 0, timer: 0, longPressReady: false });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const [notes, setNotes] = useState([]);
+
+  const emitNotes = useCallback((count = 4) => {
+    const glyphs = ["♪", "♫", "♬", "♩", "♪", "♫"].slice(0, count);
+    const created = glyphs.map((glyph, index) => ({
+      id: `${Date.now()}-${index}-${Math.random()}`,
+      glyph,
+      x: `${(seededNoise(index * 7.31 + Date.now() * 0.001) - 0.5) * 3.8}rem`,
+      y: `${-4.4 - seededNoise(index * 5.17 + 3.4) * 3.2}rem`,
+      r: `${(seededNoise(index * 3.41 + 9.7) - 0.5) * 34}deg`,
+      d: `${index * 140}ms`
+    }));
+    setNotes((current) => [...current, ...created]);
+    window.setTimeout(() => {
+      setNotes((current) => current.filter((note) => !created.some((item) => item.id === note.id)));
+    }, 3400);
+  }, []);
+
+  const playAudio = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    emitNotes(5);
+    try {
+      await audio.play();
+      setIsPlaying(true);
+    } catch (_) {
+      setIsPlaying(false);
+    }
+  }, [emitNotes]);
+
+  const toggleAudio = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      await playAudio();
+      return;
+    }
+    audio.pause();
+    setIsPlaying(false);
+  }, [playAudio]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+    const sync = () => setIsPlaying(!audio.paused && !audio.ended);
+    audio.addEventListener("play", sync);
+    audio.addEventListener("pause", sync);
+    audio.addEventListener("ended", sync);
+    return () => {
+      audio.removeEventListener("play", sync);
+      audio.removeEventListener("pause", sync);
+      audio.removeEventListener("ended", sync);
+      window.clearTimeout(pressRef.current.timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying) return undefined;
+    const timer = window.setInterval(() => emitNotes(3), 1250);
+    return () => window.clearInterval(timer);
+  }, [emitNotes, isPlaying]);
+
+  const clearPress = useCallback(() => {
+    window.clearTimeout(pressRef.current.timer);
+    pressRef.current.pointerId = null;
+    pressRef.current.timer = 0;
+    pressRef.current.longPressReady = false;
+    setIsHolding(false);
+  }, []);
+
+  const onPointerDown = (event) => {
+    if (event.button && event.button !== 0) return;
+    event.preventDefault();
+    pressRef.current.pointerId = event.pointerId;
+    pressRef.current.startedAt = performance.now();
+    pressRef.current.longPressReady = false;
+    setIsHolding(true);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    pressRef.current.timer = window.setTimeout(() => {
+      pressRef.current.longPressReady = true;
+      emitNotes(5);
+    }, 850);
+  };
+
+  const onPointerUp = async (event) => {
+    const press = pressRef.current;
+    if (press.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    const heldLongEnough = press.longPressReady || performance.now() - press.startedAt > 820;
+    window.clearTimeout(press.timer);
+    press.pointerId = null;
+    press.timer = 0;
+    press.longPressReady = false;
+    setIsHolding(false);
+    if (heldLongEnough) await playAudio();
+    else await toggleAudio();
+  };
+
+  const onPointerCancel = (event) => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    clearPress();
+  };
+
+  const onKeyDown = async (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    await toggleAudio();
+  };
+
+  return (
+    <button
+      className={`scene-logo${isPlaying ? " is-playing" : ""}${isHolding ? " is-holding" : ""}`}
+      type="button"
+      aria-label={isPlaying ? "Pause Make Software music" : "Play Make Software music"}
+      aria-pressed={isPlaying}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={(event) => {
+        if (pressRef.current.pointerId === event.pointerId) onPointerCancel(event);
+      }}
+      onContextMenu={(event) => event.preventDefault()}
+      onKeyDown={onKeyDown}
+    >
+      <audio ref={audioRef} src="/assets/audio/song.mp3" preload="auto" loop />
+      <img src="/assets/branding/tomo/logo.svg" alt="" width="1254" height="1254" draggable="false" />
+      <span className="logo-notes" aria-hidden="true">
+        {notes.map((note) => (
+          <span
+            key={note.id}
+            className="logo-note"
+            style={{ "--note-x": note.x, "--note-y": note.y, "--note-r": note.r, "--note-delay": note.d }}
+          >
+            {note.glyph}
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
 export default function App() {
   const sceneRef = useRef(null);
   const [appState, setAppState] = useState(initialState);
@@ -1300,9 +1447,7 @@ export default function App() {
 
   return (
     <>
-      <a className="scene-logo" href="/" aria-label="Make Software home">
-        <img src="/assets/branding/tomo/logo.svg" alt="" width="1254" height="1254" />
-      </a>
+      <LogoPlayer />
       <StickerBoard />
       <BurstLayer bursts={bursts} />
       <motion.main
