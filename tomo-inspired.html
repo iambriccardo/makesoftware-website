@@ -7,7 +7,8 @@
   <meta name="description" content="A playful Make Software landing page inspired by mixed-media web collages, built from original CSS objects and existing brand assets." />
   <meta name="theme-color" content="#91c6e4" />
   <meta name="color-scheme" content="light" />
-  <link rel="icon" href="/assets/branding/favicon.svg" sizes="any" type="image/svg+xml" />
+  <link rel="icon" href="/assets/branding/tomo/favicon.svg" sizes="any" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/assets/branding/tomo/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
@@ -193,7 +194,13 @@
 
     .sky-layer {
       z-index: 0;
-      background: url('assets/branding/sky.png') center bottom / cover no-repeat;
+      background-image: image-set(
+        url('assets/branding/sky.webp') type('image/webp'),
+        url('assets/branding/sky.png') type('image/png')
+      );
+      background-position: center bottom;
+      background-size: cover;
+      background-repeat: no-repeat;
       opacity: 1;
     }
 
@@ -561,9 +568,11 @@
       place-items: center;
       width: max-content;
       max-width: min(64rem, 78vw);
+      padding: clamp(1.1rem, 2.3vw, 2.15rem) clamp(1.55rem, 4.1vw, 4.2rem);
       color: var(--ink);
       text-align: center;
       pointer-events: none;
+      isolation: isolate;
       transform:
         translate3d(
           calc(-50% + (var(--float-x, 0px) * var(--parallax, 0.7)) + var(--scroll-out-x, 0px)),
@@ -583,7 +592,16 @@
     }
 
     .scene-wordmark::before {
-      content: none;
+      content: '';
+      position: absolute;
+      inset: clamp(-1.5rem, -2.8vw, -1rem) clamp(-2rem, -4.8vw, -1.3rem);
+      z-index: -2;
+      border-radius: 999px;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(255, 253, 245, 0.34) 0 36%, rgba(255, 253, 245, 0.2) 56%, rgba(255, 253, 245, 0) 78%),
+        radial-gradient(ellipse at 50% 55%, rgba(93, 178, 235, 0.2) 0 42%, rgba(93, 178, 235, 0) 76%);
+      filter: blur(1.25rem);
+      transform: scaleX(1.08);
     }
 
     .scene-wordmark::after {
@@ -600,10 +618,10 @@
       letter-spacing: 0;
       line-height: 0.78;
       text-shadow:
-        0 1px 0 rgba(255, 253, 245, 0.52),
+        0 1px 0 rgba(255, 253, 245, 0.7),
         0 -1px 0 rgba(45, 37, 14, 0.1),
-        0 0.22rem 0.28rem rgba(45, 37, 14, 0.08),
-        0 1.15rem 1.3rem rgba(45, 79, 105, 0.16);
+        0 0.18rem 0.18rem rgba(45, 37, 14, 0.08),
+        0 0.72rem 0.82rem rgba(45, 79, 105, 0.18);
       transform: translateZ(20px);
     }
 
@@ -2904,6 +2922,7 @@
 
       .scene-wordmark {
         width: min(21rem, 90vw);
+        padding: 0.9rem 1.1rem;
       }
 
       .details-desktop {
@@ -3203,7 +3222,7 @@
 </head>
 <body>
   <a class="scene-logo" href="index.html" aria-label="Make Software home">
-    <img src="assets/branding/logo-new.svg" alt="" width="350" height="350" />
+    <img src="assets/branding/tomo/logo.svg" alt="" width="350" height="350" />
   </a>
   <div class="sticker-board" data-sticker-board aria-label="Draggable sticker layer"></div>
 
@@ -3527,22 +3546,22 @@
     let activeMiniAppZ = 24;
     const stickerPlacementSeed = Math.random() * 10000;
     const fallbackStickerAssets = [
-      'assets/stickers/freud.png',
-      'assets/stickers/hundertwasser.png',
-      'assets/stickers/klimt.png',
-      'assets/stickers/knodel.png',
-      'assets/stickers/krapfen.png',
-      'assets/stickers/mozart.png',
-      'assets/stickers/oper.png',
-      'assets/stickers/prater.png',
-      'assets/stickers/sacher.png',
-      'assets/stickers/schnitzel.png',
-      'assets/stickers/schonnbrunn.png',
-      'assets/stickers/sissi.png',
-      'assets/stickers/stephansdom.png',
-      'assets/stickers/tram.png',
-      'assets/stickers/u-bahn.png',
-      'assets/stickers/vienna.png'
+      'assets/stickers/freud.webp',
+      'assets/stickers/hundertwasser.webp',
+      'assets/stickers/klimt.webp',
+      'assets/stickers/knodel.webp',
+      'assets/stickers/krapfen.webp',
+      'assets/stickers/mozart.webp',
+      'assets/stickers/oper.webp',
+      'assets/stickers/prater.webp',
+      'assets/stickers/sacher.webp',
+      'assets/stickers/schnitzel.webp',
+      'assets/stickers/schonnbrunn.webp',
+      'assets/stickers/sissi.webp',
+      'assets/stickers/stephansdom.webp',
+      'assets/stickers/tram.webp',
+      'assets/stickers/u-bahn.webp',
+      'assets/stickers/vienna.webp'
     ];
 
     if ('scrollRestoration' in history) {
@@ -4205,8 +4224,8 @@
           marginX: 0.16,
           marginTop: 0.14,
           marginBottom: 0.2,
-          avoidWidth: 0.45,
-          avoidHeight: 0.34
+          avoidWidth: 0.48,
+          avoidHeight: 0.42
         };
       }
 
@@ -4217,8 +4236,8 @@
           marginX: 0.14,
           marginTop: 0.13,
           marginBottom: 0.18,
-          avoidWidth: 0.42,
-          avoidHeight: 0.32
+          avoidWidth: 0.46,
+          avoidHeight: 0.4
         };
       }
 
@@ -4229,8 +4248,8 @@
           marginX: 0.11,
           marginTop: 0.11,
           marginBottom: 0.16,
-          avoidWidth: 0.38,
-          avoidHeight: 0.3
+          avoidWidth: 0.44,
+          avoidHeight: 0.38
         };
       }
 
@@ -4240,8 +4259,8 @@
         marginX: 0.08,
         marginTop: 0.1,
         marginBottom: 0.14,
-        avoidWidth: 0.34,
-        avoidHeight: 0.28
+        avoidWidth: 0.43,
+        avoidHeight: 0.39
       };
     }
 
@@ -4286,7 +4305,7 @@
       let x = safeLeft + (column + 0.5) * cellWidth + jitterX;
       let y = safeTop + (row + 0.5) * cellHeight + jitterY;
       const centerX = width * 0.5;
-      const centerY = height * 0.48;
+      const centerY = height * 0.5;
       const centerDx = x - centerX;
       const centerDy = y - centerY;
       const avoidWidth = width * config.avoidWidth;
@@ -4353,7 +4372,16 @@
           .filter(url => /\.(png|webp|jpe?g|gif|svg)$/i.test(url.pathname))
           .map(url => `assets/stickers/${decodeURIComponent(url.pathname.split('/').pop())}`);
 
-        return assets.length ? [...new Set(assets)].sort() : fallbackStickerAssets;
+        if (!assets.length) return fallbackStickerAssets;
+
+        const preferredAssets = [...new Set(assets)].reduce((byName, src) => {
+          const id = stickerIdFromSrc(src);
+          const previous = byName.get(id);
+          if (!previous || /\.webp$/i.test(src)) byName.set(id, src);
+          return byName;
+        }, new Map());
+
+        return [...preferredAssets.values()].sort();
       } catch {
         return fallbackStickerAssets;
       }
@@ -4586,6 +4614,7 @@
       if (!widget) return;
 
       cacheMiniAppLayer(widget);
+      activeMiniAppZ += 1;
       widget.style.zIndex = String(activeMiniAppZ + 120);
       widget.classList.add('is-front');
     }
@@ -4682,39 +4711,76 @@
         });
       }
 
+      function appStackAtPointer() {
+        if (typeof document.elementsFromPoint !== 'function') return [];
+
+        return [...new Set(
+          document.elementsFromPoint(pointer.clientX, pointer.clientY)
+            .map(element => element.closest?.('.mini-app'))
+            .filter(Boolean)
+        )];
+      }
+
+      function readMiniAppHit(widget, stack) {
+        const rect = widget.getBoundingClientRect();
+        if (rect.width <= 1 || rect.height <= 1) return null;
+
+        const style = window.getComputedStyle(widget);
+        if (style.display === 'none' || style.visibility === 'hidden') return null;
+        if (Number(style.opacity || 1) <= 0.04) return null;
+
+        const dx = pointer.clientX - (rect.left + rect.width / 2);
+        const dy = pointer.clientY - (rect.top + rect.height / 2);
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
+        const normalizedX = Math.abs(dx) / Math.max(halfWidth, 1);
+        const normalizedY = Math.abs(dy) / Math.max(halfHeight, 1);
+        const rectDistance = Math.max(normalizedX, normalizedY);
+        const ellipseDistance = Math.hypot(normalizedX, normalizedY);
+        const edgeX = Math.max(rect.left - pointer.clientX, 0, pointer.clientX - rect.right);
+        const edgeY = Math.max(rect.top - pointer.clientY, 0, pointer.clientY - rect.bottom);
+        const edgeDistance = Math.hypot(edgeX, edgeY);
+        const softHalo = Math.max(14, Math.min(rect.width, rect.height) * 0.2);
+        const stackIndex = stack.indexOf(widget);
+
+        if (rectDistance > 1.14 && edgeDistance > softHalo) return null;
+
+        const shapeDistance = Math.min(ellipseDistance * 0.82, rectDistance * 1.08);
+        const stackBoost = stackIndex >= 0 ? -0.12 / (stackIndex + 1) : 0.08;
+        const areaPenalty = Math.sqrt(rect.width * rect.height) / 4200;
+        const currentBias = widget === hoverTarget ? -0.055 : 0;
+
+        return {
+          widget,
+          rect,
+          distance: Math.hypot(dx, dy),
+          score: shapeDistance + edgeDistance / 120 + stackBoost + areaPenalty + currentBias
+        };
+      }
+
+      function pickHoverTarget() {
+        const stack = appStackAtPointer();
+        const hits = miniApps
+          .map(widget => readMiniAppHit(widget, stack))
+          .filter(Boolean);
+
+        if (!hits.length) return null;
+
+        return hits.reduce((best, hit) => {
+          if (!best) return hit;
+          if (hit.score < best.score - 0.01) return hit;
+          if (Math.abs(hit.score - best.score) <= 0.01 && hit.distance < best.distance) return hit;
+          return best;
+        }, null);
+      }
+
       function updateHoverField() {
         if (!pointer.inside || document.body.classList.contains('is-details-active')) {
           clearHoverField();
           return;
         }
 
-        const appRects = miniApps.map(widget => {
-          const rect = widget.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          const dx = pointer.clientX - centerX;
-          const dy = pointer.clientY - centerY;
-          return {
-            widget,
-            rect,
-            centerX,
-            centerY,
-            dx,
-            dy,
-            distance: Math.hypot(dx, dy)
-          };
-        }).filter(info => info.rect.width > 1 && info.rect.height > 1);
-
-        const currentInfo = hoverTarget ? appRects.find(info => info.widget === hoverTarget) : null;
-        const currentRadius = currentInfo ? Math.max(currentInfo.rect.width, currentInfo.rect.height) * 0.9 + 58 : 0;
-        const targetInfo = currentInfo && currentInfo.distance <= currentRadius
-          ? currentInfo
-          : appRects.reduce((best, current) => {
-          const hitRadius = Math.max(current.rect.width, current.rect.height) * 0.62 + 34;
-          if (current.distance > hitRadius) return best;
-          if (!best || current.distance < best.distance) return current;
-          return best;
-        }, null);
+        const targetInfo = pickHoverTarget();
 
         const nextTarget = targetInfo?.widget || null;
         if (nextTarget !== hoverTarget) {
