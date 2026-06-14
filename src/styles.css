@@ -37,24 +37,32 @@
         0 0.24rem 0.34rem rgba(45, 37, 14, 0.12),
         0 0.92rem 1.45rem rgba(35, 64, 86, 0.13),
         0 2.4rem 3.9rem rgba(35, 64, 86, 0.095);
-      --mac-shadow-window:
+      --mac-window-inset:
         inset 0 1px 0 rgba(255, 255, 255, 0.84),
         inset 0 1.1rem 1.6rem rgba(255, 255, 255, 0.18),
-        inset 0 -0.82rem 1.3rem rgba(45, 37, 14, 0.052),
+        inset 0 -0.82rem 1.3rem rgba(45, 37, 14, 0.052);
+      --mac-window-inset-front:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 1.25rem 1.65rem rgba(255, 255, 255, 0.22),
+        inset 0 -0.86rem 1.36rem rgba(45, 37, 14, 0.06);
+      --mac-window-cast:
         0 0.18rem 0.18rem rgba(45, 37, 14, 0.2),
         0 0.72rem 0.86rem rgba(45, 37, 14, 0.14),
         0 1.65rem 2.2rem rgba(35, 64, 86, 0.18),
         0 3.4rem 5.3rem rgba(24, 48, 66, 0.14),
         0 5.2rem 7.8rem rgba(0, 0, 0, 0.075);
-      --mac-shadow-window-front:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        inset 0 1.25rem 1.65rem rgba(255, 255, 255, 0.22),
-        inset 0 -0.86rem 1.36rem rgba(45, 37, 14, 0.06),
+      --mac-window-cast-front:
         0 0.26rem 0.22rem rgba(45, 37, 14, 0.23),
         0 1rem 1.05rem rgba(45, 37, 14, 0.17),
         0 2.35rem 2.85rem rgba(35, 64, 86, 0.24),
         0 4.8rem 6.9rem rgba(24, 48, 66, 0.18),
         0 7.2rem 9.8rem rgba(0, 0, 0, 0.095);
+      --mac-shadow-window:
+        var(--mac-window-inset),
+        var(--mac-window-cast);
+      --mac-shadow-window-front:
+        var(--mac-window-inset-front),
+        var(--mac-window-cast-front);
       --pressed-shadow:
         inset 0 0.18rem 0.34rem rgba(45, 37, 14, 0.16),
         inset 0 -1px 0 rgba(255, 255, 255, 0.34),
@@ -2294,8 +2302,7 @@
       min-width: 0;
       border-radius: 0.8rem;
       background: transparent;
-      box-shadow:
-        var(--mac-shadow-window);
+      box-shadow: var(--mac-window-cast);
       filter: none;
       translate: 0 0;
       -webkit-backface-visibility: hidden;
@@ -2334,6 +2341,7 @@
         rgba(255, 253, 245, 0.86);
       outline: 1px solid rgba(255, 255, 255, 0.28);
       outline-offset: -4px;
+      box-shadow: var(--mac-window-inset);
       clip-path: inset(0 round 0.8rem);
       -webkit-mask-image: -webkit-radial-gradient(white, black);
       mask-image: radial-gradient(white, black);
@@ -2383,18 +2391,27 @@
       z-index: 2;
     }
 
+    .desktop-window.is-front {
+      z-index: 5;
+    }
+
     .desktop-window:hover,
     .desktop-window:focus-within,
-    .desktop-window.is-front,
     .desktop-window.is-dragging {
       --window-depth: 34px;
-      box-shadow:
-        var(--mac-shadow-window-front);
+      box-shadow: var(--mac-window-cast-front);
       filter: none;
+    }
+
+    .desktop-window:hover .desktop-window-frame,
+    .desktop-window:focus-within .desktop-window-frame,
+    .desktop-window.is-dragging .desktop-window-frame {
+      box-shadow: var(--mac-window-inset-front);
     }
 
     .desktop-window.is-dragging {
       --window-depth: 72px;
+      z-index: 6;
       cursor: grabbing;
       translate: 0 0;
       animation-play-state: paused;
@@ -2708,6 +2725,8 @@
       display: grid;
       gap: 0.5rem;
       min-height: 0;
+      overflow: hidden;
+      border-radius: 0.64rem;
       overscroll-behavior: contain;
     }
 
@@ -3629,7 +3648,7 @@
     @media (max-width: 640px) {
       .play-page {
         min-height: auto;
-        padding-bottom: clamp(13rem, 28svh, 16rem);
+        padding-bottom: clamp(11.5rem, 24svh, 14rem);
       }
 
       .scene-logo {
@@ -3677,11 +3696,13 @@
         grid-template-columns: 1fr;
         grid-auto-rows: max-content;
         gap: 0.9rem;
-        overflow-y: auto;
-        margin-bottom: 0;
-        padding: 0 0 clamp(5.5rem, 14svh, 8rem);
-        scroll-padding-bottom: clamp(13rem, 28svh, 16rem);
+        width: min(100%, calc(100vw - 1.35rem));
+        overflow: visible;
+        margin: 0 auto;
+        padding: 0 0 clamp(4.4rem, 11svh, 6.5rem);
+        scroll-padding-bottom: clamp(11.5rem, 24svh, 14rem);
         transform-origin: 50% 0;
+        contain: none;
       }
 
       .desktop-window {
@@ -3704,7 +3725,7 @@
         -webkit-mask-image: none;
         mask-image: none;
         overflow: visible;
-        contain: layout style;
+        contain: none;
         transform:
           translate3d(
             var(--window-drag-x, 0px),
@@ -3712,15 +3733,16 @@
             0
           )
           rotate(var(--window-rotate, 0deg));
-        box-shadow:
-          inset 0 0 0 2px rgba(45, 37, 14, 0.86),
-          var(--mac-shadow-window);
+        box-shadow: var(--mac-window-cast);
         filter: none;
         transition: box-shadow 180ms ease;
       }
 
       .desktop-window-frame {
         border-radius: inherit;
+        box-shadow:
+          inset 0 0 0 2px rgba(45, 37, 14, 0.86),
+          var(--mac-window-inset);
         clip-path: inset(0 round 0.92rem);
         -webkit-mask-image: -webkit-radial-gradient(white, black);
         mask-image: radial-gradient(white, black);
@@ -3730,10 +3752,16 @@
       .desktop-window:focus-within,
       .desktop-window.is-dragging {
         --window-depth: 0px;
+        box-shadow: var(--mac-window-cast);
+        filter: none;
+      }
+
+      .desktop-window:hover .desktop-window-frame,
+      .desktop-window:focus-within .desktop-window-frame,
+      .desktop-window.is-dragging .desktop-window-frame {
         box-shadow:
           inset 0 0 0 2px rgba(45, 37, 14, 0.86),
-          var(--mac-shadow-window-front);
-        filter: none;
+          var(--mac-window-inset);
       }
 
       .window-chrome {
@@ -3842,7 +3870,7 @@
       }
 
       .floating-footer-kicker::before {
-        content: none;
+        width: 0.24rem;
       }
 
       .floating-footer-description {
