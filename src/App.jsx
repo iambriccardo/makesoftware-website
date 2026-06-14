@@ -4,6 +4,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
+  useSpring,
   useTransform
 } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -154,56 +155,98 @@ function selectStickerAssetsForViewport(assets, seed, width) {
     .map((item) => item.src);
 }
 
-function randomStickerPosition(index, total, seed, width, height) {
-  const config = stickerViewportConfig(width);
-  const aspect = width / Math.max(height, 1);
-  const safeLeft = clamp(width * config.marginX, 46, 150);
-  const safeRight = clamp(width * config.marginX, 46, 150);
-  const safeTop = clamp(height * config.marginTop, 54, 132);
-  const safeBottom = clamp(height * config.marginBottom, 72, 172);
-  const usableWidth = Math.max(width - safeLeft - safeRight, 1);
-  const usableHeight = Math.max(height - safeTop - safeBottom, 1);
-  const columns = Math.max(2, Math.ceil(Math.sqrt(total * aspect)));
-  const rows = Math.max(2, Math.ceil(total / columns));
-  const cellCount = columns * rows;
-  const cellOffset = Math.floor(seededNoise(seed + total * 1.91) * cellCount);
-  const cell = (index * spreadStep(cellCount) + cellOffset) % cellCount;
-  const column = cell % columns;
-  const row = Math.floor(cell / columns);
-  const cellWidth = usableWidth / columns;
-  const cellHeight = usableHeight / rows;
-  const wave = seed + index * 2.399 + total * 0.17;
-  let x = safeLeft + (column + 0.5) * cellWidth + (seededNoise(wave) - 0.5) * cellWidth * 0.5;
-  let y = safeTop + (row + 0.5) * cellHeight + (seededNoise(wave + 7.13) - 0.5) * cellHeight * 0.5;
+function stickerDistance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function stickerCenterPenalty(point, width, height, config) {
   const centerX = width * 0.5;
   const centerY = height * 0.5;
   const avoidWidth = width * config.avoidWidth;
   const avoidHeight = height * config.avoidHeight;
-  const centerDx = x - centerX;
-  const centerDy = y - centerY;
+  const normalizedX = Math.abs(point.x - centerX) / Math.max(avoidWidth, 1);
+  const normalizedY = Math.abs(point.y - centerY) / Math.max(avoidHeight, 1);
+  return clamp(1 - Math.max(normalizedX, normalizedY), 0, 1);
+}
 
-  if (Math.abs(centerDx) < avoidWidth && Math.abs(centerDy) < avoidHeight) {
-    const direction = Math.atan2(
-      centerDy || seededNoise(seed + index + 18.3) - 0.5,
-      centerDx || seededNoise(seed + index + 2.7) - 0.5
+function generateStickerCandidates(index, total, seed, width, height, size, config) {
+  const safeLeft = clamp(width * config.marginX, size * 0.72, 160);
+  const safeRight = clamp(width * config.marginX, size * 0.72, 160);
+  const safeTop = clamp(height * config.marginTop, size * 0.78, 140);
+  const safeBottom = clamp(height * config.marginBottom, size * 0.9, 180);
+  const usableWidth = Math.max(width - safeLeft - safeRight, 1);
+  const usableHeight = Math.max(height - safeTop - safeBottom, 1);
+  const aspect = usableWidth / Math.max(usableHeight, 1);
+  const columns = Math.max(2, Math.ceil(Math.sqrt(total * aspect)));
+  const rows = Math.max(2, Math.ceil(total / columns));
+  const cellCount = columns * rows;
+  const step = spreadStep(cellCount);
+  const cellOffset = Math.floor(seededNoise(seed + total * 1.91) * cellCount);
+  const baseCell = (index * step + cellOffset) % cellCount;
+  const candidates = [];
+  const push = (x, y, rankBias = 0) => {
+    const point = clampStickerPoint(x, y, size);
+    candidates.push({ ...point, rankBias });
+  };
+
+  for (let attempt = 0; attempt < Math.max(cellCount, total * 3); attempt += 1) {
+    const cell = (baseCell + attempt * step) % cellCount;
+    const column = cell % columns;
+    const row = Math.floor(cell / columns);
+    const cellWidth = usableWidth / columns;
+    const cellHeight = usableHeight / rows;
+    const wave = seed + index * 29.7 + attempt * 8.13;
+    const jitterX = (seededNoise(wave) - 0.5) * Math.min(cellWidth * 0.58, size * 0.88);
+    const jitterY = (seededNoise(wave + 3.77) - 0.5) * Math.min(cellHeight * 0.58, size * 0.88);
+    push(
+      safeLeft + (column + 0.5) * cellWidth + jitterX,
+      safeTop + (row + 0.5) * cellHeight + jitterY,
+      attempt * 0.04
     );
-    x += Math.cos(direction) * (avoidWidth - Math.abs(centerDx) + width * 0.075);
-    y += Math.sin(direction) * (avoidHeight - Math.abs(centerDy) + height * 0.065);
   }
 
-  const escapedDx = x - centerX;
-  const escapedDy = y - centerY;
-  if (Math.abs(escapedDx) < avoidWidth && Math.abs(escapedDy) < avoidHeight) {
-    const signX = escapedDx < 0 ? -1 : 1;
-    const signY = escapedDy < 0 ? -1 : 1;
-    if (avoidWidth - Math.abs(escapedDx) < avoidHeight - Math.abs(escapedDy)) {
-      x = centerX + signX * (avoidWidth + width * 0.045);
-    } else {
-      y = centerY + signY * (avoidHeight + height * 0.045);
+  const ringCount = Math.max(10, total * 2);
+  const centerX = width * 0.5;
+  const centerY = height * 0.5;
+  for (let attempt = 0; attempt < ringCount; attempt += 1) {
+    const angle = Math.PI * 2 * seededNoise(seed + index * 13.7 + attempt * 1.91);
+    const radiusX = width * (0.36 + seededNoise(seed + attempt * 4.3) * 0.12);
+    const radiusY = height * (0.34 + seededNoise(seed + attempt * 5.1) * 0.14);
+    push(centerX + Math.cos(angle) * radiusX, centerY + Math.sin(angle) * radiusY, 0.7 + attempt * 0.02);
+  }
+
+  return candidates;
+}
+
+function placeStickerPoints(total, seed, width, height, size) {
+  const config = stickerViewportConfig(width);
+  const placed = [];
+  const minGap = Math.max(size * 0.42, 30);
+  const minDistance = size + minGap;
+
+  for (let index = 0; index < total; index += 1) {
+    const candidates = generateStickerCandidates(index, total, seed, width, height, size, config);
+    let best = null;
+
+    for (const candidate of candidates) {
+      const nearest = placed.length
+        ? Math.min(...placed.map((point) => stickerDistance(candidate, point)))
+        : minDistance * 1.8;
+      const overlapPenalty = nearest < minDistance ? (minDistance - nearest) * 95 : 0;
+      const centerPenalty = stickerCenterPenalty(candidate, width, height, config) * size * 5.5;
+      const edgeDistance = Math.min(candidate.x, width - candidate.x, candidate.y, height - candidate.y);
+      const edgePenalty = Math.max(0, size * 0.62 - edgeDistance) * 6;
+      const spacingReward = Math.min(nearest, minDistance * 1.8);
+      const score = spacingReward - overlapPenalty - centerPenalty - edgePenalty - candidate.rankBias;
+
+      if (!best || score > best.score) best = { ...candidate, score };
     }
+
+    const point = best ? { x: best.x, y: best.y } : clampStickerPoint(width * 0.5, height * 0.5, size);
+    placed.push(point);
   }
 
-  return { x, y };
+  return placed;
 }
 
 function clampStickerPoint(x, y, size) {
@@ -249,7 +292,7 @@ function useBodyScrollClasses(progress) {
 
 function useScatter(sceneRef) {
   useLayoutEffect(() => {
-    const scene = sceneRef.current;
+    const scene = sceneRef.current || document.querySelector(".toy-page");
     if (!scene) return undefined;
 
     const buildScatter = () => {
@@ -351,6 +394,108 @@ function usePointerParallax(sceneRef) {
       cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
+    };
+  }, [sceneRef]);
+}
+
+function useScrollSceneBridge(sceneRef) {
+  useEffect(() => {
+    const scene = sceneRef.current || document.querySelector(".toy-page");
+    if (!scene || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+
+    const root = document.documentElement;
+    let raf = 0;
+    let watchRaf = 0;
+    let current = clamp(window.scrollY / Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1));
+    let target = current;
+
+    const writeVar = (element, name, value) => {
+      element?.style.setProperty(name, value);
+    };
+
+    const readTarget = () => {
+      const maxScroll = Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1);
+      return clamp(window.scrollY / maxScroll);
+    };
+
+    const apply = (timelineProgress) => {
+      const progress = smoothstep((timelineProgress - 0.02) / 0.58);
+      const wordmarkExit = smoothstep((timelineProgress - 0.02) / 0.58);
+      const detailsProgress = smoothstep((timelineProgress - 0.24) / 0.36);
+      const footerProgress = smoothstep((timelineProgress - 0.3) / 0.36);
+      const stickerProgress = smoothstep((timelineProgress - 0.06) / 0.42);
+      const stickerExitProgress = smoothstep(stickerProgress);
+      const footer = document.querySelector(".floating-ambient-footer");
+
+      writeVar(scene, "--scene-progress", progress.toFixed(4));
+      writeVar(scene, "--item-opacity", clamp(1 - progress * 1.12).toFixed(4));
+      writeVar(scene, "--item-scale", (1 - progress * 0.18).toFixed(4));
+      writeVar(scene, "--wordmark-opacity", clamp(1 - wordmarkExit * 1.15).toFixed(4));
+      writeVar(scene, "--wordmark-scale", (1 - wordmarkExit * 0.38).toFixed(4));
+      writeVar(scene, "--wordmark-depth", wordmarkExit.toFixed(4));
+      writeVar(scene, "--wordmark-blur", `${(wordmarkExit * 8.5).toFixed(2)}px`);
+      writeVar(scene, "--details-opacity", detailsProgress.toFixed(4));
+      writeVar(root, "--stickers-opacity", clamp(1 - stickerProgress * 1.08).toFixed(3));
+      writeVar(root, "--stickers-progress", stickerExitProgress.toFixed(4));
+      writeVar(root, "--stickers-depth", stickerExitProgress.toFixed(4));
+      writeVar(footer, "--footer-progress", footerProgress.toFixed(3));
+    };
+
+    const applyBodyClasses = (rawProgress) => {
+      const detailsProgress = smoothstep((rawProgress - 0.24) / 0.36);
+      const footerProgress = smoothstep((rawProgress - 0.3) / 0.36);
+      const stickerProgress = smoothstep((rawProgress - 0.06) / 0.42);
+
+      document.body.classList.toggle("is-details-active", detailsProgress > 0.06);
+      document.body.classList.toggle("is-footer-active", footerProgress > 0.08);
+      document.body.classList.toggle("is-stickers-hidden", clamp(1 - stickerProgress * 1.08) < 0.08 || detailsProgress > 0.06);
+      document.body.classList.toggle("is-scene-complete", rawProgress > 0.94);
+    };
+
+    const render = () => {
+      current += (target - current) * 0.18;
+      if (Math.abs(target - current) < 0.001) current = target;
+      apply(current);
+
+      if (current !== target) {
+        raf = window.requestAnimationFrame(render);
+      } else {
+        raf = 0;
+      }
+    };
+
+    const schedule = () => {
+      target = readTarget();
+      applyBodyClasses(target);
+      if (!raf) raf = window.requestAnimationFrame(render);
+    };
+
+    const watchScrollPosition = () => {
+      const nextTarget = readTarget();
+      if (Math.abs(nextTarget - target) > 0.0005) {
+        target = nextTarget;
+        applyBodyClasses(target);
+        if (!raf) raf = window.requestAnimationFrame(render);
+      }
+      watchRaf = window.requestAnimationFrame(watchScrollPosition);
+    };
+
+    target = readTarget();
+    current = target;
+    apply(current);
+    applyBodyClasses(target);
+    watchRaf = window.requestAnimationFrame(watchScrollPosition);
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
+
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      if (watchRaf) window.cancelAnimationFrame(watchRaf);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
     };
   }, [sceneRef]);
 }
@@ -630,10 +775,10 @@ function StickerBoard({ style }) {
       const height = window.innerHeight;
       const visibleAssets = selectStickerAssetsForViewport(stickerAssets, seed, width);
       const size = stickerViewportConfig(width).size;
+      const points = placeStickerPoints(visibleAssets.length, seed, width, height, size);
       setStickers(
         visibleAssets.map((src, index) => {
-          const rawPoint = randomStickerPosition(index, visibleAssets.length, seed, width, height);
-          const point = clampStickerPoint(rawPoint.x, rawPoint.y, size);
+          const point = points[index];
           return {
             src,
             id: stickerIdFromSrc(src),
@@ -928,7 +1073,7 @@ function MiniApps({ state, activate, clock }) {
   );
 }
 
-function DesktopWindow({ index, className, title, children }) {
+function DesktopWindow({ index, className, title, action, children }) {
   const ref = useRef(null);
   useWindowDrag(ref, index);
 
@@ -936,6 +1081,7 @@ function DesktopWindow({ index, className, title, children }) {
     <article ref={ref} className={`desktop-window ${className}`} data-window>
       <div className="window-chrome" data-drag-handle>
         <span className="window-title">{title}</span>
+        {action}
       </div>
       {children}
     </article>
@@ -945,17 +1091,19 @@ function DesktopWindow({ index, className, title, children }) {
 function DetailsDesktop() {
   return (
     <section className="details-desktop" aria-label="Make Software events and contact">
-      <DesktopWindow index={0} className="events-window" title="Events">
+      <DesktopWindow
+        index={0}
+        className="events-window"
+        title="Events"
+        action={<a className="window-action window-chrome-action" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>}
+      >
         <div className="window-body luma-window-body">
           <div className="window-hero-copy">
             <h2>Come make with us.</h2>
-            <p>We are always looking for small, warm, hands-on software gatherings: demo nights, tiny workshops, prototype sessions, and strange tools made with friends.</p>
+            <p>We organize a few Make Software events every month: small, warm gatherings for people building tiny tools, prototypes, and strange things with computers. Browse the upcoming list below or open it on Luma.</p>
           </div>
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
-            <span className="window-pill">bring a demo</span>
-            <span className="window-pill">low pressure</span>
-            <a className="window-action" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>
           </div>
           <div className="event-frame-wrap">
             <iframe
@@ -1001,7 +1149,6 @@ function DetailsDesktop() {
           </div>
           <div className="window-pill-row" aria-label="Contact links">
             <a className="window-action" href="mailto:riccardob36@gmail.com">Email us</a>
-            <span className="window-pill" style={{ "--pill-bg": "#bde6ff" }}>Vienna / local internet</span>
           </div>
         </div>
       </DesktopWindow>
@@ -1086,16 +1233,19 @@ export default function App() {
   const [appState, setAppState] = useState(initialState);
   const [bursts, setBursts] = useState([]);
   const clock = useClock(appState.clock24);
-  const { scrollYProgress } = useScroll({
-    target: sceneRef,
-    offset: ["start start", "end end"]
+  const { scrollYProgress } = useScroll();
+  const smoothScrollProgress = useSpring(scrollYProgress, {
+    stiffness: 72,
+    damping: 24,
+    mass: 0.28,
+    restDelta: 0.0008
   });
 
-  const sceneProgress = useTransform(scrollYProgress, (value) => smoothstep((value - 0.02) / 0.58));
-  const wordmarkExit = useTransform(scrollYProgress, (value) => smoothstep((value - 0.02) / 0.58));
-  const detailsProgress = useTransform(scrollYProgress, (value) => smoothstep((value - 0.24) / 0.36));
-  const footerProgress = useTransform(scrollYProgress, (value) => smoothstep((value - 0.3) / 0.36));
-  const stickerProgress = useTransform(scrollYProgress, (value) => smoothstep((value - 0.06) / 0.42));
+  const sceneProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.02) / 0.58));
+  const wordmarkExit = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.02) / 0.58));
+  const detailsProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.24) / 0.36));
+  const footerProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.3) / 0.36));
+  const stickerProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.06) / 0.42));
   const stickerExitProgress = useTransform(stickerProgress, smoothstep);
   const itemOpacity = useTransform(sceneProgress, (value) => clamp(1 - value * 1.12));
   const itemScale = useTransform(sceneProgress, (value) => 1 - value * 0.18);
@@ -1128,7 +1278,8 @@ export default function App() {
   useBodyScrollClasses(scrollYProgress);
   useScatter(sceneRef);
   usePointerParallax(sceneRef);
-  useDebugApi(sceneRef, scrollYProgress);
+  useScrollSceneBridge(sceneRef);
+  useDebugApi(sceneRef, smoothScrollProgress);
 
   useEffect(() => {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
