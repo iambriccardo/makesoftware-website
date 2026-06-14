@@ -198,7 +198,7 @@
 
     .toy-page {
       position: relative;
-      min-height: 720svh;
+      min-height: 620svh;
       isolation: isolate;
       --details-opacity: 0;
       --footer-progress: 0;
@@ -2197,10 +2197,17 @@
       -webkit-backdrop-filter: blur(30px) saturate(1.45) contrast(1.08) brightness(1.04);
       backdrop-filter: blur(30px) saturate(1.45) contrast(1.08) brightness(1.04);
       -webkit-mask-image: -webkit-radial-gradient(white, black);
+      opacity: clamp(0, calc(var(--window-enter, var(--details-opacity, 0)) * 1.18), 1);
       transform:
-        translate3d(var(--window-drag-x, 0px), var(--window-drag-y, 0px), var(--window-depth, 0px))
-        rotate(var(--window-rotate, 0deg));
-      transition: box-shadow 180ms ease, transform 260ms cubic-bezier(.16, .84, .18, 1);
+        translate3d(
+          var(--window-drag-x, 0px),
+          calc(var(--window-drag-y, 0px) + var(--window-enter-y, 0px)),
+          var(--window-depth, 0px)
+        )
+        rotate(calc(var(--window-rotate, 0deg) + var(--window-enter-roll, 0deg)))
+        scale(var(--window-enter-scale, 1));
+      transition: box-shadow 180ms ease, transform 220ms cubic-bezier(.16, .84, .18, 1);
+      will-change: transform, opacity;
     }
 
     .desktop-window::before {
@@ -2310,16 +2317,6 @@
       font-weight: 900;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-    }
-
-    .window-chrome-action {
-      margin-left: auto;
-      min-height: 1.48rem;
-      border-width: 1px;
-      padding: 0.18rem 0.62rem;
-      font-size: 0.58rem;
-      line-height: 1;
-      pointer-events: auto;
     }
 
     .events-window {
@@ -2495,6 +2492,10 @@
       gap: 0.5rem;
       min-height: 0;
       overscroll-behavior: contain;
+    }
+
+    .event-frame-wrap[data-lenis-prevent] iframe {
+      pointer-events: auto;
     }
 
     .contact-window {
@@ -3140,7 +3141,7 @@
 
     @media (max-width: 640px) {
       .toy-page {
-        min-height: 680svh;
+        min-height: 600svh;
       }
 
       .scene-logo {
@@ -3211,7 +3212,6 @@
         border-radius: 0.72rem;
         clip-path: inset(0 round 0.72rem);
         contain: paint;
-        transform: translate3d(0, 0, 0);
         transition: box-shadow 180ms ease;
       }
 

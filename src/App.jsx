@@ -1,12 +1,9 @@
 import {
   AnimatePresence,
   motion,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform
+  useReducedMotion
 } from "motion/react";
+import Lenis from "lenis";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -72,6 +69,7 @@ const weatherStates = [
 
 const memoTexts = ["save the odd version", "invite one friend", "make it smaller", "ship before polish"];
 const pixelColors = ["#fffdf5", "#fff36e", "#60d130", "#63a7ff", "#fb78a6", "#ff8a2a", "#2D250E"];
+let activeDesktopWindowZ = 40;
 
 const initialState = {
   stampActive: false,
@@ -277,17 +275,65 @@ function stickerExitVector(point, index, size, seed) {
   };
 }
 
-function useBodyScrollClasses(progress) {
-  useMotionValueEvent(progress, "change", (value) => {
-    const detailsProgress = smoothstep((value - 0.24) / 0.36);
-    const footerProgress = smoothstep((value - 0.3) / 0.36);
-    const stickerProgress = smoothstep((value - 0.06) / 0.42);
+function sceneTimelineValues(rawProgress) {
+  const progress = smoothstep((rawProgress - 0.015) / 0.49);
+  const wordmarkExit = smoothstep((rawProgress - 0.015) / 0.49);
+  const detailsProgress = smoothstep((rawProgress - 0.18) / 0.31);
+  const footerProgress = smoothstep((rawProgress - 0.24) / 0.31);
+  const stickerProgress = smoothstep((rawProgress - 0.045) / 0.34);
+  const stickerExitProgress = smoothstep(stickerProgress);
 
-    document.body.classList.toggle("is-details-active", detailsProgress > 0.06);
-    document.body.classList.toggle("is-footer-active", footerProgress > 0.08);
-    document.body.classList.toggle("is-stickers-hidden", clamp(1 - stickerProgress * 1.08) < 0.08 || detailsProgress > 0.06);
-    document.body.classList.toggle("is-scene-complete", value > 0.94);
+  return {
+    rawProgress,
+    progress,
+    itemOpacity: clamp(1 - progress * 1.12),
+    itemScale: 1 - progress * 0.18,
+    wordmarkExit,
+    wordmarkOpacity: clamp(1 - wordmarkExit * 1.15),
+    wordmarkScale: 1 - wordmarkExit * 0.38,
+    wordmarkBlur: `${(wordmarkExit * 8.5).toFixed(2)}px`,
+    detailsProgress,
+    footerProgress,
+    stickerProgress,
+    stickerOpacity: clamp(1 - stickerProgress * 1.08),
+    stickerExitProgress
+  };
+}
+
+function applySceneTimeline(rawProgress, scene, footer, windows = []) {
+  const values = sceneTimelineValues(rawProgress);
+  const root = document.documentElement;
+
+  scene?.style.setProperty("--scene-progress", values.progress.toFixed(4));
+  scene?.style.setProperty("--item-opacity", values.itemOpacity.toFixed(4));
+  scene?.style.setProperty("--item-scale", values.itemScale.toFixed(4));
+  scene?.style.setProperty("--wordmark-opacity", values.wordmarkOpacity.toFixed(4));
+  scene?.style.setProperty("--wordmark-scale", values.wordmarkScale.toFixed(4));
+  scene?.style.setProperty("--wordmark-depth", values.wordmarkExit.toFixed(4));
+  scene?.style.setProperty("--wordmark-blur", values.wordmarkBlur);
+  scene?.style.setProperty("--details-opacity", values.detailsProgress.toFixed(4));
+
+  root.style.setProperty("--timeline-progress", values.rawProgress.toFixed(4));
+  root.style.setProperty("--stickers-opacity", values.stickerOpacity.toFixed(4));
+  root.style.setProperty("--stickers-progress", values.stickerExitProgress.toFixed(4));
+  root.style.setProperty("--stickers-depth", values.stickerExitProgress.toFixed(4));
+  footer?.style.setProperty("--footer-progress", values.footerProgress.toFixed(4));
+
+  windows.forEach((windowEl, index) => {
+    const windowEnter = smoothstep((values.detailsProgress - index * 0.16) / 0.78);
+    const compact = window.innerWidth <= 640;
+    const rise = compact ? 38 : index === 0 ? 58 : 66;
+    const roll = compact ? 0 : index === 0 ? -3.8 : 4.5;
+    windowEl.style.setProperty("--window-enter", windowEnter.toFixed(4));
+    windowEl.style.setProperty("--window-enter-y", `${((1 - windowEnter) * rise).toFixed(2)}px`);
+    windowEl.style.setProperty("--window-enter-roll", `${((1 - windowEnter) * roll).toFixed(3)}deg`);
+    windowEl.style.setProperty("--window-enter-scale", (0.94 + windowEnter * 0.06).toFixed(4));
   });
+
+  document.body.classList.toggle("is-details-active", values.detailsProgress > 0.06);
+  document.body.classList.toggle("is-footer-active", values.footerProgress > 0.08);
+  document.body.classList.toggle("is-stickers-hidden", values.stickerOpacity < 0.08 || values.detailsProgress > 0.06);
+  document.body.classList.toggle("is-scene-complete", rawProgress > 0.94);
 }
 
 function useScatter(sceneRef) {
@@ -398,106 +444,50 @@ function usePointerParallax(sceneRef) {
   }, [sceneRef]);
 }
 
-function useScrollSceneBridge(sceneRef) {
+function useLenisScrollScene(sceneRef, disabled) {
   useEffect(() => {
     const scene = sceneRef.current || document.querySelector(".toy-page");
-    if (!scene || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const footer = document.querySelector(".floating-ambient-footer");
+    const windows = scene ? [...scene.querySelectorAll(".desktop-window")] : [];
+    if (!scene || disabled) {
+      applySceneTimeline(0, scene, footer, windows);
+      if (disabled) {
+        document.body.classList.add("is-details-active", "is-footer-active");
+        document.body.classList.remove("is-stickers-hidden", "is-scene-complete");
+        windows.forEach((windowEl) => windowEl.style.setProperty("--window-enter", "1"));
+      }
+      return undefined;
+    }
 
-    const root = document.documentElement;
+    const lenis = new Lenis({
+      lerp: 0.12,
+      smoothWheel: true,
+      wheelMultiplier: 1.08,
+      touchMultiplier: 1.08,
+      autoRaf: false,
+      anchors: true,
+      prevent: (node) => Boolean(node.closest?.("[data-lenis-prevent]"))
+    });
     let raf = 0;
-    let watchRaf = 0;
-    let current = clamp(window.scrollY / Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1));
-    let target = current;
 
-    const writeVar = (element, name, value) => {
-      element?.style.setProperty(name, value);
+    const apply = ({ progress = lenis.progress } = {}) => {
+      applySceneTimeline(clamp(progress), scene, footer, windows);
     };
 
-    const readTarget = () => {
-      const maxScroll = Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1);
-      return clamp(window.scrollY / maxScroll);
+    const frame = (time) => {
+      lenis.raf(time);
+      raf = window.requestAnimationFrame(frame);
     };
 
-    const apply = (timelineProgress) => {
-      const progress = smoothstep((timelineProgress - 0.02) / 0.58);
-      const wordmarkExit = smoothstep((timelineProgress - 0.02) / 0.58);
-      const detailsProgress = smoothstep((timelineProgress - 0.24) / 0.36);
-      const footerProgress = smoothstep((timelineProgress - 0.3) / 0.36);
-      const stickerProgress = smoothstep((timelineProgress - 0.06) / 0.42);
-      const stickerExitProgress = smoothstep(stickerProgress);
-      const footer = document.querySelector(".floating-ambient-footer");
-
-      writeVar(scene, "--scene-progress", progress.toFixed(4));
-      writeVar(scene, "--item-opacity", clamp(1 - progress * 1.12).toFixed(4));
-      writeVar(scene, "--item-scale", (1 - progress * 0.18).toFixed(4));
-      writeVar(scene, "--wordmark-opacity", clamp(1 - wordmarkExit * 1.15).toFixed(4));
-      writeVar(scene, "--wordmark-scale", (1 - wordmarkExit * 0.38).toFixed(4));
-      writeVar(scene, "--wordmark-depth", wordmarkExit.toFixed(4));
-      writeVar(scene, "--wordmark-blur", `${(wordmarkExit * 8.5).toFixed(2)}px`);
-      writeVar(scene, "--details-opacity", detailsProgress.toFixed(4));
-      writeVar(root, "--stickers-opacity", clamp(1 - stickerProgress * 1.08).toFixed(3));
-      writeVar(root, "--stickers-progress", stickerExitProgress.toFixed(4));
-      writeVar(root, "--stickers-depth", stickerExitProgress.toFixed(4));
-      writeVar(footer, "--footer-progress", footerProgress.toFixed(3));
-    };
-
-    const applyBodyClasses = (rawProgress) => {
-      const detailsProgress = smoothstep((rawProgress - 0.24) / 0.36);
-      const footerProgress = smoothstep((rawProgress - 0.3) / 0.36);
-      const stickerProgress = smoothstep((rawProgress - 0.06) / 0.42);
-
-      document.body.classList.toggle("is-details-active", detailsProgress > 0.06);
-      document.body.classList.toggle("is-footer-active", footerProgress > 0.08);
-      document.body.classList.toggle("is-stickers-hidden", clamp(1 - stickerProgress * 1.08) < 0.08 || detailsProgress > 0.06);
-      document.body.classList.toggle("is-scene-complete", rawProgress > 0.94);
-    };
-
-    const render = () => {
-      current += (target - current) * 0.18;
-      if (Math.abs(target - current) < 0.001) current = target;
-      apply(current);
-
-      if (current !== target) {
-        raf = window.requestAnimationFrame(render);
-      } else {
-        raf = 0;
-      }
-    };
-
-    const schedule = () => {
-      target = readTarget();
-      applyBodyClasses(target);
-      if (!raf) raf = window.requestAnimationFrame(render);
-    };
-
-    const watchScrollPosition = () => {
-      const nextTarget = readTarget();
-      if (Math.abs(nextTarget - target) > 0.0005) {
-        target = nextTarget;
-        applyBodyClasses(target);
-        if (!raf) raf = window.requestAnimationFrame(render);
-      }
-      watchRaf = window.requestAnimationFrame(watchScrollPosition);
-    };
-
-    target = readTarget();
-    current = target;
-    apply(current);
-    applyBodyClasses(target);
-    watchRaf = window.requestAnimationFrame(watchScrollPosition);
-
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
-    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
+    lenis.on("scroll", apply);
+    apply();
+    raf = window.requestAnimationFrame(frame);
 
     return () => {
-      if (raf) window.cancelAnimationFrame(raf);
-      if (watchRaf) window.cancelAnimationFrame(watchRaf);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
+      window.cancelAnimationFrame(raf);
+      lenis.destroy();
     };
-  }, [sceneRef]);
+  }, [sceneRef, disabled]);
 }
 
 function useClock(clock24) {
@@ -527,9 +517,9 @@ function useWindowDrag(ref, index) {
   useEffect(() => {
     const windowEl = ref.current;
     const handle = windowEl?.querySelector("[data-drag-handle]");
+    const iframeSurface = windowEl?.querySelector("[data-lenis-prevent]");
     if (!windowEl || !handle) return undefined;
 
-    let activeWindowZ = 40 + index;
     let pointerId = null;
     let startX = 0;
     let startY = 0;
@@ -541,8 +531,8 @@ function useWindowDrag(ref, index) {
     windowEl.style.zIndex = String(20 + index);
 
     const bringToFront = () => {
-      activeWindowZ += 10;
-      windowEl.style.zIndex = String(activeWindowZ);
+      activeDesktopWindowZ += 1;
+      windowEl.style.zIndex = String(activeDesktopWindowZ);
     };
     const moveDrag = (event) => {
       if (pointerId !== event.pointerId) return;
@@ -598,11 +588,13 @@ function useWindowDrag(ref, index) {
 
     windowEl.addEventListener("pointerdown", bringToFront);
     windowEl.addEventListener("focusin", bringToFront);
+    iframeSurface?.addEventListener("pointerenter", bringToFront);
     handle.addEventListener("pointerdown", startDrag);
     handle.addEventListener("dblclick", reset);
     return () => {
       windowEl.removeEventListener("pointerdown", bringToFront);
       windowEl.removeEventListener("focusin", bringToFront);
+      iframeSurface?.removeEventListener("pointerenter", bringToFront);
       handle.removeEventListener("pointerdown", startDrag);
       handle.removeEventListener("dblclick", reset);
       window.removeEventListener("pointermove", moveDrag);
@@ -1095,17 +1087,16 @@ function DetailsDesktop() {
         index={0}
         className="events-window"
         title="Events"
-        action={<a className="window-action window-chrome-action" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>}
       >
         <div className="window-body luma-window-body">
           <div className="window-hero-copy">
             <h2>Come make with us.</h2>
-            <p>We organize a few Make Software events every month: small, warm gatherings for people building tiny tools, prototypes, and strange things with computers. Browse the upcoming list below or open it on Luma.</p>
+            <p>We organize a few Make Software events every month: small, warm gatherings for people building tiny tools, prototypes, and strange things with computers. Browse the upcoming list below.</p>
           </div>
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
           </div>
-          <div className="event-frame-wrap">
+          <div className="event-frame-wrap" data-lenis-prevent>
             <iframe
               src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
               title="Make Software events on Luma"
@@ -1182,18 +1173,19 @@ function DetailsDesktop() {
   );
 }
 
-function useDebugApi(sceneRef, progress) {
+function useDebugApi(sceneRef) {
   useEffect(() => {
     window.makeSoftwareScrollDebug = {
       sample() {
         const scene = sceneRef.current;
+        const footer = document.querySelector(".floating-ambient-footer");
         return {
           y: Math.round(window.scrollY),
           width: window.innerWidth,
           height: document.documentElement.clientHeight || window.innerHeight,
-          timeline: Number(progress.get().toFixed(4)),
+          timeline: Number(getComputedStyle(document.documentElement).getPropertyValue("--timeline-progress").trim() || 0),
           details: scene ? getComputedStyle(scene).getPropertyValue("--details-opacity").trim() : "",
-          footer: getComputedStyle(document.documentElement).getPropertyValue("--footer-progress").trim(),
+          footer: footer ? getComputedStyle(footer).getPropertyValue("--footer-progress").trim() : "",
           bodyClasses: document.body.className
         };
       },
@@ -1224,7 +1216,7 @@ function useDebugApi(sceneRef, progress) {
     return () => {
       delete window.makeSoftwareScrollDebug;
     };
-  }, [progress, sceneRef]);
+  }, [sceneRef]);
 }
 
 export default function App() {
@@ -1233,53 +1225,11 @@ export default function App() {
   const [appState, setAppState] = useState(initialState);
   const [bursts, setBursts] = useState([]);
   const clock = useClock(appState.clock24);
-  const { scrollYProgress } = useScroll();
-  const smoothScrollProgress = useSpring(scrollYProgress, {
-    stiffness: 72,
-    damping: 24,
-    mass: 0.28,
-    restDelta: 0.0008
-  });
 
-  const sceneProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.02) / 0.58));
-  const wordmarkExit = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.02) / 0.58));
-  const detailsProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.24) / 0.36));
-  const footerProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.3) / 0.36));
-  const stickerProgress = useTransform(smoothScrollProgress, (value) => smoothstep((value - 0.06) / 0.42));
-  const stickerExitProgress = useTransform(stickerProgress, smoothstep);
-  const itemOpacity = useTransform(sceneProgress, (value) => clamp(1 - value * 1.12));
-  const itemScale = useTransform(sceneProgress, (value) => 1 - value * 0.18);
-  const wordmarkOpacity = useTransform(wordmarkExit, (value) => clamp(1 - value * 1.15));
-  const wordmarkScale = useTransform(wordmarkExit, (value) => 1 - value * 0.38);
-  const wordmarkBlur = useTransform(wordmarkExit, (value) => `${(value * 8.5).toFixed(2)}px`);
-  const stickersOpacity = useTransform(stickerProgress, (value) => clamp(1 - value * 1.08));
-
-  const motionStyle = shouldReduceMotion
-    ? {}
-    : {
-        "--scene-progress": sceneProgress,
-        "--item-opacity": itemOpacity,
-        "--item-scale": itemScale,
-        "--wordmark-opacity": wordmarkOpacity,
-        "--wordmark-scale": wordmarkScale,
-        "--wordmark-depth": wordmarkExit,
-        "--wordmark-blur": wordmarkBlur,
-        "--details-opacity": detailsProgress
-      };
-  const stickerStyle = shouldReduceMotion
-    ? {}
-    : {
-        "--stickers-opacity": stickersOpacity,
-        "--stickers-progress": stickerExitProgress,
-        "--stickers-depth": stickerExitProgress
-      };
-  const footerStyle = shouldReduceMotion ? {} : { "--footer-progress": footerProgress };
-
-  useBodyScrollClasses(scrollYProgress);
   useScatter(sceneRef);
   usePointerParallax(sceneRef);
-  useScrollSceneBridge(sceneRef);
-  useDebugApi(sceneRef, smoothScrollProgress);
+  useLenisScrollScene(sceneRef, shouldReduceMotion);
+  useDebugApi(sceneRef);
 
   useEffect(() => {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -1346,9 +1296,9 @@ export default function App() {
       <a className="scene-logo" href="/" aria-label="Make Software home">
         <img src="/assets/branding/tomo/logo.svg" alt="" width="1254" height="1254" />
       </a>
-      <StickerBoard style={stickerStyle} />
+      <StickerBoard />
       <BurstLayer bursts={bursts} />
-      <motion.main ref={sceneRef} className="toy-page" style={motionStyle}>
+      <motion.main ref={sceneRef} className="toy-page">
         <CloudLayer />
         <section className="hero" aria-labelledby="page-title">
           <div className="collage">
@@ -1358,7 +1308,7 @@ export default function App() {
           <h1 className="sr-only" id="page-title">Make Software</h1>
         </section>
       </motion.main>
-      <motion.footer className="floating-ambient-footer" aria-label="Made by Ambient, coming soon to Vienna" style={footerStyle}>
+      <motion.footer className="floating-ambient-footer" aria-label="Made by Ambient, coming soon to Vienna">
         <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
         <span className="floating-ambient-mark" aria-hidden="true">
           <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
