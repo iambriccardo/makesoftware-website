@@ -26,19 +26,19 @@ const stickerAssets = [
 ];
 
 const terminalCommands = [
-  ["$ make tiny-app", "built /tiny/weird.html"],
-  ["$ vibe --local", "found 5 friends nearby"],
-  ["$ ship weird", "demo uploaded"],
-  ["$ open portal", "portal says: play more"],
-  ["$ save magic", "magic saved locally"]
+  ["$ make tiny-tool", "saved /tiny/weird.html"],
+  ["$ gather nearby", "5 makers found"],
+  ["$ ship strange", "demo uploaded"],
+  ["$ open room", "play more together"],
+  ["$ keep taste", "authorship saved"]
 ];
 
 const chatMessages = [
   "bring a weird idea",
-  "ugly demos welcome",
+  "unfinished demos welcome",
   "tiny tools forever",
   "made near others",
-  "computers are toys"
+  "computers can feel playful"
 ];
 
 const calendarDates = [
@@ -61,7 +61,7 @@ const weatherStates = [
   { temp: "31°", a: "#ff8a2a", b: "#fff36e", sun: "#fffdf5" }
 ];
 
-const memoTexts = ["save the odd version", "invite one friend", "make it smaller", "ship before polish"];
+const memoTexts = ["save the odd version", "invite one maker", "make it smaller", "finish before polish"];
 const pixelColors = ["#fffdf5", "#fff36e", "#60d130", "#63a7ff", "#fb78a6", "#ff8a2a", "#2D250E"];
 let activeDesktopWindowZ = 40;
 
@@ -422,6 +422,10 @@ function useWindowDrag(ref, index) {
     let originX = 0;
     let originY = 0;
     let dragScale = 1;
+    let lastClientX = 0;
+    let lastClientY = 0;
+    let autoScrollFrame = 0;
+    let autoScrollY = 0;
     const mobileWindowQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
 
     windowEl.style.zIndex = String(20 + index);
@@ -430,15 +434,66 @@ function useWindowDrag(ref, index) {
       activeDesktopWindowZ += 1;
       windowEl.style.zIndex = String(activeDesktopWindowZ);
     };
-    const moveDrag = (event) => {
-      if (pointerId !== event.pointerId) return;
-      event.preventDefault();
-      const nextX = originX + (event.clientX - startX) / dragScale;
-      const nextY = originY + (event.clientY - startY) / dragScale;
+
+    const readRenderedDrag = () => {
+      const styles = window.getComputedStyle(windowEl);
+      const x = Number.parseFloat(styles.getPropertyValue("--window-drag-x"));
+      const y = Number.parseFloat(styles.getPropertyValue("--window-drag-y"));
+      return {
+        x: Number.isFinite(x) ? x : Number(windowEl.dataset.dragX || 0),
+        y: Number.isFinite(y) ? y : Number(windowEl.dataset.dragY || 0)
+      };
+    };
+
+    const updateDragFromClient = (clientX, clientY) => {
+      if (pointerId === null) return;
+      const nextX = originX + (clientX - startX) / dragScale;
+      const nextY = originY + (clientY + window.scrollY - startY) / dragScale;
       windowEl.dataset.dragX = String(nextX);
       windowEl.dataset.dragY = String(nextY);
       windowEl.style.setProperty("--window-drag-x", `${nextX}px`);
       windowEl.style.setProperty("--window-drag-y", `${nextY}px`);
+    };
+
+    const stopAutoScroll = () => {
+      if (autoScrollFrame) cancelAnimationFrame(autoScrollFrame);
+      autoScrollFrame = 0;
+      autoScrollY = 0;
+    };
+
+    const updateAutoScroll = (clientY) => {
+      const edge = Math.min(110, window.innerHeight * 0.18);
+      const bottomDistance = window.innerHeight - clientY;
+      const topPressure = clientY < edge ? clamp((edge - clientY) / edge, 0, 1.25) : 0;
+      const bottomPressure = bottomDistance < edge ? clamp((edge - bottomDistance) / edge, 0, 1.25) : 0;
+      autoScrollY = (bottomPressure - topPressure) * 18;
+
+      if (Math.abs(autoScrollY) < 0.5) {
+        stopAutoScroll();
+        return;
+      }
+
+      if (autoScrollFrame) return;
+      const tick = () => {
+        if (pointerId === null || Math.abs(autoScrollY) < 0.5) {
+          autoScrollFrame = 0;
+          return;
+        }
+        const before = window.scrollY;
+        window.scrollBy({ top: autoScrollY, left: 0, behavior: "auto" });
+        if (window.scrollY !== before) updateDragFromClient(lastClientX, lastClientY);
+        autoScrollFrame = requestAnimationFrame(tick);
+      };
+      autoScrollFrame = requestAnimationFrame(tick);
+    };
+
+    const moveDrag = (event) => {
+      if (pointerId !== event.pointerId) return;
+      event.preventDefault();
+      lastClientX = event.clientX;
+      lastClientY = event.clientY;
+      updateDragFromClient(event.clientX, event.clientY);
+      updateAutoScroll(event.clientY);
     };
     const endDrag = (event) => {
       if (pointerId !== event.pointerId) return;
@@ -446,19 +501,27 @@ function useWindowDrag(ref, index) {
       window.removeEventListener("pointermove", moveDrag);
       window.removeEventListener("pointerup", endDrag);
       window.removeEventListener("pointercancel", endDrag);
-      if (handle.hasPointerCapture(activePointerId)) handle.releasePointerCapture(activePointerId);
+      if (typeof handle.hasPointerCapture === "function" && handle.hasPointerCapture(activePointerId)) {
+        handle.releasePointerCapture(activePointerId);
+      }
       pointerId = null;
       dragScale = 1;
+      stopAutoScroll();
       windowEl.classList.remove("is-dragging");
     };
     const startDrag = (event) => {
       if (event.button !== 0 || event.detail > 1 || mobileWindowQuery.matches || event.pointerType === "touch") return;
       event.preventDefault();
+      const rendered = readRenderedDrag();
       pointerId = event.pointerId;
       startX = event.clientX;
-      startY = event.clientY;
-      originX = Number(windowEl.dataset.dragX || 0);
-      originY = Number(windowEl.dataset.dragY || 0);
+      startY = event.clientY + window.scrollY;
+      lastClientX = event.clientX;
+      lastClientY = event.clientY;
+      originX = rendered.x;
+      originY = rendered.y;
+      windowEl.dataset.dragX = String(originX);
+      windowEl.dataset.dragY = String(originY);
       const desktopRect = windowEl.parentElement?.getBoundingClientRect();
       const desktopWidth = windowEl.parentElement?.offsetWidth || 0;
       dragScale = desktopRect && desktopWidth ? desktopRect.width / desktopWidth : 1;
@@ -475,6 +538,7 @@ function useWindowDrag(ref, index) {
       if (pointerId !== null) return;
       bringToFront();
       windowEl.classList.add("is-resetting");
+      stopAutoScroll();
       windowEl.dataset.dragX = "0";
       windowEl.dataset.dragY = "0";
       windowEl.style.setProperty("--window-drag-x", "0px");
@@ -496,6 +560,7 @@ function useWindowDrag(ref, index) {
       window.removeEventListener("pointermove", moveDrag);
       window.removeEventListener("pointerup", endDrag);
       window.removeEventListener("pointercancel", endDrag);
+      stopAutoScroll();
     };
   }, [ref, index]);
 }
@@ -521,6 +586,18 @@ function Sticker({ sticker, seed, index }) {
     autoScrollY: 0
   });
 
+  const readRenderedPosition = useCallback(() => {
+    const element = ref.current;
+    if (!element) return { x: state.current.currentX, y: state.current.currentY };
+    const styles = window.getComputedStyle(element);
+    const x = Number.parseFloat(styles.getPropertyValue("--sticker-x"));
+    const y = Number.parseFloat(styles.getPropertyValue("--sticker-y"));
+    return {
+      x: Number.isFinite(x) ? x : state.current.currentX,
+      y: Number.isFinite(y) ? y : state.current.currentY
+    };
+  }, []);
+
   const updatePosition = useCallback((x, y) => {
     const element = ref.current;
     if (!element) return;
@@ -529,6 +606,18 @@ function Sticker({ sticker, seed, index }) {
     element.style.setProperty("--sticker-x", `${x}px`);
     element.style.setProperty("--sticker-y", `${y}px`);
   }, []);
+
+  useLayoutEffect(() => {
+    const current = state.current;
+    if (current.pointerId !== null) return;
+    current.originX = sticker.x;
+    current.originY = sticker.y;
+    current.currentX = sticker.x;
+    current.currentY = sticker.y;
+    current.lastMoveX = sticker.x;
+    current.lastMoveY = sticker.y;
+    updatePosition(sticker.x, sticker.y);
+  }, [sticker.x, sticker.y, updatePosition]);
 
   useEffect(() => {
     const onResize = () => {
@@ -634,15 +723,18 @@ function Sticker({ sticker, seed, index }) {
     if (event.button && event.button !== 0) return;
     event.preventDefault();
     const current = state.current;
+    const rendered = readRenderedPosition();
     current.pointerId = event.pointerId;
     current.startX = event.clientX;
     current.startY = event.clientY + window.scrollY;
     current.lastClientX = event.clientX;
     current.lastClientY = event.clientY;
-    current.originX = current.currentX;
-    current.originY = current.currentY;
-    current.lastMoveX = current.currentX;
-    current.lastMoveY = current.currentY;
+    current.originX = rendered.x;
+    current.originY = rendered.y;
+    current.currentX = rendered.x;
+    current.currentY = rendered.y;
+    current.lastMoveX = rendered.x;
+    current.lastMoveY = rendered.y;
     current.lastMoveTime = performance.now();
     current.releaseVelocityX = 0;
     current.releaseVelocityY = 0;
@@ -851,15 +943,15 @@ function MiniApps({ state, activate, clock }) {
         <span className="wordmark-line wordmark-software">Software</span>
       </div>
 
-      <MiniApp id="stamp" className="stamp-app" label="Tiny stamp maker" active={state.stampActive} onActivate={activate}>
-        <span className="stamp-label">{state.stampActive ? <>tiny<br />thing<br />shipped</> : <>made<br />near<br />others</>}</span>
+      <MiniApp id="stamp" className="stamp-app" label="Tiny tool stamp" active={state.stampActive} onActivate={activate}>
+        <span className="stamp-label">{state.stampActive ? <>tiny<br />tool<br />finished</> : <>made<br />near<br />others</>}</span>
         <button className="app-action stamp-hit" type="button" data-action="stamp" tabIndex={-1}>stamp</button>
       </MiniApp>
 
       <MiniApp
         id="palette"
         className="palette-app"
-        label="Tiny theme mixer"
+        label="Playful theme mixer"
         onActivate={activate}
         style={{ "--swatch-a": palette[0], "--swatch-b": palette[1], "--swatch-c": palette[2] }}
       >
@@ -869,16 +961,16 @@ function MiniApps({ state, activate, clock }) {
         <button className="palette-swatch palette-swatch-c" type="button" data-action="palette" data-palette="2" aria-label="Use sky theme" tabIndex={-1}><span /></button>
       </MiniApp>
 
-      <MiniApp id="map" className="map-app" label="Tiny map app" onActivate={activate} style={{ "--pin-x": mapPin[0], "--pin-y": mapPin[1] }}>
+      <MiniApp id="map" className="map-app" label="Gathering map" onActivate={activate} style={{ "--pin-x": mapPin[0], "--pin-y": mapPin[1] }}>
         <button className="app-action" type="button" data-action="map" tabIndex={-1}>route</button>
       </MiniApp>
 
-      <MiniApp id="terminal" className="terminal-app" label="Tiny terminal" onActivate={activate}>
+      <MiniApp id="terminal" className="terminal-app" label="Playful terminal" onActivate={activate}>
         <span className="terminal-line">{terminal[0]} {state.terminalIndex ? terminal[1] : ""} <span className="cursor" /></span>
         <button className="app-action terminal-run" type="button" data-action="terminal" tabIndex={-1}>run</button>
       </MiniApp>
 
-      <MiniApp id="window" className="window-card" label="Tiny code editor" onActivate={activate} dataProps={{ "data-tab": state.windowTab }}>
+      <MiniApp id="window" className="window-card" label="Small code editor" onActivate={activate} dataProps={{ "data-tab": state.windowTab }}>
         <div className="window-tabs" aria-label="Editor tabs">
           <button type="button" data-action="window" data-tab="html" tabIndex={-1}>html</button>
           <button type="button" data-action="window" data-tab="css" tabIndex={-1}>css</button>
@@ -888,12 +980,12 @@ function MiniApps({ state, activate, clock }) {
         <span className="preview-dot" />
       </MiniApp>
 
-      <MiniApp id="chat" className="chat-app" label="Tiny chat app" onActivate={activate}>
+      <MiniApp id="chat" className="chat-app" label="Weird idea message" onActivate={activate}>
         <span className="chat-message">{chatMessages[state.chatIndex]}</span>
         <button className="app-action chat-send" type="button" data-action="chat" tabIndex={-1}>reply</button>
       </MiniApp>
 
-      <MiniApp id="website" className="website-app" label="Tiny website builder" onActivate={activate} dataProps={{ "data-theme": state.websiteTheme }}>
+      <MiniApp id="website" className="website-app" label="Small website sketch" onActivate={activate} dataProps={{ "data-theme": state.websiteTheme }}>
         <span className="site-hero" />
         <span className="site-lines" />
         <div className="site-tools">
@@ -903,34 +995,34 @@ function MiniApps({ state, activate, clock }) {
         </div>
       </MiniApp>
 
-      <MiniApp id="clock" className="clock-app" label="Live tiny clock" onActivate={activate} style={{ "--clock-hour": clock.hour, "--clock-minute": clock.minute }}>
+      <MiniApp id="clock" className="clock-app" label="Live gathering clock" onActivate={activate} style={{ "--clock-hour": clock.hour, "--clock-minute": clock.minute }}>
         <span className="clock-face" aria-hidden="true" />
         <time className="clock-time">{clock.text}</time>
         <button className="app-action clock-toggle" type="button" data-action="clock" tabIndex={-1}>{state.clock24 ? "24h" : "12h"}</button>
       </MiniApp>
 
-      <MiniApp id="mail" className="mail-app" label="Tiny inbox" active={state.mailCount === 0} onActivate={activate}>
+      <MiniApp id="mail" className="mail-app" label="Small inbox" active={state.mailCount === 0} onActivate={activate}>
         <strong>{state.mailCount}</strong>
         <button className="app-action" type="button" data-action="mail" tabIndex={-1}>read</button>
       </MiniApp>
 
-      <MiniApp id="receipt" className="receipt" label="Tiny values receipt" onActivate={activate}>
+      <MiniApp id="receipt" className="receipt" label="Values receipt" onActivate={activate}>
         <strong className="receipt-total">{state.receiptTotal}</strong>
-        <span className="receipt-line">{state.receiptItems === 2 ? <>tiny values<br />paid in taste</> : <>{state.receiptItems} tiny things<br />paid in taste</>}</span>
+        <span className="receipt-line">{state.receiptItems === 2 ? <>tiny tools<br />paid in taste</> : <>{state.receiptItems} small sparks<br />paid in taste</>}</span>
         <button className="app-action receipt-add" type="button" data-action="receipt" tabIndex={-1}>add</button>
       </MiniApp>
 
-      <MiniApp id="calendar" className="calendar" label="Tiny calendar" onActivate={activate} dataProps={{ "data-day": calendarDates[state.calendarIndex].day }}>
+      <MiniApp id="calendar" className="calendar" label="Gathering calendar" onActivate={activate} dataProps={{ "data-day": calendarDates[state.calendarIndex].day }}>
         <span className="calendar-month">{calendarDates[state.calendarIndex].month}</span>
         <button type="button" data-action="calendar" aria-label="Next calendar day" tabIndex={-1} />
       </MiniApp>
 
-      <MiniApp id="bubble" className={`chat-badge${state.bubbleCount === 0 ? " is-empty" : ""}`} label="Tiny notification bubble" onActivate={activate}>
+      <MiniApp id="bubble" className={`chat-badge${state.bubbleCount === 0 ? " is-empty" : ""}`} label="Small notification bubble" onActivate={activate}>
         <span className="bubble-count">{state.bubbleCount}</span>
         <button type="button" data-action="bubble" aria-label="Clear notification" tabIndex={-1} />
       </MiniApp>
 
-      <MiniApp id="calculator" className="calculator-app" label="Tiny calculator" onActivate={activate}>
+      <MiniApp id="calculator" className="calculator-app" label="Small calculator" onActivate={activate}>
         <output className="calc-screen">{state.calc || "0"}</output>
         <span className="calc-grid">
           {["7", "8", "+", "4", "5", "=", "C", "1", "2"].map((key) => (
@@ -939,46 +1031,46 @@ function MiniApps({ state, activate, clock }) {
         </span>
       </MiniApp>
 
-      <MiniApp id="todo" className="todo-app" label="Tiny todo list" active={doneRatio > 0} onActivate={activate} style={{ "--done-ratio": String(doneRatio) }}>
-        {["draw idea", "break code", "ship small", "tell friend"].map((label, index) => (
+      <MiniApp id="todo" className="todo-app" label="Prototype checklist" active={doneRatio > 0} onActivate={activate} style={{ "--done-ratio": String(doneRatio) }}>
+        {["draw idea", "keep taste", "finish small", "tell friend"].map((label, index) => (
           <label key={label}><input type="checkbox" data-action="todo" checked={state.todoDone[index]} readOnly tabIndex={-1} />{label}</label>
         ))}
       </MiniApp>
 
-      <MiniApp id="weather" className="weather-app" label="Tiny weather app" onActivate={activate} style={{ "--weather-a": weather.a, "--weather-b": weather.b, "--weather-sun": weather.sun }}>
+      <MiniApp id="weather" className="weather-app" label="Soft weather card" onActivate={activate} style={{ "--weather-a": weather.a, "--weather-b": weather.b, "--weather-sun": weather.sun }}>
         <span className="weather-temp">{weather.temp}</span>
         <button className="app-action weather-next" type="button" data-action="weather" tabIndex={-1}>next</button>
       </MiniApp>
 
-      <MiniApp id="music" className={`music-app${state.musicPlaying ? " is-playing" : ""}`} label="Tiny music player" onActivate={activate}>
+      <MiniApp id="music" className={`music-app${state.musicPlaying ? " is-playing" : ""}`} label="Playful music player" onActivate={activate}>
         <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
         <button className="music-toggle" type="button" data-action="music" aria-label="Play tiny music" tabIndex={-1}>{state.musicPlaying ? "pause" : "play"}</button>
       </MiniApp>
 
-      <MiniApp id="timer" className="timer-app" label="Tiny focus timer" onActivate={activate} style={{ "--timer-progress": String(state.timerProgress) }}>
+      <MiniApp id="timer" className="timer-app" label="Focus timer" onActivate={activate} style={{ "--timer-progress": String(state.timerProgress) }}>
         <span className="timer-label">{Math.max(1, Math.round((100 - state.timerProgress) / 6))}</span>
         <button type="button" data-action="timer" tabIndex={-1}>timer</button>
       </MiniApp>
 
-      <MiniApp id="photo" className="photo-app" label="Tiny photo stack" active={state.photoFlip} onActivate={activate}>
+      <MiniApp id="photo" className="photo-app" label="Playful photo stack" active={state.photoFlip} onActivate={activate}>
         <span style={{ rotate: state.photoFlip ? "12deg" : "-10deg" }} />
         <span style={{ rotate: state.photoFlip ? "-12deg" : "8deg" }} />
         <button className="app-action" type="button" data-action="photo" tabIndex={-1}>flip</button>
       </MiniApp>
 
-      <MiniApp id="memo" className="memo-app" label="Tiny memo app" onActivate={activate}>
+      <MiniApp id="memo" className="memo-app" label="Small memo" onActivate={activate}>
         <span className="memo-text">{memoTexts[state.memoIndex]}</span>
         <button className="app-action" type="button" data-action="memo" tabIndex={-1}>new</button>
       </MiniApp>
 
-      <MiniApp id="voice" className={`voice-app${state.voiceRecording ? " is-recording" : ""}`} label="Tiny voice recorder" onActivate={activate}>
+      <MiniApp id="voice" className={`voice-app${state.voiceRecording ? " is-recording" : ""}`} label="Playful voice recorder" onActivate={activate}>
         <span className="voice-title">voice</span>
         <span className="voice-status">{state.voiceRecording ? "recording" : "ready"}</span>
         <span className="voice-bars"><i /><i /><i /><i /><i /></span>
         <button className="app-action voice-toggle" type="button" data-action="voice" tabIndex={-1}>{state.voiceRecording ? "stop" : "rec"}</button>
       </MiniApp>
 
-      <MiniApp id="pixel" className="pixel-app" label="Tiny pixel painter" active={state.pixelActive} onActivate={activate}>
+      <MiniApp id="pixel" className="pixel-app" label="Small pixel painter" active={state.pixelActive} onActivate={activate}>
         <span className="pixel-grid" aria-hidden="true">
           {Array.from({ length: 16 }, (_, index) => (
             <i key={index} style={{ background: pixelColors[(index + state.pixelSeed * 3) % pixelColors.length], scale: (index + state.pixelSeed) % 4 === 0 ? "0.72" : "1" }} />
@@ -987,25 +1079,25 @@ function MiniApps({ state, activate, clock }) {
         <button className="app-action pixel-shuffle" type="button" data-action="pixel" tabIndex={-1}>paint</button>
       </MiniApp>
 
-      <MiniApp id="file" className="file-app" label="Tiny file stack" active={state.fileCount <= 6} onActivate={activate}>
+      <MiniApp id="file" className="file-app" label="Small file stack" active={state.fileCount <= 6} onActivate={activate}>
         <span className="file-tab">files</span>
         <strong className="file-count">{state.fileCount}</strong>
         <button className="app-action file-add" type="button" data-action="file" tabIndex={-1}>sort</button>
       </MiniApp>
 
-      <MiniApp id="slider" className="slider-app" label="Tiny control board" onActivate={activate} dataProps={{ "data-step": state.sliderStep }}>
+      <MiniApp id="slider" className="slider-app" label="Playful control board" onActivate={activate} dataProps={{ "data-step": state.sliderStep }}>
         <span className="slider-row"><i /></span>
         <span className="slider-row"><i /></span>
         <span className="slider-row"><i /></span>
         <button className="app-action slider-mix" type="button" data-action="slider" tabIndex={-1}>mix</button>
       </MiniApp>
 
-      <MiniApp id="coin" className={`coin-app${state.coinHeads ? " is-heads" : ""}`} label="Tiny budget coin" onActivate={activate}>
+      <MiniApp id="coin" className={`coin-app${state.coinHeads ? " is-heads" : ""}`} label="Small budget coin" onActivate={activate}>
         <span className="coin-face">{state.coinHeads ? "MS" : "$"}</span>
         <button className="app-action coin-flip" type="button" data-action="coin" tabIndex={-1}>flip</button>
       </MiniApp>
 
-      <MiniApp id="game" className="game-app" label="Tiny maze game" onActivate={activate} dataProps={{ "data-step": state.gameStep }}>
+      <MiniApp id="game" className="game-app" label="Small maze" onActivate={activate} dataProps={{ "data-step": state.gameStep }}>
         <span className="game-board" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} />)}</span>
         <button className="app-action game-move" type="button" data-action="game" tabIndex={-1}>move</button>
       </MiniApp>
@@ -1060,7 +1152,7 @@ function DetailsDesktop() {
         <div className="window-body luma-window-body">
           <div className="window-hero-copy">
             <h2>Come make with us.</h2>
-            <p>We organize a few Make Software events every month: small, warm gatherings for people building tiny tools, prototypes, and strange things with computers. Browse the upcoming list below.</p>
+            <p>We organize a few Make Software events every month: small, warm gatherings for people making tiny tools, playful prototypes, and strange things with computers. Browse the upcoming list below.</p>
           </div>
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
@@ -1079,14 +1171,14 @@ function DetailsDesktop() {
       <DesktopWindow index={1} className="contact-window" title="Contact">
         <div className="window-body contact-window-body">
           <div className="window-hero-copy">
-            <h2>Email us a tiny signal.</h2>
-            <p>If you want to collaborate, host us, mentor makers, bring ideas, or just join the next thing, send us a message. We are happy to hear half-formed thoughts.</p>
+            <h2>Send a small signal.</h2>
+            <p>If you want to collaborate, host us, mentor makers, bring a weird idea, or make something with us, send us a message. Half-formed thoughts are welcome.</p>
           </div>
           <div className="contact-stamp" aria-label="Email note">
             <span className="contact-seal" aria-hidden="true" />
             <span>
               <strong>Mailbox / Make Software</strong>
-              <span>We read these and turn good sparks into small gatherings.</span>
+              <span>We read these and turn good sparks into small, playful gatherings.</span>
             </span>
           </div>
           <div className="window-card-grid" aria-label="Ways to collaborate">
@@ -1100,11 +1192,11 @@ function DetailsDesktop() {
             </div>
             <div className="window-soft-card" style={{ "--card-bg": "#ffb3c9", "--card-r": "-0.8deg" }}>
               <strong>Bring ideas</strong>
-              <span>Suggest a workshop, demo theme, tiny challenge, or weird tool.</span>
+              <span>Suggest a tiny challenge, weird tool, workshop, or playful prompt.</span>
             </div>
             <div className="window-soft-card" style={{ "--card-bg": "#9bea68", "--card-r": "1.5deg" }}>
               <strong>Join in</strong>
-              <span>Show up with curiosity, unfinished code, or nothing but taste.</span>
+              <span>Show up with curiosity, unfinished code, or just a bit of taste.</span>
             </div>
           </div>
           <div className="window-pill-row" aria-label="Contact links">
@@ -1119,8 +1211,8 @@ function DetailsDesktop() {
           <div className="letter-copy">
             <span className="letter-kicker-app">Manifesto / Make Software</span>
             <h2>Computers are fun again.</h2>
-            <p>Make Software is a community for people who want to create with computers the way others paint, write, or play music.</p>
-            <p className="letter-note">Broken demos, ugly code, unfinished ideas, tiny tools, and strange scripts are welcome.</p>
+            <p>Make Software is a community for people who want to create with computers the way others paint, write, play music, or make something weird with friends.</p>
+            <p className="letter-note">Broken demos, unfinished ideas, tiny tools, strange scripts, and playful experiments are welcome.</p>
           </div>
         </div>
       </DesktopWindow>
@@ -1215,7 +1307,7 @@ export default function App() {
       <BurstLayer bursts={bursts} />
       <motion.main
         ref={sceneRef}
-        className="toy-page"
+        className="play-page"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.78, ease: [0.18, 0.86, 0.2, 1] }}
@@ -1231,7 +1323,7 @@ export default function App() {
       </motion.main>
       <motion.footer
         className="floating-ambient-footer"
-        aria-label="Made by Ambient, coming soon to Vienna"
+        aria-label="Make Software by Ambient"
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.36, type: "spring", stiffness: 170, damping: 16, mass: 0.76 }}
@@ -1241,9 +1333,9 @@ export default function App() {
           <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
         </span>
         <span className="floating-footer-copy">
-          <span className="floating-footer-kicker">local internet object</span>
-          <strong>Made by Ambient</strong>
-          <span>Make Software is a local software experiment: tiny workshops, prototype nights, and strange tools.</span>
+          <span className="floating-footer-kicker">brought to you by ambient</span>
+          <strong>Make Software</strong>
+          <span>An idea by Ambient: two friends from engineering and design making software feel fun again.</span>
         </span>
         <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Coming soon to Vienna</a>
       </motion.footer>

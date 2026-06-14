@@ -53,6 +53,15 @@
       --sans: 'Instrument Sans', sans-serif;
       --display: 'Instrument Serif', serif;
       --serif: 'Instrument Serif', serif;
+      --layer-clouds: 0;
+      --layer-mini-apps: 20;
+      --layer-wordmark: 40;
+      --layer-windows: 700;
+      --layer-effects: 875;
+      --layer-stickers: 900;
+      --layer-mini-app-front: 950;
+      --layer-logo: 1000;
+      --layer-footer: 1000;
     }
 
     @property --scene-tilt-x {
@@ -113,7 +122,7 @@
 
     .interaction-burst {
       position: fixed;
-      z-index: 40;
+      z-index: var(--layer-effects);
       display: block;
       aspect-ratio: 1;
       border: 2px solid rgba(45, 37, 14, 0.58);
@@ -133,10 +142,10 @@
       color: inherit;
     }
 
-    .toy-page {
+    .play-page {
       position: relative;
       min-height: 100svh;
-      padding-bottom: clamp(7rem, 13svh, 9rem);
+      padding-bottom: clamp(5.8rem, 10svh, 7.5rem);
       isolation: isolate;
     }
 
@@ -157,7 +166,7 @@
     }
 
     .sky-layer {
-      z-index: 0;
+      z-index: var(--layer-clouds);
       background:
         radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 24rem),
         radial-gradient(circle at 84% 12%, rgba(255, 243, 110, 0.2), rgba(255, 243, 110, 0) 20rem),
@@ -168,7 +177,7 @@
     }
 
     .cloud-layer {
-      z-index: 1;
+      z-index: calc(var(--layer-clouds) + 1);
       overflow: hidden;
       contain: layout style paint;
     }
@@ -381,7 +390,7 @@
 
     .hero {
       position: relative;
-      z-index: 7;
+      z-index: var(--layer-mini-apps);
       display: grid;
       place-items: center;
       min-height: 100svh;
@@ -390,11 +399,17 @@
       padding: clamp(1rem, 3vw, 2.4rem) clamp(1rem, 4vw, 4rem);
     }
 
+    .hero:has(.mini-app.is-front),
+    .hero:has(.mini-app.is-hover-target),
+    .hero:has(.mini-app:focus-visible) {
+      z-index: var(--layer-mini-app-front);
+    }
+
     .scene-logo {
       position: fixed;
       top: clamp(0.95rem, 2vw, 1.55rem);
       left: clamp(1rem, 2.25vw, 1.6rem);
-      z-index: 60;
+      z-index: var(--layer-logo);
       display: grid;
       width: clamp(4.1rem, 7vw, 6rem);
       aspect-ratio: 1;
@@ -463,7 +478,7 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 58;
+      z-index: var(--layer-stickers);
       height: var(--sticker-board-height, 100svh);
       min-height: 100svh;
       overflow: visible;
@@ -575,7 +590,7 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      z-index: 5;
+      z-index: 30;
       display: inline-grid;
       place-items: center;
       width: max-content;
@@ -650,7 +665,7 @@
 
     .artifact {
       position: absolute;
-      z-index: 4;
+      z-index: 10;
       filter:
         drop-shadow(0 0.16rem 0 rgba(255, 255, 255, 0.22))
         drop-shadow(0 1rem 0.8rem rgba(45, 79, 105, 0.18));
@@ -663,7 +678,7 @@
     .weather-app,
     .file-app,
     .slider-app {
-      z-index: 2;
+      z-index: 8;
       opacity: 0.92;
     }
 
@@ -677,7 +692,7 @@
     .voice-app,
     .game-app,
     .coin-app {
-      z-index: 6;
+      z-index: 12;
     }
 
     .mini-app {
@@ -718,6 +733,7 @@
     }
 
     .mini-app.is-hover-target {
+      z-index: 90;
       filter: drop-shadow(0 1.4rem 1rem rgba(45, 79, 105, 0.24));
       box-shadow: var(--surface-shadow-hover);
       outline: 0;
@@ -739,6 +755,7 @@
     }
 
     .mini-app.is-front {
+      z-index: 100;
       filter: drop-shadow(0 1.55rem 1.08rem rgba(45, 79, 105, 0.27));
     }
 
@@ -1484,9 +1501,13 @@
       --app-speed: 8.1s;
       left: 50%;
       top: 28%;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: stretch;
+      gap: 0.58rem;
       width: clamp(7.2rem, 11vw, 10.2rem);
-      min-height: 4.7rem;
-      padding: 0.72rem;
+      min-height: 5.9rem;
+      padding: 0.72rem 0.72rem 0.62rem;
       border: 2px solid var(--paper);
       border-radius: 1.1rem 1.1rem 1.1rem 0.28rem;
       background:
@@ -1507,7 +1528,7 @@
       content: '';
       position: absolute;
       right: 0.75rem;
-      bottom: 0.5rem;
+      bottom: 0.82rem;
       width: 0.52rem;
       aspect-ratio: 1;
       border-radius: 50%;
@@ -1518,14 +1539,18 @@
 
     .chat-message {
       display: block;
-      padding-right: 1.1rem;
+      align-self: start;
+      min-height: 2.7rem;
+      padding-right: 0.2rem;
+      line-height: 1;
       text-wrap: balance;
     }
 
     .chat-send {
-      position: absolute;
-      left: 0.62rem;
-      bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+      justify-self: start;
+      align-self: end;
       background: #fffdf5;
     }
 
@@ -1824,7 +1849,7 @@
 
     .voice-status {
       position: absolute;
-      right: 3.85rem;
+      right: 4.75rem;
       top: 0.62rem;
       z-index: 3;
       display: inline-flex;
@@ -2157,14 +2182,14 @@
 
     .details-desktop {
       position: relative;
-      z-index: 18;
+      z-index: var(--layer-windows);
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       grid-auto-rows: max-content;
-      gap: clamp(1.8rem, 4svh, 4.8rem) clamp(2rem, 4.5vw, 5.8rem);
+      gap: clamp(1.55rem, 3svh, 3.8rem) clamp(2rem, 4.5vw, 5.8rem);
       width: min(82rem, calc(100vw - clamp(1.5rem, 7vw, 8rem)));
-      min-height: clamp(42rem, 84svh, 58rem);
-      margin: clamp(-2rem, -2vh, 0rem) auto clamp(7rem, 14svh, 10rem);
+      min-height: clamp(36rem, 68svh, 48rem);
+      margin: clamp(-2rem, -2vh, 0rem) auto clamp(4.8rem, 8svh, 6.8rem);
       padding: clamp(1rem, 2vw, 1.75rem) 0;
       align-content: start;
       align-items: start;
@@ -2711,11 +2736,10 @@
       .details-desktop {
         --details-scale-base: 0.72;
         --details-scale-lift: 0.05;
-        inset:
-          7.35rem
-          clamp(2rem, 5.4vw, 5.2rem)
-          6.15rem;
         gap: clamp(1.15rem, 2.5svh, 2rem) clamp(1.65rem, 3.7vw, 4rem);
+        min-height: clamp(29rem, 58svh, 38rem);
+        margin-bottom: clamp(3.8rem, 6svh, 5.2rem);
+        padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
         transform-origin: 50% 0;
       }
 
@@ -2890,7 +2914,7 @@
       position: fixed;
       left: 50%;
       bottom: max(0.9rem, env(safe-area-inset-bottom));
-      z-index: 59;
+      z-index: var(--layer-footer);
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
@@ -3374,7 +3398,7 @@
     }
 
     @media (max-width: 640px) {
-      .toy-page {
+      .play-page {
         min-height: auto;
         padding-bottom: clamp(8.75rem, 18svh, 10rem);
       }
@@ -3444,9 +3468,29 @@
         max-width: 100%;
         height: auto;
         min-height: 0;
-        border-radius: 0.72rem;
-        clip-path: inset(0 round 0.72rem);
-        contain: paint;
+        border: 0;
+        border-radius: 0.92rem;
+        outline: 0;
+        clip-path: none;
+        overflow: hidden;
+        contain: layout paint style;
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
+        mask-image: radial-gradient(white, black);
+        transform:
+          translate3d(
+            var(--window-drag-x, 0px),
+            var(--window-drag-y, 0px),
+            0
+          )
+          rotate(var(--window-rotate, 0deg));
+        box-shadow:
+          inset 0 0 0 2px rgba(45, 37, 14, 0.86),
+          inset 0 1px 0 rgba(255, 255, 255, 0.82),
+          inset 0 1.2rem 1.8rem rgba(255, 255, 255, 0.2),
+          inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.055),
+          0 0.2rem 0 rgba(255, 255, 255, 0.22),
+          0 1.2rem 1.6rem rgba(45, 79, 105, 0.18),
+          0 3.2rem 4rem rgba(45, 79, 105, 0.11);
         transition: box-shadow 180ms ease;
       }
 
@@ -3454,6 +3498,14 @@
       .desktop-window:focus-within,
       .desktop-window.is-dragging {
         --window-depth: 0px;
+        box-shadow:
+          inset 0 0 0 2px rgba(45, 37, 14, 0.86),
+          inset 0 1px 0 rgba(255, 255, 255, 0.88),
+          inset 0 1.2rem 1.8rem rgba(255, 255, 255, 0.24),
+          inset 0 -1rem 1.6rem rgba(45, 37, 14, 0.06),
+          0 0.2rem 0 rgba(255, 255, 255, 0.24),
+          0 1.25rem 1.65rem rgba(45, 79, 105, 0.2),
+          0 3.2rem 4rem rgba(45, 79, 105, 0.11);
       }
 
       .window-chrome {
@@ -3729,7 +3781,7 @@
         transition-duration: 1ms !important;
       }
 
-      .toy-page {
+      .play-page {
         min-height: auto;
       }
 

@@ -1,7 +1,7 @@
 {
   "name": "Make Software",
   "short_name": "Make Software",
-  "description": "A playful Make Software landing page for tiny workshops, prototype nights, and strange tools.",
+  "description": "Playful software, tiny tools, prototype nights, strange ideas, and making with others.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#91c6e4",
