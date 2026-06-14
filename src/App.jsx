@@ -433,6 +433,10 @@ function useWindowDrag(ref, index) {
 
     const bringToFront = () => {
       activeDesktopWindowZ += 1;
+      windowEl.parentElement?.querySelectorAll("[data-window]").forEach((item) => {
+        if (item !== windowEl) item.classList.remove("is-front");
+      });
+      windowEl.classList.add("is-front");
       windowEl.style.zIndex = String(activeDesktopWindowZ);
     };
 
@@ -1143,11 +1147,13 @@ function DesktopWindow({ index, className, title, action, children }) {
         mass: 0.72
       }}
     >
-      <div className="window-chrome" data-drag-handle>
-        <span className="window-title">{title}</span>
-        {action}
+      <div className="desktop-window-frame">
+        <div className="window-chrome" data-drag-handle>
+          <span className="window-title">{title}</span>
+          {action}
+        </div>
+        {children}
       </div>
-      {children}
     </motion.article>
   );
 }

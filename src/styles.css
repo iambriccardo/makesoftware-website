@@ -41,20 +41,20 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.84),
         inset 0 1.1rem 1.6rem rgba(255, 255, 255, 0.18),
         inset 0 -0.82rem 1.3rem rgba(45, 37, 14, 0.052),
-        0 0.14rem 0.16rem rgba(45, 37, 14, 0.18),
-        0 0.54rem 0.62rem rgba(45, 37, 14, 0.12),
-        0 1.45rem 1.85rem rgba(35, 64, 86, 0.16),
-        0 3rem 4.8rem rgba(24, 48, 66, 0.13),
-        0 4.8rem 7.2rem rgba(0, 0, 0, 0.07);
+        0 0.18rem 0.18rem rgba(45, 37, 14, 0.2),
+        0 0.72rem 0.86rem rgba(45, 37, 14, 0.14),
+        0 1.65rem 2.2rem rgba(35, 64, 86, 0.18),
+        0 3.4rem 5.3rem rgba(24, 48, 66, 0.14),
+        0 5.2rem 7.8rem rgba(0, 0, 0, 0.075);
       --mac-shadow-window-front:
         inset 0 1px 0 rgba(255, 255, 255, 0.9),
         inset 0 1.25rem 1.65rem rgba(255, 255, 255, 0.22),
         inset 0 -0.86rem 1.36rem rgba(45, 37, 14, 0.06),
-        0 0.18rem 0.18rem rgba(45, 37, 14, 0.2),
-        0 0.72rem 0.82rem rgba(45, 37, 14, 0.14),
-        0 1.9rem 2.35rem rgba(35, 64, 86, 0.2),
-        0 3.8rem 5.6rem rgba(24, 48, 66, 0.15),
-        0 5.9rem 8.4rem rgba(0, 0, 0, 0.08);
+        0 0.26rem 0.22rem rgba(45, 37, 14, 0.23),
+        0 1rem 1.05rem rgba(45, 37, 14, 0.17),
+        0 2.35rem 2.85rem rgba(35, 64, 86, 0.24),
+        0 4.8rem 6.9rem rgba(24, 48, 66, 0.18),
+        0 7.2rem 9.8rem rgba(0, 0, 0, 0.095);
       --pressed-shadow:
         inset 0 0.18rem 0.34rem rgba(45, 37, 14, 0.16),
         inset 0 -1px 0 rgba(255, 255, 255, 0.34),
@@ -2288,29 +2288,15 @@
       isolation: isolate;
       box-sizing: border-box;
       pointer-events: auto;
-      overflow: hidden;
+      overflow: visible;
       grid-column: auto / span 4;
       width: 100%;
       min-width: 0;
-      border: 2px solid rgba(45, 37, 14, 0.86);
       border-radius: 0.8rem;
-      clip-path: inset(0 round 0.8rem);
-      -webkit-mask-image: -webkit-radial-gradient(white, black);
-      mask-image: radial-gradient(white, black);
-      background-clip: padding-box;
-      background:
-        repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.1) 0 0.34rem, rgba(45, 37, 14, 0.014) 0.34rem 0.68rem),
-        radial-gradient(circle at 10% 7%, rgba(255, 255, 255, 0.72), transparent 28%),
-        radial-gradient(circle at 88% 94%, var(--window-glow, rgba(255, 243, 110, 0.16)), transparent 50%),
-        linear-gradient(145deg, var(--window-a, rgba(255, 255, 255, 0.96)), var(--window-b, rgba(255, 253, 245, 0.92)) 45%, var(--window-c, rgba(255, 253, 245, 0.88))),
-        rgba(255, 253, 245, 0.86);
+      background: transparent;
       box-shadow:
         var(--mac-shadow-window);
       filter: none;
-      outline: 1px solid rgba(255, 255, 255, 0.28);
-      outline-offset: -4px;
-      -webkit-backdrop-filter: blur(22px) saturate(1.22) contrast(1.04) brightness(1.03);
-      backdrop-filter: blur(22px) saturate(1.22) contrast(1.04) brightness(1.03);
       translate: 0 0;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
@@ -2329,7 +2315,35 @@
       will-change: transform, opacity;
     }
 
-    .desktop-window::before {
+    .desktop-window-frame {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      min-height: inherit;
+      height: 100%;
+      overflow: hidden;
+      border: 2px solid rgba(45, 37, 14, 0.86);
+      border-radius: inherit;
+      background-clip: padding-box;
+      background:
+        repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.1) 0 0.34rem, rgba(45, 37, 14, 0.014) 0.34rem 0.68rem),
+        radial-gradient(circle at 10% 7%, rgba(255, 255, 255, 0.72), transparent 28%),
+        radial-gradient(circle at 88% 94%, var(--window-glow, rgba(255, 243, 110, 0.16)), transparent 50%),
+        linear-gradient(145deg, var(--window-a, rgba(255, 255, 255, 0.96)), var(--window-b, rgba(255, 253, 245, 0.92)) 45%, var(--window-c, rgba(255, 253, 245, 0.88))),
+        rgba(255, 253, 245, 0.86);
+      outline: 1px solid rgba(255, 255, 255, 0.28);
+      outline-offset: -4px;
+      clip-path: inset(0 round 0.8rem);
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
+      mask-image: radial-gradient(white, black);
+      -webkit-backdrop-filter: blur(22px) saturate(1.22) contrast(1.04) brightness(1.03);
+      backdrop-filter: blur(22px) saturate(1.22) contrast(1.04) brightness(1.03);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    .desktop-window-frame::before {
       content: '';
       position: absolute;
       inset: 0;
@@ -2350,7 +2364,7 @@
       content: none;
     }
 
-    .desktop-window::after {
+    .desktop-window-frame::after {
       content: '';
       position: absolute;
       inset: 2.15rem 0 auto;
@@ -2364,13 +2378,14 @@
       mix-blend-mode: screen;
     }
 
-    .desktop-window > * {
+    .desktop-window-frame > * {
       position: relative;
       z-index: 2;
     }
 
     .desktop-window:hover,
     .desktop-window:focus-within,
+    .desktop-window.is-front,
     .desktop-window.is-dragging {
       --window-depth: 34px;
       box-shadow:
@@ -3614,7 +3629,7 @@
     @media (max-width: 640px) {
       .play-page {
         min-height: auto;
-        padding-bottom: clamp(8.75rem, 18svh, 10rem);
+        padding-bottom: clamp(13rem, 28svh, 16rem);
       }
 
       .scene-logo {
@@ -3664,8 +3679,8 @@
         gap: 0.9rem;
         overflow-y: auto;
         margin-bottom: 0;
-        padding: 0 0 clamp(1.35rem, 4svh, 2rem);
-        scroll-padding-bottom: clamp(8.75rem, 18svh, 10rem);
+        padding: 0 0 clamp(5.5rem, 14svh, 8rem);
+        scroll-padding-bottom: clamp(13rem, 28svh, 16rem);
         transform-origin: 50% 0;
       }
 
@@ -3685,10 +3700,10 @@
         border: 0;
         border-radius: 0.92rem;
         outline: 0;
-        clip-path: inset(0 round 0.92rem);
-        -webkit-mask-image: -webkit-radial-gradient(white, black);
-        mask-image: radial-gradient(white, black);
-        overflow: hidden;
+        clip-path: none;
+        -webkit-mask-image: none;
+        mask-image: none;
+        overflow: visible;
         contain: layout style;
         transform:
           translate3d(
@@ -3702,6 +3717,13 @@
           var(--mac-shadow-window);
         filter: none;
         transition: box-shadow 180ms ease;
+      }
+
+      .desktop-window-frame {
+        border-radius: inherit;
+        clip-path: inset(0 round 0.92rem);
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
+        mask-image: radial-gradient(white, black);
       }
 
       .desktop-window:hover,
@@ -3782,7 +3804,7 @@
         gap: 0.62rem;
         width: min(27rem, calc(100vw - 1.5rem));
         border-radius: 1.15rem;
-        padding: 0.68rem 0.72rem 0.7rem;
+        padding: 0.94rem 0.72rem 0.7rem;
       }
 
       .floating-ambient-mark {
@@ -3836,7 +3858,17 @@
       }
 
       .footer-charms {
-        right: 0.95rem;
+        right: 1.18rem;
+        top: -1.22rem;
+        bottom: auto;
+        gap: 0.38rem;
+        padding: 0.22rem;
+        margin: 0;
+      }
+
+      .footer-charms i {
+        width: 1.14rem;
+        border-radius: 0.36rem;
       }
 
       .receipt {
