@@ -4086,6 +4086,26 @@
 
     }
 
+    @media (hover: none), (pointer: coarse) {
+      .desktop-window:hover,
+      .desktop-window:focus-within,
+      .desktop-window.is-front,
+      .desktop-window.is-dragging {
+        --window-depth: 0px;
+        box-shadow: var(--mac-window-cast) !important;
+        filter: none;
+      }
+
+      .desktop-window:hover .desktop-window-frame,
+      .desktop-window:focus-within .desktop-window-frame,
+      .desktop-window.is-front .desktop-window-frame,
+      .desktop-window.is-dragging .desktop-window-frame {
+        box-shadow:
+          inset 0 0 0 2px rgba(45, 37, 14, 0.86),
+          var(--mac-window-inset) !important;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 1ms !important;
