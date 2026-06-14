@@ -69,6 +69,9 @@
       --sans: 'Instrument Sans', sans-serif;
       --display: 'Instrument Serif', serif;
       --serif: 'Instrument Serif', serif;
+      --stickers-opacity: 1;
+      --stickers-progress: 0;
+      --stickers-depth: 0;
     }
 
     @property --scene-tilt-x {
@@ -131,6 +134,18 @@
       initial-value: 0px;
     }
 
+    @property --stickers-progress {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 0;
+    }
+
+    @property --stickers-depth {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 0;
+    }
+
     @property --details-opacity {
       syntax: '<number>';
       inherits: true;
@@ -146,7 +161,10 @@
     html {
       min-width: 320px;
       min-height: 100%;
-      background: var(--sky);
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 24rem),
+        radial-gradient(circle at 84% 12%, rgba(255, 243, 110, 0.2), rgba(255, 243, 110, 0) 20rem),
+        linear-gradient(180deg, #25a9fa 0%, #57bdf9 42%, #9edcf8 100%);
       color: var(--ink);
       font-family: var(--sans);
       -webkit-font-smoothing: antialiased;
@@ -157,7 +175,10 @@
       min-height: 100%;
       margin: 0;
       overflow-x: hidden;
-      background: var(--sky);
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 24rem),
+        radial-gradient(circle at 84% 12%, rgba(255, 243, 110, 0.2), rgba(255, 243, 110, 0) 20rem),
+        linear-gradient(180deg, #25a9fa 0%, #57bdf9 42%, #9edcf8 100%);
     }
 
     body::after {
@@ -177,7 +198,7 @@
 
     .toy-page {
       position: relative;
-      min-height: 680svh;
+      min-height: 560svh;
       isolation: isolate;
       --details-opacity: 0;
       --footer-progress: 0;
@@ -233,14 +254,14 @@
       height: calc(var(--cloud-width, 20rem) * var(--cloud-ratio, 0.38));
       opacity: var(--cloud-opacity, 0.88);
       transform:
-        translate3d(var(--cloud-x, 0), var(--cloud-y, 0), 0)
+        translate3d(var(--cloud-x, 0px), var(--cloud-y, 0px), 0)
         scale(var(--cloud-scale, 1))
         rotate(var(--cloud-rotate, 0deg));
       filter:
         url(#cloud-squish)
         drop-shadow(0 0.16rem 0 rgba(255, 255, 255, 0.42))
         drop-shadow(0 1.05rem 1.1rem rgba(45, 79, 105, 0.11));
-      animation: cloud-float var(--cloud-speed, 34s) ease-in-out infinite alternate;
+      animation: cloud-float var(--cloud-speed, 96s) linear infinite;
       animation-delay: var(--cloud-delay, 0s);
       transform-origin: 50% 56%;
       will-change: transform;
@@ -316,9 +337,15 @@
       --cloud-top: 66vh;
       --cloud-width: clamp(17rem, 34vw, 34rem);
       --cloud-opacity: 0.78;
-      --cloud-speed: 42s;
+      --cloud-speed: 128s;
       --cloud-delay: -9s;
       --cloud-rotate: -1.5deg;
+      --cloud-drift-x: 18vw;
+      --cloud-drift-y: -4vh;
+      --cloud-drift-x2: 8vw;
+      --cloud-drift-y2: -9vh;
+      --cloud-drift-x3: 24vw;
+      --cloud-drift-y3: 2vh;
     }
 
     .cloud-b {
@@ -326,10 +353,16 @@
       --cloud-top: 9vh;
       --cloud-width: clamp(13rem, 25vw, 26rem);
       --cloud-opacity: 0.72;
-      --cloud-speed: 36s;
+      --cloud-speed: 142s;
       --cloud-delay: -17s;
       --cloud-scale: 0.88;
       --cloud-rotate: 2deg;
+      --cloud-drift-x: -16vw;
+      --cloud-drift-y: 5vh;
+      --cloud-drift-x2: -7vw;
+      --cloud-drift-y2: 11vh;
+      --cloud-drift-x3: -22vw;
+      --cloud-drift-y3: -2vh;
     }
 
     .cloud-c {
@@ -337,9 +370,15 @@
       --cloud-top: 61vh;
       --cloud-width: clamp(15rem, 31vw, 32rem);
       --cloud-opacity: 0.82;
-      --cloud-speed: 48s;
+      --cloud-speed: 156s;
       --cloud-delay: -3s;
       --cloud-rotate: 1.2deg;
+      --cloud-drift-x: -20vw;
+      --cloud-drift-y: -5vh;
+      --cloud-drift-x2: -9vw;
+      --cloud-drift-y2: 6vh;
+      --cloud-drift-x3: -26vw;
+      --cloud-drift-y3: -1vh;
     }
 
     .cloud-d {
@@ -347,10 +386,16 @@
       --cloud-top: 21vh;
       --cloud-width: clamp(9rem, 18vw, 18rem);
       --cloud-opacity: 0.46;
-      --cloud-speed: 52s;
+      --cloud-speed: 118s;
       --cloud-delay: -24s;
       --cloud-scale: 0.78;
       --cloud-rotate: -4deg;
+      --cloud-drift-x: 12vw;
+      --cloud-drift-y: 4vh;
+      --cloud-drift-x2: 21vw;
+      --cloud-drift-y2: -3vh;
+      --cloud-drift-x3: 6vw;
+      --cloud-drift-y3: 9vh;
     }
 
     .cloud-e {
@@ -358,10 +403,16 @@
       --cloud-top: 78vh;
       --cloud-width: clamp(11rem, 22vw, 23rem);
       --cloud-opacity: 0.54;
-      --cloud-speed: 58s;
+      --cloud-speed: 168s;
       --cloud-delay: -31s;
       --cloud-scale: 0.72;
       --cloud-rotate: 2.8deg;
+      --cloud-drift-x: 22vw;
+      --cloud-drift-y: -6vh;
+      --cloud-drift-x2: 10vw;
+      --cloud-drift-y2: -12vh;
+      --cloud-drift-x3: 29vw;
+      --cloud-drift-y3: 0vh;
     }
 
     .cloud-f {
@@ -369,10 +420,16 @@
       --cloud-top: 4vh;
       --cloud-width: clamp(10rem, 20vw, 22rem);
       --cloud-opacity: 0.4;
-      --cloud-speed: 46s;
+      --cloud-speed: 136s;
       --cloud-delay: -14s;
       --cloud-scale: 0.7;
       --cloud-rotate: 3deg;
+      --cloud-drift-x: 16vw;
+      --cloud-drift-y: 8vh;
+      --cloud-drift-x2: 30vw;
+      --cloud-drift-y2: 2vh;
+      --cloud-drift-x3: 8vw;
+      --cloud-drift-y3: 13vh;
     }
 
     .sr-only {
@@ -383,6 +440,39 @@
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       clip-path: inset(50%);
+    }
+
+    html.debug-perf *,
+    html.debug-perf *::before,
+    html.debug-perf *::after {
+      box-shadow: none !important;
+      filter: none !important;
+      text-shadow: none !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .scroll-debug-panel {
+      position: fixed;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      z-index: 999;
+      display: none;
+      width: min(19rem, calc(100vw - 1.5rem));
+      max-height: calc(100svh - 1.5rem);
+      overflow: auto;
+      border: 1px solid rgba(45, 37, 14, 0.44);
+      border-radius: 0.4rem;
+      padding: 0.58rem 0.66rem;
+      background: rgba(255, 253, 245, 0.9);
+      color: #2D250E;
+      font: 0.68rem/1.35 var(--mono);
+      white-space: pre-wrap;
+      pointer-events: none;
+    }
+
+    html.debug-scroll .scroll-debug-panel {
+      display: block;
     }
 
     .hero {
@@ -493,9 +583,13 @@
       pointer-events: auto;
       touch-action: none;
       transform:
-        translate3d(-50%, -50%, 0)
-        rotate(var(--sticker-rotate, 0deg))
-        scale(var(--sticker-scale, 1));
+        translate3d(
+          calc(-50% + (var(--sticker-exit-x, 0px) * var(--stickers-progress, 0))),
+          calc(-50% + (var(--sticker-exit-y, 0px) * var(--stickers-progress, 0))),
+          calc(var(--stickers-depth, 0) * -180px)
+        )
+        rotate(calc(var(--sticker-rotate, 0deg) + (var(--sticker-exit-rotate, 0deg) * var(--stickers-progress, 0))))
+        scale(calc(var(--sticker-scale, 1) - (var(--stickers-progress, 0) * 0.22)));
       user-select: none;
       -webkit-user-drag: none;
       will-change: transform, opacity;
@@ -2053,8 +2147,6 @@
       pointer-events: none;
       transform:
         translate3d(0, calc((1 - var(--details-opacity, 0)) * 52px), 0)
-        rotateX(calc(var(--scene-tilt-y) * -0.18deg))
-        rotateY(calc(var(--scene-tilt-x) * 0.18deg))
         scale(calc(var(--details-scale-base, 0.94) + (var(--details-opacity, 0) * var(--details-scale-lift, 0.06))));
       transform-style: flat;
       transform-origin: 50% 42%;
@@ -2230,18 +2322,39 @@
       --chrome-b: rgba(255, 243, 110, 0.28);
       grid-column: 1 / span 7;
       grid-row: 1;
-      min-height: clamp(14.5rem, 30svh, 23rem);
+      min-height: clamp(18rem, 39svh, 27rem);
     }
 
-    .luma-window-body {
+    .window-body {
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 0.48rem;
-      height: clamp(11.9rem, calc(30svh - 2rem), 20.4rem);
-      padding: 0.55rem;
+      gap: clamp(0.58rem, 1.1vw, 0.92rem);
+      padding: clamp(0.72rem, 1.3vw, 1.05rem);
     }
 
-    .event-ribbon {
+    .window-hero-copy {
+      display: grid;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
+    .window-hero-copy h2 {
+      margin: 0;
+      color: #2D250E;
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 3vw, 2.45rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+    }
+
+    .window-hero-copy p {
+      max-width: 42rem;
+      margin: 0;
+      color: rgba(45, 37, 14, 0.76);
+      font-size: clamp(0.72rem, 0.95vw, 0.92rem);
+      line-height: 1.35;
+    }
+
+    .window-pill-row {
       display: flex;
       flex-wrap: wrap;
       gap: 0.42rem;
@@ -2252,22 +2365,109 @@
       text-transform: uppercase;
     }
 
-    .event-ribbon span {
+    .window-pill,
+    .window-action {
       display: inline-grid;
-      min-height: 1.35rem;
+      min-height: 1.45rem;
       place-items: center;
-      border: 1px solid rgba(45, 37, 14, 0.42);
+      border: 1px solid rgba(45, 37, 14, 0.46);
       border-radius: 999px;
-      padding: 0.18rem 0.55rem;
-      background: var(--tag, #fff36e);
+      padding: 0.2rem 0.62rem;
+      background: var(--pill-bg, #fff36e);
       background-image:
         radial-gradient(circle at 24% 20%, rgba(255, 255, 255, 0.76), transparent 24%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 54%);
       box-shadow: var(--raised-button-shadow);
     }
 
-    .event-ribbon span:nth-child(2) { --tag: #bde6ff; }
-    .event-ribbon span:nth-child(3) { --tag: #ffb3c9; }
+    .window-action {
+      min-height: 1.85rem;
+      border: 2px solid #2D250E;
+      padding: 0.35rem 0.85rem;
+      color: #2D250E;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition:
+        transform 160ms cubic-bezier(.16, .84, .18, 1),
+        box-shadow 160ms ease;
+    }
+
+    .window-action:hover,
+    .window-action:focus-visible {
+      outline: 0;
+      transform: translateY(-0.12rem);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.88),
+        inset 0 -0.28rem 0 rgba(45, 37, 14, 0.08),
+        0 0.3rem 0 rgba(45, 37, 14, 0.16),
+        0 0.8rem 0.95rem rgba(45, 79, 105, 0.17);
+    }
+
+    .window-action:active {
+      transform: translateY(0.08rem);
+      box-shadow: var(--pressed-shadow);
+    }
+
+    .window-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.48rem;
+    }
+
+    .window-soft-card {
+      min-height: 3.45rem;
+      border: 2px solid rgba(45, 37, 14, 0.32);
+      border-radius: 0.62rem;
+      padding: 0.56rem;
+      background-clip: padding-box;
+      background:
+        radial-gradient(circle at 20% 16%, rgba(255, 255, 255, 0.68), transparent 22%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0) 56%),
+        var(--card-bg, #fff36e);
+      box-shadow:
+        inset 0 1px 0 var(--rim-light),
+        inset 0 -0.32rem 0.58rem rgba(45, 37, 14, 0.08),
+        0 0.22rem 0 rgba(45, 37, 14, 0.13),
+        0 0.58rem 0.78rem rgba(45, 79, 105, 0.11);
+      transform: rotate(var(--card-r, -1deg));
+    }
+
+    .window-soft-card strong,
+    .window-soft-card span {
+      display: block;
+    }
+
+    .window-soft-card strong {
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      line-height: 1.25;
+      text-transform: uppercase;
+    }
+
+    .window-soft-card span {
+      margin-top: 0.3rem;
+      color: rgba(45, 37, 14, 0.76);
+      font-size: 0.66rem;
+      line-height: 1.25;
+    }
+
+    .luma-window-body {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 0.48rem;
+      height: clamp(15.6rem, calc(39svh - 2rem), 24.4rem);
+      padding: 0.55rem;
+    }
+
+    .event-ribbon .window-pill:nth-child(1) {
+      --pill-bg: #fff36e;
+    }
+
+    .event-ribbon .window-pill:nth-child(2) { --pill-bg: #bde6ff; }
+    .event-ribbon .window-pill:nth-child(3) { --pill-bg: #ffb3c9; }
+    .event-ribbon .window-action { --pill-bg: #9bea68; }
 
     .events-window iframe {
       display: block;
@@ -2283,6 +2483,12 @@
         0 1px 0 rgba(255, 255, 255, 0.72),
         0 0.45rem 0.8rem rgba(45, 79, 105, 0.12);
       pointer-events: none;
+    }
+
+    .event-frame-wrap {
+      display: grid;
+      gap: 0.5rem;
+      min-height: 0;
     }
 
     .contact-window {
@@ -2301,123 +2507,96 @@
     }
 
     .contact-window-body {
+      align-content: start;
+    }
+
+    .contact-stamp {
+      position: relative;
       display: grid;
-      gap: 0.58rem;
-      padding: clamp(0.82rem, 1.35vw, 1.05rem);
-    }
-
-    .contact-window h2 {
-      margin: 0;
-      color: #2D250E;
-      font-family: var(--display);
-      font-size: clamp(1.35rem, 3vw, 2.25rem);
-      line-height: 0.9;
-      letter-spacing: 0;
-    }
-
-    .contact-window p {
-      margin: 0;
-      color: rgba(45, 37, 14, 0.78);
-      font-family: var(--sans);
-      font-size: clamp(0.76rem, 1vw, 0.9rem);
-      line-height: 1.35;
-    }
-
-    .contact-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.48rem;
-      margin-top: 0.2rem;
-    }
-
-    .contact-mini-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.48rem;
-    }
-
-    .contact-mini-card {
-      min-height: 3.45rem;
-      border: 2px solid rgba(45, 37, 14, 0.32);
-      border-radius: 0.62rem;
-      padding: 0.56rem;
-      background-clip: padding-box;
+      grid-template-columns: auto 1fr;
+      gap: 0.68rem;
+      align-items: center;
+      border: 2px dashed rgba(45, 37, 14, 0.4);
+      border-radius: 0.7rem;
+      overflow: hidden;
+      padding: 0.72rem 0.82rem;
       background:
-        radial-gradient(circle at 20% 16%, rgba(255, 255, 255, 0.68), transparent 22%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0) 56%),
-        var(--mini-bg, #fff36e);
+        linear-gradient(32deg, transparent 0 47%, rgba(45, 37, 14, 0.14) 48% 50%, transparent 51%),
+        linear-gradient(148deg, transparent 0 47%, rgba(45, 37, 14, 0.12) 48% 50%, transparent 51%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.28)),
+        repeating-linear-gradient(135deg, rgba(255, 90, 71, 0.14) 0 0.45rem, rgba(99, 167, 255, 0.13) 0.45rem 0.9rem);
       box-shadow:
-        inset 0 1px 0 var(--rim-light),
-        inset 0 -0.32rem 0.58rem rgba(45, 37, 14, 0.08),
-        0 0.22rem 0 rgba(45, 37, 14, 0.13),
-        0 0.58rem 0.78rem rgba(45, 79, 105, 0.11);
-      transform: rotate(var(--mini-r, -2deg));
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        0 0.32rem 0 rgba(45, 37, 14, 0.11),
+        0 0.72rem 0.9rem rgba(45, 79, 105, 0.1);
     }
 
-    .contact-mini-card strong,
-    .contact-mini-card span {
+    .contact-stamp::before {
+      content: '';
+      position: absolute;
+      inset: 0.38rem;
+      z-index: 0;
+      border-radius: 0.52rem;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.58), transparent 22%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .contact-stamp > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-stamp .contact-seal {
+      display: grid;
+      flex: 0 0 auto;
+      width: 3.8rem;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 2px solid rgba(45, 37, 14, 0.72);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.84), transparent 20%),
+        linear-gradient(145deg, #fffdf5, #bde6ff 48%, #fff36e);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.88),
+        inset 0 -0.42rem 0.64rem rgba(45, 37, 14, 0.16),
+        0 0.22rem 0 rgba(45, 37, 14, 0.16);
+      color: #2D250E;
+      font-family: var(--sans);
+      font-size: 2.3rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-top: 0;
+      transform: rotate(-7deg);
+    }
+
+    .contact-stamp .contact-seal::before {
+      content: '@';
+      display: block;
+      color: #2D250E;
+      font: 900 2.3rem/1 var(--sans);
+      transform: translateY(-0.04em);
+    }
+
+    .contact-stamp strong,
+    .contact-stamp > span:not(.contact-seal),
+    .contact-stamp > span:not(.contact-seal) span {
       display: block;
     }
 
-    .contact-mini-card strong {
-      font-size: 0.62rem;
+    .contact-stamp strong {
+      font-size: 0.66rem;
       text-transform: uppercase;
     }
 
-    .contact-mini-card span {
-      margin-top: 0.3rem;
-      font-family: var(--mono);
-      font-size: 0.54rem;
-      line-height: 1.2;
-    }
-
-    .contact-mini-card:nth-child(2) { --mini-bg: #bde6ff; --mini-r: 2deg; }
-    .contact-mini-card:nth-child(3) { --mini-bg: #ffb3c9; --mini-r: 1deg; }
-    .contact-mini-card:nth-child(4) { --mini-bg: #9bea68; --mini-r: -1.5deg; }
-
-    .contact-chip {
-      display: inline-grid;
-      min-height: 1.85rem;
-      place-items: center;
-      border: 2px solid #2D250E;
-      border-radius: 999px;
-      padding: 0.35rem 0.85rem;
-      background:
-        radial-gradient(circle at 25% 16%, rgba(255, 255, 255, 0.72), transparent 22%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0) 54%),
-        #fff36e;
-      color: #2D250E;
-      font-size: 0.72rem;
-      font-weight: 900;
-      text-decoration: none;
-      text-transform: uppercase;
-      box-shadow: var(--raised-button-shadow);
-      transition:
-        transform 160ms cubic-bezier(.16, .84, .18, 1),
-        box-shadow 160ms ease;
-    }
-
-    .contact-chip:nth-child(2) {
-      background:
-        radial-gradient(circle at 25% 16%, rgba(255, 255, 255, 0.72), transparent 22%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0) 54%),
-        #63a7ff;
-    }
-
-    .contact-chip:hover,
-    .contact-chip:focus-visible {
-      outline: 0;
-      transform: translateY(-0.12rem);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.88),
-        inset 0 -0.28rem 0 rgba(45, 37, 14, 0.08),
-        0 0.3rem 0 rgba(45, 37, 14, 0.16),
-        0 0.8rem 0.95rem rgba(45, 79, 105, 0.17);
-    }
-
-    .contact-chip:active {
-      transform: translateY(0.08rem);
-      box-shadow: var(--pressed-shadow);
+    .contact-stamp > span:not(.contact-seal) span {
+      margin-top: 0.18rem;
+      color: rgba(45, 37, 14, 0.72);
+      font-size: 0.66rem;
+      line-height: 1.25;
     }
 
     .letter-window {
@@ -2459,11 +2638,11 @@
       }
 
       .events-window {
-        min-height: clamp(11.2rem, 27svh, 14.5rem);
+        min-height: clamp(13.8rem, 32svh, 17.5rem);
       }
 
       .luma-window-body {
-        height: clamp(8.8rem, calc(27svh - 2rem), 11.9rem);
+        height: clamp(11.2rem, calc(32svh - 2rem), 15.2rem);
       }
 
       .contact-window {
@@ -2854,17 +3033,42 @@
     }
 
     @keyframes cloud-float {
-      0% {
+      0%,
+      100% {
         transform:
-          translate3d(calc(var(--cloud-x, 0px) - 2.6vw), calc(var(--cloud-y, 0px) - 0.35vh), 0)
+          translate3d(var(--cloud-x, 0px), var(--cloud-y, 0px), 0)
           scale(var(--cloud-scale, 1))
           rotate(var(--cloud-rotate, 0deg));
       }
-      100% {
+      28% {
         transform:
-          translate3d(calc(var(--cloud-x, 0px) + 3.2vw), calc(var(--cloud-y, 0px) + 0.55vh), 0)
-          scale(calc(var(--cloud-scale, 1) * 1.018))
-          rotate(calc(var(--cloud-rotate, 0deg) * -1));
+          translate3d(
+            calc(var(--cloud-x, 0px) + var(--cloud-drift-x, 14vw)),
+            calc(var(--cloud-y, 0px) + var(--cloud-drift-y, -5vh)),
+            0
+          )
+          scale(calc(var(--cloud-scale, 1) * 1.016))
+          rotate(calc(var(--cloud-rotate, 0deg) + 1.2deg));
+      }
+      58% {
+        transform:
+          translate3d(
+            calc(var(--cloud-x, 0px) + var(--cloud-drift-x2, 5vw)),
+            calc(var(--cloud-y, 0px) + var(--cloud-drift-y2, 6vh)),
+            0
+          )
+          scale(calc(var(--cloud-scale, 1) * 0.992))
+          rotate(calc(var(--cloud-rotate, 0deg) - 0.8deg));
+      }
+      82% {
+        transform:
+          translate3d(
+            calc(var(--cloud-x, 0px) + var(--cloud-drift-x3, 20vw)),
+            calc(var(--cloud-y, 0px) + var(--cloud-drift-y3, 2vh)),
+            0
+          )
+          scale(calc(var(--cloud-scale, 1) * 1.01))
+          rotate(calc(var(--cloud-rotate, 0deg) + 0.5deg));
       }
     }
 
@@ -2973,15 +3177,16 @@
       }
 
       .details-desktop {
-        inset: 5.25rem 0.9rem 1rem;
+        inset: 0;
         display: grid;
         grid-template-columns: 1fr;
         grid-auto-rows: max-content;
-        gap: 1rem;
+        gap: 0.9rem;
         overflow-y: auto;
-        padding: 0 0.1rem clamp(8.75rem, 21svh, 11rem);
+        padding: 0 0 clamp(8.75rem, 21svh, 11rem);
         scroll-padding-bottom: clamp(8.75rem, 21svh, 11rem);
         transform: translate3d(0, calc((1 - var(--details-opacity, 0)) * 52px), 0);
+        transform-origin: 50% 0;
       }
 
       .desktop-window {
@@ -3050,7 +3255,7 @@
         min-height: 23rem;
       }
 
-      .contact-mini-grid {
+      .window-card-grid {
         grid-template-columns: 1fr;
       }
 
@@ -3514,18 +3719,25 @@
           <div class="window-chrome" data-drag-handle>
             <span class="window-title">Events</span>
           </div>
-          <div class="luma-window-body">
-            <div class="event-ribbon" aria-label="Event notes">
-              <span>next tiny meetup</span>
-              <span>bring a demo</span>
-              <span>low pressure</span>
+          <div class="window-body luma-window-body">
+            <div class="window-hero-copy">
+              <h2>Come make with us.</h2>
+              <p>We are always looking for small, warm, hands-on software gatherings: demo nights, tiny workshops, prototype sessions, and strange tools made with friends.</p>
             </div>
-            <iframe
-              src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
-              title="Make Software events on Luma"
-              loading="lazy"
-              referrerpolicy="strict-origin-when-cross-origin"
-            ></iframe>
+            <div class="window-pill-row event-ribbon" aria-label="Event notes">
+              <span class="window-pill">upcoming events</span>
+              <span class="window-pill">bring a demo</span>
+              <span class="window-pill">low pressure</span>
+              <a class="window-action" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>
+            </div>
+            <div class="event-frame-wrap">
+              <iframe
+                src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
+                title="Make Software events on Luma"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
           </div>
         </article>
 
@@ -3533,30 +3745,39 @@
           <div class="window-chrome" data-drag-handle>
             <span class="window-title">Contact</span>
           </div>
-          <div class="contact-window-body">
-            <h2>Come make with us.</h2>
-            <p>Host a tiny workshop, bring a prototype, share a weird tool, or help shape the next gathering.</p>
-            <div class="contact-mini-grid" aria-label="Ways to join">
-              <div class="contact-mini-card">
-                <strong>Bring</strong>
-                <span>half-broken prototype</span>
+          <div class="window-body contact-window-body">
+            <div class="window-hero-copy">
+              <h2>Email us a tiny signal.</h2>
+              <p>If you want to collaborate, host us, mentor makers, bring ideas, or just join the next thing, send us a message. We are happy to hear half-formed thoughts.</p>
+            </div>
+            <div class="contact-stamp" aria-label="Email note">
+              <span class="contact-seal" aria-hidden="true"></span>
+              <span>
+                <strong>Mailbox / Make Software</strong>
+                <span>We read these and turn good sparks into small gatherings.</span>
+              </span>
+            </div>
+            <div class="window-card-grid" aria-label="Ways to collaborate">
+              <div class="window-soft-card" style="--card-bg: #fff36e; --card-r: -1.4deg;">
+                <strong>Host us</strong>
+                <span>Share a room, studio, office, cafe, or table for a small evening.</span>
               </div>
-              <div class="contact-mini-card">
-                <strong>Host</strong>
-                <span>2 hour tiny workshop</span>
+              <div class="window-soft-card" style="--card-bg: #bde6ff; --card-r: 1.2deg;">
+                <strong>Mentor</strong>
+                <span>Help someone push a prototype from vague idea to working thing.</span>
               </div>
-              <div class="contact-mini-card">
-                <strong>Share</strong>
-                <span>small tool for friends</span>
+              <div class="window-soft-card" style="--card-bg: #ffb3c9; --card-r: -0.8deg;">
+                <strong>Bring ideas</strong>
+                <span>Suggest a workshop, demo theme, tiny challenge, or weird tool.</span>
               </div>
-              <div class="contact-mini-card">
-                <strong>Pair</strong>
-                <span>make something weird</span>
+              <div class="window-soft-card" style="--card-bg: #9bea68; --card-r: 1.5deg;">
+                <strong>Join in</strong>
+                <span>Show up with curiosity, unfinished code, or nothing but taste.</span>
               </div>
             </div>
-            <div class="contact-links" aria-label="Contact links">
-              <a class="contact-chip" href="mailto:riccardob36@gmail.com">Email Riccardo</a>
-              <a class="contact-chip" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>
+            <div class="window-pill-row" aria-label="Contact links">
+              <a class="window-action" href="mailto:riccardob36@gmail.com">Email us</a>
+              <span class="window-pill" style="--pill-bg: #bde6ff;">Vienna / local internet</span>
             </div>
           </div>
         </article>
@@ -4069,21 +4290,23 @@
       }
 
       function applyScroll(timelineProgress) {
-        const progress = smoothstep((timelineProgress - 0.02) / 0.42);
-        const wordmarkExit = smoothstep((timelineProgress - 0.02) / 0.46);
-        const detailsProgress = smoothstep((timelineProgress - 0.4) / 0.32);
-        const footerProgress = smoothstep((timelineProgress - 0.42) / 0.32);
+        const progress = smoothstep((timelineProgress - 0.02) / 0.58);
+        const wordmarkExit = smoothstep((timelineProgress - 0.02) / 0.58);
+        const detailsProgress = smoothstep((timelineProgress - 0.24) / 0.36);
+        const footerProgress = smoothstep((timelineProgress - 0.3) / 0.36);
         const detailsActive = detailsProgress > 0.06;
         const footerActive = footerProgress > 0.08;
-        const stickerProgress = smoothstep((timelineProgress - 0.06) / 0.32);
-        const stickersOpacity = clamp(1 - stickerProgress * 1.12);
+        const stickerProgress = smoothstep((timelineProgress - 0.06) / 0.42);
+        const stickerExitProgress = smoothstep(stickerProgress);
+        const stickersOpacity = clamp(1 - stickerProgress * 1.08);
+        const stickersDepth = stickerExitProgress;
         const itemOpacity = clamp(1 - progress * 1.12);
         const itemScale = 1 - progress * 0.18;
         const wordmarkOpacity = clamp(1 - wordmarkExit * 1.15);
         const wordmarkScale = 1 - wordmarkExit * 0.38;
         const wordmarkBlur = wordmarkExit * 8.5;
         const stickersHidden = stickersOpacity < 0.08 || detailsActive;
-        const sceneComplete = timelineProgress > 0.965;
+        const sceneComplete = timelineProgress > 0.94;
 
         setVar(scene, '--scene-progress', progress.toFixed(4));
         setVar(scene, '--item-opacity', itemOpacity.toFixed(4));
@@ -4094,6 +4317,8 @@
         setVar(scene, '--wordmark-blur', `${wordmarkBlur.toFixed(2)}px`);
         setVar(scene, '--details-opacity', detailsProgress.toFixed(4));
         setVar(root, '--stickers-opacity', stickersOpacity.toFixed(3));
+        setVar(root, '--stickers-progress', stickerExitProgress.toFixed(4));
+        setVar(root, '--stickers-depth', stickersDepth.toFixed(4));
         setVar(root, '--footer-progress', footerProgress.toFixed(3));
 
         if (detailsActive !== scrollState.detailsActive) {
@@ -4167,8 +4392,197 @@
         });
       }
 
+      function setupScrollDebugTools() {
+        const params = new URLSearchParams(window.location.search);
+        const storedDebug = (() => {
+          try {
+            return window.localStorage?.getItem('makeSoftwareDebugScroll') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const storedPerf = (() => {
+          try {
+            return window.localStorage?.getItem('makeSoftwareDebugPerf') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        let panel = null;
+        let frameRaf = 0;
+        let lastFrameTime = 0;
+        let maxFrame = 0;
+        let slowFrames = 0;
+
+        function cssVar(target, name) {
+          return getComputedStyle(target).getPropertyValue(name).trim();
+        }
+
+        function collectSample() {
+          const firstSticker = document.querySelector('.floating-sticker');
+          const firstWindow = document.querySelector('[data-window]');
+          const stickerStyle = firstSticker ? getComputedStyle(firstSticker) : null;
+          const windowStyle = firstWindow ? getComputedStyle(firstWindow) : null;
+
+          return {
+            y: Math.round(window.scrollY),
+            width: window.innerWidth,
+            height: readLayoutViewportHeight(),
+            timeline: Number(readTimelineProgress().toFixed(4)),
+            sectionTop: Math.round(scrollState.sectionTop),
+            scrollBudget: Math.round(scrollState.scrollBudget),
+            details: cssVar(scene, '--details-opacity'),
+            footer: cssVar(root, '--footer-progress'),
+            stickersProgress: cssVar(root, '--stickers-progress'),
+            stickersOpacity: cssVar(root, '--stickers-opacity'),
+            itemOpacity: cssVar(scene, '--item-opacity'),
+            wordmarkOpacity: cssVar(scene, '--wordmark-opacity'),
+            wordmarkBlur: cssVar(scene, '--wordmark-blur'),
+            bodyClasses: document.body.className,
+            firstStickerTransform: stickerStyle?.transform || '',
+            firstStickerPointer: stickerStyle?.pointerEvents || '',
+            firstWindowTransform: windowStyle?.transform || ''
+          };
+        }
+
+        function renderPanel(delta = 0) {
+          if (!panel) return;
+          const sample = collectSample();
+          panel.textContent = [
+            'Make Software scroll debug',
+            `viewport: ${sample.width}x${sample.height}`,
+            `scrollY: ${sample.y}`,
+            `timeline: ${sample.timeline}`,
+            `budget: ${sample.scrollBudget}`,
+            `details: ${sample.details}`,
+            `footer: ${sample.footer}`,
+            `stickers: ${sample.stickersProgress} / ${sample.stickersOpacity}`,
+            `items: ${sample.itemOpacity}`,
+            `wordmark: ${sample.wordmarkOpacity} / ${sample.wordmarkBlur}`,
+            `frame: ${delta.toFixed(1)}ms`,
+            `max frame: ${maxFrame.toFixed(1)}ms`,
+            `slow >25ms: ${slowFrames}`,
+            `classes: ${sample.bodyClasses || '-'}`
+          ].join('\n');
+        }
+
+        function frameLoop(now) {
+          const delta = lastFrameTime ? now - lastFrameTime : 0;
+          lastFrameTime = now;
+
+          if (delta > maxFrame) maxFrame = delta;
+          if (delta > 25) slowFrames += 1;
+          renderPanel(delta);
+          frameRaf = window.requestAnimationFrame(frameLoop);
+        }
+
+        function ensurePanel() {
+          if (panel) return panel;
+          panel = document.createElement('output');
+          panel.className = 'scroll-debug-panel';
+          panel.setAttribute('aria-live', 'off');
+          document.body.appendChild(panel);
+          return panel;
+        }
+
+        function enable() {
+          ensurePanel();
+          root.classList.add('debug-scroll');
+          maxFrame = 0;
+          slowFrames = 0;
+          lastFrameTime = 0;
+          if (!frameRaf) frameRaf = window.requestAnimationFrame(frameLoop);
+          return collectSample();
+        }
+
+        function disable() {
+          root.classList.remove('debug-scroll');
+          if (frameRaf) {
+            window.cancelAnimationFrame(frameRaf);
+            frameRaf = 0;
+          }
+          return collectSample();
+        }
+
+        function perfLite(enabled = true) {
+          root.classList.toggle('debug-perf', Boolean(enabled));
+          try {
+            window.localStorage?.setItem('makeSoftwareDebugPerf', enabled ? '1' : '0');
+          } catch {
+            // localStorage can be unavailable in private contexts.
+          }
+          return collectSample();
+        }
+
+        async function sweep({ steps = 150, maxRatio = 0.62, restore = true } = {}) {
+          const initialY = window.scrollY;
+          const maxScroll = Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1);
+          const frames = [];
+          const states = [];
+          let last = performance.now();
+
+          function record() {
+            const now = performance.now();
+            frames.push(now - last);
+            last = now;
+          }
+
+          for (let index = 0; index <= steps; index += 1) {
+            window.scrollTo(0, maxScroll * maxRatio * (index / steps));
+            await new Promise(window.requestAnimationFrame);
+            record();
+          }
+
+          states.push({ phase: 'down', ...collectSample() });
+
+          for (let index = steps; index >= 0; index -= 1) {
+            window.scrollTo(0, maxScroll * maxRatio * (index / steps));
+            await new Promise(window.requestAnimationFrame);
+            record();
+          }
+
+          states.push({ phase: 'up', ...collectSample() });
+
+          if (restore) {
+            window.scrollTo(0, initialY);
+            await new Promise(window.requestAnimationFrame);
+            scheduleScrollUpdate({ immediate: true });
+          }
+
+          const sorted = [...frames].sort((a, b) => a - b);
+          return {
+            viewport: `${window.innerWidth}x${readLayoutViewportHeight()}`,
+            frames: frames.length,
+            maxFrame: Number(Math.max(...frames).toFixed(2)),
+            p95Frame: Number(sorted[Math.floor(sorted.length * 0.95)].toFixed(2)),
+            slowOver25ms: frames.filter(delta => delta > 25).length,
+            states
+          };
+        }
+
+        const api = {
+          enable,
+          disable,
+          perfLite,
+          sample: collectSample,
+          sweep,
+          rebuild: () => {
+            rebuildAndUpdate({ immediate: true });
+            return collectSample();
+          }
+        };
+
+        window.makeSoftwareScrollDebug = api;
+
+        if (params.has('debugPerf') || storedPerf) perfLite(true);
+        if (params.has('debugScroll') || storedDebug) enable();
+
+        return api;
+      }
+
       buildScatter();
       scheduleScrollUpdate({ immediate: true });
+      setupScrollDebugTools();
 
       window.addEventListener('scroll', () => scheduleScrollUpdate(), { passive: true });
       window.addEventListener('resize', scheduleRebuild, { passive: true });
@@ -4441,6 +4855,29 @@
       };
     }
 
+    function stickerExitVector(point, index, size) {
+      const width = Math.max(window.innerWidth, 1);
+      const height = Math.max(window.innerHeight, 1);
+      const fromCenterX = point.x - width * 0.5;
+      const fromCenterY = point.y - height * 0.5;
+      const length = Math.hypot(fromCenterX, fromCenterY) || 1;
+      const normalX = fromCenterX / length;
+      const normalY = fromCenterY / length;
+      const wave = stickerPlacementSeed + index * 1.913;
+      const tangent = seededNoise(wave + 11.7) > 0.5 ? 1 : -1;
+      const tangentX = -normalY * tangent;
+      const tangentY = normalX * tangent;
+      const push = Math.max(width, height) * 0.42 + size * 1.35;
+      const drift = Math.min(width, height) * (0.1 + seededNoise(wave + 3.1) * 0.1);
+      const rotate = (seededNoise(wave + 6.4) - 0.5) * 54;
+
+      return {
+        x: normalX * push + tangentX * drift,
+        y: normalY * push + tangentY * drift,
+        rotate
+      };
+    }
+
     async function loadStickerAssets() {
       try {
         const response = await fetch('assets/stickers/', { cache: 'no-store' });
@@ -4517,6 +4954,13 @@
       let lastMoveTime = performance.now();
       let releaseVelocityX = 0;
       let releaseVelocityY = 0;
+
+      function updateExitVector() {
+        const exit = stickerExitVector({ x: currentX, y: currentY }, index, size);
+        sticker.style.setProperty('--sticker-exit-x', `${exit.x.toFixed(2)}px`);
+        sticker.style.setProperty('--sticker-exit-y', `${exit.y.toFixed(2)}px`);
+        sticker.style.setProperty('--sticker-exit-rotate', `${exit.rotate.toFixed(2)}deg`);
+      }
 
       function bringToFront() {
         const nextZ = Number(stickerBoard.dataset.nextZ || 80) + 1;
@@ -4661,6 +5105,7 @@
       sticker.addEventListener('pointerup', endDrag);
       sticker.addEventListener('pointercancel', endDrag);
       sticker.addEventListener('focus', bringToFront);
+      updateExitVector();
 
       return {
         id,
@@ -4674,6 +5119,7 @@
           currentY = next.y;
           sticker.style.setProperty('--sticker-x', `${currentX}px`);
           sticker.style.setProperty('--sticker-y', `${currentY}px`);
+          updateExitVector();
         }
       };
     }
