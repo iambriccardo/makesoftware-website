@@ -1,16 +1,10 @@
 import {
   AnimatePresence,
-  motion,
-  useReducedMotion
+  motion
 } from "motion/react";
-import Lenis from "lenis";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const smoothstep = (value) => {
-  const t = clamp(value);
-  return t * t * (3 - 2 * t);
-};
 
 const stickerAssets = [
   "/assets/stickers/freud.webp",
@@ -255,140 +249,6 @@ function clampStickerPoint(x, y, size) {
   };
 }
 
-function stickerExitVector(point, index, size, seed) {
-  const width = Math.max(window.innerWidth, 1);
-  const height = Math.max(window.innerHeight, 1);
-  const fromCenterX = point.x - width * 0.5;
-  const fromCenterY = point.y - height * 0.5;
-  const length = Math.hypot(fromCenterX, fromCenterY) || 1;
-  const normalX = fromCenterX / length;
-  const normalY = fromCenterY / length;
-  const wave = seed + index * 1.913;
-  const tangent = seededNoise(wave + 11.7) > 0.5 ? 1 : -1;
-  const push = Math.max(width, height) * 0.42 + size * 1.35;
-  const drift = Math.min(width, height) * (0.1 + seededNoise(wave + 3.1) * 0.1);
-
-  return {
-    x: normalX * push + -normalY * tangent * drift,
-    y: normalY * push + normalX * tangent * drift,
-    rotate: (seededNoise(wave + 6.4) - 0.5) * 54
-  };
-}
-
-function sceneTimelineValues(rawProgress) {
-  const progress = smoothstep((rawProgress - 0.015) / 0.49);
-  const wordmarkExit = smoothstep((rawProgress - 0.015) / 0.49);
-  const detailsProgress = smoothstep((rawProgress - 0.18) / 0.31);
-  const footerProgress = smoothstep((rawProgress - 0.24) / 0.31);
-  const stickerProgress = smoothstep((rawProgress - 0.045) / 0.34);
-  const stickerExitProgress = smoothstep(stickerProgress);
-
-  return {
-    rawProgress,
-    progress,
-    itemOpacity: clamp(1 - progress * 1.12),
-    itemScale: 1 - progress * 0.18,
-    wordmarkExit,
-    wordmarkOpacity: clamp(1 - wordmarkExit * 1.15),
-    wordmarkScale: 1 - wordmarkExit * 0.38,
-    wordmarkBlur: `${(wordmarkExit * 8.5).toFixed(2)}px`,
-    detailsProgress,
-    footerProgress,
-    stickerProgress,
-    stickerOpacity: clamp(1 - stickerProgress * 1.08),
-    stickerExitProgress
-  };
-}
-
-function applySceneTimeline(rawProgress, scene, footer, windows = []) {
-  const values = sceneTimelineValues(rawProgress);
-  const root = document.documentElement;
-
-  scene?.style.setProperty("--scene-progress", values.progress.toFixed(4));
-  scene?.style.setProperty("--item-opacity", values.itemOpacity.toFixed(4));
-  scene?.style.setProperty("--item-scale", values.itemScale.toFixed(4));
-  scene?.style.setProperty("--wordmark-opacity", values.wordmarkOpacity.toFixed(4));
-  scene?.style.setProperty("--wordmark-scale", values.wordmarkScale.toFixed(4));
-  scene?.style.setProperty("--wordmark-depth", values.wordmarkExit.toFixed(4));
-  scene?.style.setProperty("--wordmark-blur", values.wordmarkBlur);
-  scene?.style.setProperty("--details-opacity", values.detailsProgress.toFixed(4));
-
-  root.style.setProperty("--timeline-progress", values.rawProgress.toFixed(4));
-  root.style.setProperty("--stickers-opacity", values.stickerOpacity.toFixed(4));
-  root.style.setProperty("--stickers-progress", values.stickerExitProgress.toFixed(4));
-  root.style.setProperty("--stickers-depth", values.stickerExitProgress.toFixed(4));
-  footer?.style.setProperty("--footer-progress", values.footerProgress.toFixed(4));
-
-  windows.forEach((windowEl, index) => {
-    const windowEnter = smoothstep((values.detailsProgress - index * 0.16) / 0.78);
-    const compact = window.innerWidth <= 640;
-    const rise = compact ? 38 : index === 0 ? 58 : 66;
-    const roll = compact ? 0 : index === 0 ? -3.8 : 4.5;
-    windowEl.style.setProperty("--window-enter", windowEnter.toFixed(4));
-    windowEl.style.setProperty("--window-enter-y", `${((1 - windowEnter) * rise).toFixed(2)}px`);
-    windowEl.style.setProperty("--window-enter-roll", `${((1 - windowEnter) * roll).toFixed(3)}deg`);
-    windowEl.style.setProperty("--window-enter-scale", (0.94 + windowEnter * 0.06).toFixed(4));
-  });
-
-  document.body.classList.toggle("is-details-active", values.detailsProgress > 0.06);
-  document.body.classList.toggle("is-footer-active", values.footerProgress > 0.08);
-  document.body.classList.toggle("is-stickers-hidden", values.stickerOpacity < 0.08 || values.detailsProgress > 0.06);
-  document.body.classList.toggle("is-scene-complete", rawProgress > 0.94);
-}
-
-function useScatter(sceneRef) {
-  useLayoutEffect(() => {
-    const scene = sceneRef.current || document.querySelector(".toy-page");
-    if (!scene) return undefined;
-
-    const buildScatter = () => {
-      const collage = scene.querySelector(".collage");
-      const items = [...scene.querySelectorAll(".mini-app, .scene-wordmark")];
-      const collageRect = collage?.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = document.documentElement.clientHeight || window.innerHeight || 1;
-
-      items.forEach((item, index) => {
-        const isWordmark = item.classList.contains("scene-wordmark");
-        const itemRect = item.getBoundingClientRect();
-        const centerX = collageRect
-          ? collageRect.left + item.offsetLeft + (isWordmark ? 0 : item.offsetWidth / 2)
-          : itemRect.left + itemRect.width / 2;
-        const centerY = collageRect
-          ? collageRect.top + item.offsetTop + (isWordmark ? 0 : item.offsetHeight / 2)
-          : itemRect.top + itemRect.height / 2;
-        const fromCenterX = centerX - viewportWidth / 2;
-        const fromCenterY = centerY - viewportHeight / 2;
-        const length = Math.hypot(fromCenterX, fromCenterY) || 1;
-        const wave = index * 1.618;
-        const strength = isWordmark ? 0 : 1;
-        const x = ((fromCenterX / length) * viewportWidth * 0.58 + Math.cos(wave) * 96) * strength;
-        const y = ((fromCenterY / length) * viewportHeight * 0.52 + Math.sin(wave) * 88) * strength;
-
-        item.style.setProperty("--scatter-x", `${x.toFixed(2)}px`);
-        item.style.setProperty("--scatter-y", `${y.toFixed(2)}px`);
-      });
-    };
-
-    let raf = requestAnimationFrame(buildScatter);
-    const schedule = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(buildScatter);
-    };
-
-    window.addEventListener("resize", schedule, { passive: true });
-    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
-    document.fonts?.ready?.then(schedule);
-    window.addEventListener("load", schedule, { once: true });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
-    };
-  }, [sceneRef]);
-}
-
 function usePointerParallax(sceneRef) {
   useEffect(() => {
     const scene = sceneRef.current;
@@ -444,52 +304,6 @@ function usePointerParallax(sceneRef) {
   }, [sceneRef]);
 }
 
-function useLenisScrollScene(sceneRef, disabled) {
-  useEffect(() => {
-    const scene = sceneRef.current || document.querySelector(".toy-page");
-    const footer = document.querySelector(".floating-ambient-footer");
-    const windows = scene ? [...scene.querySelectorAll(".desktop-window")] : [];
-    if (!scene || disabled) {
-      applySceneTimeline(0, scene, footer, windows);
-      if (disabled) {
-        document.body.classList.add("is-details-active", "is-footer-active");
-        document.body.classList.remove("is-stickers-hidden", "is-scene-complete");
-        windows.forEach((windowEl) => windowEl.style.setProperty("--window-enter", "1"));
-      }
-      return undefined;
-    }
-
-    const lenis = new Lenis({
-      lerp: 0.12,
-      smoothWheel: true,
-      wheelMultiplier: 1.08,
-      touchMultiplier: 1.08,
-      autoRaf: false,
-      anchors: true,
-      prevent: (node) => Boolean(node.closest?.("[data-lenis-prevent]"))
-    });
-    let raf = 0;
-
-    const apply = ({ progress = lenis.progress } = {}) => {
-      applySceneTimeline(clamp(progress), scene, footer, windows);
-    };
-
-    const frame = (time) => {
-      lenis.raf(time);
-      raf = window.requestAnimationFrame(frame);
-    };
-
-    lenis.on("scroll", apply);
-    apply();
-    raf = window.requestAnimationFrame(frame);
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-      lenis.destroy();
-    };
-  }, [sceneRef, disabled]);
-}
-
 function useClock(clock24) {
   const [clock, setClock] = useState({ text: "--:--", hour: "0deg", minute: "0deg" });
 
@@ -517,7 +331,7 @@ function useWindowDrag(ref, index) {
   useEffect(() => {
     const windowEl = ref.current;
     const handle = windowEl?.querySelector("[data-drag-handle]");
-    const iframeSurface = windowEl?.querySelector("[data-lenis-prevent]");
+    const iframeSurface = windowEl?.querySelector("[data-window-surface]");
     if (!windowEl || !handle) return undefined;
 
     let pointerId = null;
@@ -630,30 +444,14 @@ function Sticker({ sticker, seed, index }) {
     element.style.setProperty("--sticker-y", `${y}px`);
   }, []);
 
-  const updateExitVector = useCallback(() => {
-    const element = ref.current;
-    if (!element) return;
-    const exit = stickerExitVector(
-      { x: state.current.currentX, y: state.current.currentY },
-      index,
-      sticker.size,
-      seed
-    );
-    element.style.setProperty("--sticker-exit-x", `${exit.x.toFixed(2)}px`);
-    element.style.setProperty("--sticker-exit-y", `${exit.y.toFixed(2)}px`);
-    element.style.setProperty("--sticker-exit-rotate", `${exit.rotate.toFixed(2)}deg`);
-  }, [index, seed, sticker.size]);
-
   useEffect(() => {
-    updateExitVector();
     const onResize = () => {
       const next = clampStickerPoint(state.current.currentX, state.current.currentY, sticker.size);
       updatePosition(next.x, next.y);
-      updateExitVector();
     };
     window.addEventListener("resize", onResize, { passive: true });
     return () => window.removeEventListener("resize", onResize);
-  }, [sticker.size, updateExitVector, updatePosition]);
+  }, [sticker.size, updatePosition]);
 
   const bringToFront = () => {
     const element = ref.current;
@@ -728,12 +526,11 @@ function Sticker({ sticker, seed, index }) {
     ref.current?.releasePointerCapture(current.pointerId);
     current.pointerId = null;
     ref.current?.classList.remove("is-dragging");
-    updateExitVector();
     attachSticker();
   };
 
   return (
-    <button
+    <motion.button
       ref={ref}
       className="floating-sticker"
       type="button"
@@ -751,9 +548,12 @@ function Sticker({ sticker, seed, index }) {
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
       onFocus={bringToFront}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.96 }}
+      transition={{ delay: 0.22 + index * 0.035, duration: 0.78, ease: [0.18, 0.86, 0.2, 1] }}
     >
       <img src={sticker.src} alt="" width="1254" height="1254" draggable="false" />
-    </button>
+    </motion.button>
   );
 }
 
@@ -1070,19 +870,38 @@ function DesktopWindow({ index, className, title, action, children }) {
   useWindowDrag(ref, index);
 
   return (
-    <article ref={ref} className={`desktop-window ${className}`} data-window>
+    <motion.article
+      ref={ref}
+      className={`desktop-window ${className}`}
+      data-window
+      initial={{ opacity: 0, filter: "blur(14px)" }}
+      whileInView={{ opacity: 1, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{
+        delay: 0.08 + index * 0.08,
+        duration: 0.72,
+        ease: [0.18, 0.86, 0.2, 1]
+      }}
+    >
       <div className="window-chrome" data-drag-handle>
         <span className="window-title">{title}</span>
         {action}
       </div>
       {children}
-    </article>
+    </motion.article>
   );
 }
 
 function DetailsDesktop() {
   return (
-    <section className="details-desktop" aria-label="Make Software events and contact">
+    <motion.section
+      className="details-desktop"
+      aria-label="Make Software events and contact"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.55, ease: [0.18, 0.86, 0.2, 1] }}
+    >
       <DesktopWindow
         index={0}
         className="events-window"
@@ -1096,7 +915,7 @@ function DetailsDesktop() {
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
           </div>
-          <div className="event-frame-wrap" data-lenis-prevent>
+          <div className="event-frame-wrap" data-window-surface>
             <iframe
               src="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events"
               title="Make Software events on Luma"
@@ -1169,71 +988,17 @@ function DetailsDesktop() {
           </div>
         </div>
       </DesktopWindow>
-    </section>
+    </motion.section>
   );
-}
-
-function useDebugApi(sceneRef) {
-  useEffect(() => {
-    window.makeSoftwareScrollDebug = {
-      sample() {
-        const scene = sceneRef.current;
-        const footer = document.querySelector(".floating-ambient-footer");
-        return {
-          y: Math.round(window.scrollY),
-          width: window.innerWidth,
-          height: document.documentElement.clientHeight || window.innerHeight,
-          timeline: Number(getComputedStyle(document.documentElement).getPropertyValue("--timeline-progress").trim() || 0),
-          details: scene ? getComputedStyle(scene).getPropertyValue("--details-opacity").trim() : "",
-          footer: footer ? getComputedStyle(footer).getPropertyValue("--footer-progress").trim() : "",
-          bodyClasses: document.body.className
-        };
-      },
-      async sweep({ steps = 120, maxRatio = 0.62, restore = true } = {}) {
-        const initialY = window.scrollY;
-        const maxScroll = Math.max(document.scrollingElement.scrollHeight - window.innerHeight, 1);
-        const frames = [];
-        let last = performance.now();
-        for (let index = 0; index <= steps; index += 1) {
-          window.scrollTo(0, maxScroll * maxRatio * (index / steps));
-          await new Promise(requestAnimationFrame);
-          const now = performance.now();
-          frames.push(now - last);
-          last = now;
-        }
-        if (restore) window.scrollTo(0, initialY);
-        const sorted = [...frames].sort((a, b) => a - b);
-        return {
-          frames: frames.length,
-          maxFrame: Number(Math.max(...frames).toFixed(2)),
-          p95Frame: Number(sorted[Math.floor(sorted.length * 0.95)].toFixed(2)),
-          slowOver25ms: frames.filter((frame) => frame > 25).length,
-          sample: this.sample()
-        };
-      }
-    };
-
-    return () => {
-      delete window.makeSoftwareScrollDebug;
-    };
-  }, [sceneRef]);
 }
 
 export default function App() {
   const sceneRef = useRef(null);
-  const shouldReduceMotion = useReducedMotion();
   const [appState, setAppState] = useState(initialState);
   const [bursts, setBursts] = useState([]);
   const clock = useClock(appState.clock24);
 
-  useScatter(sceneRef);
   usePointerParallax(sceneRef);
-  useLenisScrollScene(sceneRef, shouldReduceMotion);
-  useDebugApi(sceneRef);
-
-  useEffect(() => {
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  }, []);
 
   const activate = useCallback((id, burst) => {
     setBursts((current) => [...current, { id: `${Date.now()}-${Math.random()}`, ...burst }]);
@@ -1298,17 +1063,29 @@ export default function App() {
       </a>
       <StickerBoard />
       <BurstLayer bursts={bursts} />
-      <motion.main ref={sceneRef} className="toy-page">
+      <motion.main
+        ref={sceneRef}
+        className="toy-page"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.18, 0.86, 0.2, 1] }}
+      >
         <CloudLayer />
         <section className="hero" aria-labelledby="page-title">
           <div className="collage">
             <MiniApps state={appState} activate={activate} clock={clock} />
           </div>
-          <DetailsDesktop />
           <h1 className="sr-only" id="page-title">Make Software</h1>
         </section>
+        <DetailsDesktop />
       </motion.main>
-      <motion.footer className="floating-ambient-footer" aria-label="Made by Ambient, coming soon to Vienna">
+      <motion.footer
+        className="floating-ambient-footer"
+        aria-label="Made by Ambient, coming soon to Vienna"
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.45, duration: 0.68, ease: [0.18, 0.86, 0.2, 1] }}
+      >
         <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
         <span className="floating-ambient-mark" aria-hidden="true">
           <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
