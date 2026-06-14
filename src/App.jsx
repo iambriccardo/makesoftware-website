@@ -961,8 +961,8 @@ function MiniApps({ state, activate }) {
   return (
     <>
       <div className="scene-wordmark" data-depth="5" role="img" aria-label="Make Software">
-        <span className="wordmark-line wordmark-make">Make</span>
-        <span className="wordmark-line wordmark-software">Software</span>
+        <span className="wordmark-line wordmark-make" data-text="Make">Make</span>
+        <span className="wordmark-line wordmark-software" data-text="Software">Software</span>
       </div>
 
       <MiniApp id="stamp" className="stamp-app" label="Tiny tool stamp" active={state.stampActive} onActivate={activate}>
@@ -1513,9 +1513,10 @@ export default function App() {
           <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
         </span>
         <span className="floating-footer-copy">
-          <span className="floating-footer-kicker">brought to you by ambient</span>
-          <strong>Make Software</strong>
-          <span>An idea by Ambient: two friends from engineering and design making software feel fun again.</span>
+          <span className="floating-footer-title">
+            <strong>Make Software</strong>
+            <span className="floating-footer-kicker">brought to you by Ambient</span>
+          </span>
         </span>
         <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Coming soon to Vienna</a>
       </motion.footer>
