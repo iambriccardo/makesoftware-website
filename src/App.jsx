@@ -1517,6 +1517,7 @@ export default function App() {
             <strong>Make Software</strong>
             <span className="floating-footer-kicker">brought to you by Ambient</span>
           </span>
+          <span className="floating-footer-description">A small community for playful software, tiny tools, prototype nights, and making with others.</span>
         </span>
         <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Coming soon to Vienna</a>
       </motion.footer>
