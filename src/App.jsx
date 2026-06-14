@@ -426,6 +426,7 @@ function useWindowDrag(ref, index) {
     let lastClientY = 0;
     let autoScrollFrame = 0;
     let autoScrollY = 0;
+    let resetTimer = 0;
     const mobileWindowQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
 
     windowEl.style.zIndex = String(20 + index);
@@ -543,7 +544,8 @@ function useWindowDrag(ref, index) {
       windowEl.dataset.dragY = "0";
       windowEl.style.setProperty("--window-drag-x", "0px");
       windowEl.style.setProperty("--window-drag-y", "0px");
-      window.setTimeout(() => windowEl.classList.remove("is-resetting"), 520);
+      window.clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(() => windowEl.classList.remove("is-resetting"), 520);
     };
 
     windowEl.addEventListener("pointerdown", bringToFront);
@@ -560,12 +562,13 @@ function useWindowDrag(ref, index) {
       window.removeEventListener("pointermove", moveDrag);
       window.removeEventListener("pointerup", endDrag);
       window.removeEventListener("pointercancel", endDrag);
+      window.clearTimeout(resetTimer);
       stopAutoScroll();
     };
   }, [ref, index]);
 }
 
-function Sticker({ sticker, seed, index }) {
+function Sticker({ sticker, index }) {
   const ref = useRef(null);
   const state = useRef({
     pointerId: null,
@@ -618,15 +621,6 @@ function Sticker({ sticker, seed, index }) {
     current.lastMoveY = sticker.y;
     updatePosition(sticker.x, sticker.y);
   }, [sticker.x, sticker.y, updatePosition]);
-
-  useEffect(() => {
-    const onResize = () => {
-      const next = clampStickerPoint(state.current.currentX, state.current.currentY, sticker.size);
-      updatePosition(next.x, next.y);
-    };
-    window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
-  }, [sticker.size, updatePosition]);
 
   const bringToFront = () => {
     const element = ref.current;
@@ -794,6 +788,8 @@ function StickerBoard({ style }) {
   const [boardHeight, setBoardHeight] = useState(0);
 
   useLayoutEffect(() => {
+    let frame = 0;
+
     const build = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -817,10 +813,20 @@ function StickerBoard({ style }) {
         })
       );
     };
+    const scheduleBuild = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        build();
+      });
+    };
 
     build();
-    window.addEventListener("resize", build, { passive: true });
-    return () => window.removeEventListener("resize", build);
+    window.addEventListener("resize", scheduleBuild, { passive: true });
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", scheduleBuild);
+    };
   }, [seed]);
 
   return (
@@ -831,7 +837,7 @@ function StickerBoard({ style }) {
       style={{ ...style, "--sticker-board-height": boardHeight ? `${boardHeight}px` : "100svh" }}
     >
       {stickers.map((sticker, index) => (
-        <Sticker key={sticker.id} sticker={sticker} index={index} seed={seed} />
+        <Sticker key={sticker.id} sticker={sticker} index={index} />
       ))}
     </motion.div>
   );
@@ -886,11 +892,15 @@ function BurstLayer({ bursts }) {
 function MiniApp({ id, className, label, children, onActivate, active, dataProps = {}, style = {} }) {
   const [front, setFront] = useState(false);
   const [tapped, setTapped] = useState(false);
+  const tapTimerRef = useRef(0);
+
+  useEffect(() => () => window.clearTimeout(tapTimerRef.current), []);
 
   const activate = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setTapped(true);
-    window.setTimeout(() => setTapped(false), 260);
+    window.clearTimeout(tapTimerRef.current);
+    tapTimerRef.current = window.setTimeout(() => setTapped(false), 260);
     onActivate(id, {
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2,
@@ -923,7 +933,19 @@ function MiniApp({ id, className, label, children, onActivate, active, dataProps
   );
 }
 
-function MiniApps({ state, activate, clock }) {
+function ClockMiniApp({ clock24, activate }) {
+  const clock = useClock(clock24);
+
+  return (
+    <MiniApp id="clock" className="clock-app" label="Live gathering clock" onActivate={activate} style={{ "--clock-hour": clock.hour, "--clock-minute": clock.minute }}>
+      <span className="clock-face" aria-hidden="true" />
+      <time className="clock-time">{clock.text}</time>
+      <button className="app-action clock-toggle" type="button" data-action="clock" tabIndex={-1}>{clock24 ? "24h" : "12h"}</button>
+    </MiniApp>
+  );
+}
+
+function MiniApps({ state, activate }) {
   const palette = paletteSets[state.paletteIndex % paletteSets.length];
   const terminal = terminalCommands[state.terminalIndex];
   const mapPins = [
@@ -995,11 +1017,7 @@ function MiniApps({ state, activate, clock }) {
         </div>
       </MiniApp>
 
-      <MiniApp id="clock" className="clock-app" label="Live gathering clock" onActivate={activate} style={{ "--clock-hour": clock.hour, "--clock-minute": clock.minute }}>
-        <span className="clock-face" aria-hidden="true" />
-        <time className="clock-time">{clock.text}</time>
-        <button className="app-action clock-toggle" type="button" data-action="clock" tabIndex={-1}>{state.clock24 ? "24h" : "12h"}</button>
-      </MiniApp>
+      <ClockMiniApp clock24={state.clock24} activate={activate} />
 
       <MiniApp id="mail" className="mail-app" label="Small inbox" active={state.mailCount === 0} onActivate={activate}>
         <strong>{state.mailCount}</strong>
@@ -1237,24 +1255,30 @@ function DetailsDesktop() {
 function LogoPlayer() {
   const audioRef = useRef(null);
   const pressRef = useRef({ pointerId: null, startedAt: 0, timer: 0, longPressReady: false });
+  const noteIdRef = useRef(0);
+  const noteTimersRef = useRef(new Set());
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const [notes, setNotes] = useState([]);
 
   const emitNotes = useCallback((count = 4) => {
+    const base = performance.now();
     const glyphs = ["♪", "♫", "♬", "♩", "♪", "♫"].slice(0, count);
     const created = glyphs.map((glyph, index) => ({
-      id: `${Date.now()}-${index}-${Math.random()}`,
+      id: `note-${noteIdRef.current += 1}`,
       glyph,
-      x: `${(seededNoise(index * 7.31 + Date.now() * 0.001) - 0.5) * 3.8}rem`,
+      x: `${(seededNoise(index * 7.31 + base * 0.001) - 0.5) * 3.8}rem`,
       y: `${-4.4 - seededNoise(index * 5.17 + 3.4) * 3.2}rem`,
       r: `${(seededNoise(index * 3.41 + 9.7) - 0.5) * 34}deg`,
       d: `${index * 140}ms`
     }));
     setNotes((current) => [...current, ...created]);
-    window.setTimeout(() => {
-      setNotes((current) => current.filter((note) => !created.some((item) => item.id === note.id)));
+    const timer = window.setTimeout(() => {
+      const createdIds = new Set(created.map((note) => note.id));
+      noteTimersRef.current.delete(timer);
+      setNotes((current) => current.filter((note) => !createdIds.has(note.id)));
     }, 3400);
+    noteTimersRef.current.add(timer);
   }, []);
 
   const playAudio = useCallback(async () => {
@@ -1292,6 +1316,8 @@ function LogoPlayer() {
       audio.removeEventListener("pause", sync);
       audio.removeEventListener("ended", sync);
       window.clearTimeout(pressRef.current.timer);
+      noteTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      noteTimersRef.current.clear();
     };
   }, []);
 
@@ -1364,7 +1390,7 @@ function LogoPlayer() {
       onContextMenu={(event) => event.preventDefault()}
       onKeyDown={onKeyDown}
     >
-      <audio ref={audioRef} src="/assets/audio/song.mp3" preload="auto" loop />
+      <audio ref={audioRef} src="/assets/audio/song.mp3" preload="none" loop />
       <img src="/assets/branding/tomo/logo.svg" alt="" width="1254" height="1254" draggable="false" />
       <span className="logo-notes" aria-hidden="true">
         {notes.map((note) => (
@@ -1383,17 +1409,26 @@ function LogoPlayer() {
 
 export default function App() {
   const sceneRef = useRef(null);
+  const burstIdRef = useRef(0);
+  const burstTimersRef = useRef(new Set());
   const [appState, setAppState] = useState(initialState);
   const [bursts, setBursts] = useState([]);
-  const clock = useClock(appState.clock24);
 
   usePointerParallax(sceneRef);
 
+  useEffect(() => () => {
+    burstTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    burstTimersRef.current.clear();
+  }, []);
+
   const activate = useCallback((id, burst) => {
-    setBursts((current) => [...current, { id: `${Date.now()}-${Math.random()}`, ...burst }]);
-    window.setTimeout(() => {
-      setBursts((current) => current.slice(1));
+    const burstId = `burst-${burstIdRef.current += 1}`;
+    setBursts((current) => [...current, { id: burstId, ...burst }]);
+    const timer = window.setTimeout(() => {
+      burstTimersRef.current.delete(timer);
+      setBursts((current) => current.filter((item) => item.id !== burstId));
     }, 760);
+    burstTimersRef.current.add(timer);
 
     setAppState((current) => {
       const next = { ...current };
@@ -1460,7 +1495,7 @@ export default function App() {
         <CloudLayer />
         <section className="hero" aria-labelledby="page-title">
           <div className="collage">
-            <MiniApps state={appState} activate={activate} clock={clock} />
+            <MiniApps state={appState} activate={activate} />
           </div>
           <h1 className="sr-only" id="page-title">Make Software</h1>
         </section>
