@@ -1448,7 +1448,7 @@ function DetailsDesktop() {
       <DesktopWindow index={2} className="values-window" title="Values">
         <div className="values-window-body">
           <div className="values-window-heading">
-            <h2>What we want to protect while building gets easier.</h2>
+            <h2>What we strive for.</h2>
             <span className="letter-kicker-app">Values / Make Software</span>
           </div>
           <div className="values-square-grid" aria-label="Make Software values">
@@ -1469,7 +1469,7 @@ function DetailsDesktop() {
       <DesktopWindow index={3} className="contact-window" title="Contact">
         <div className="window-body contact-window-body">
           <div className="window-hero-copy">
-            <h2>Send a small signal.</h2>
+            <h2>Contact us.</h2>
             <p>If you want to collaborate, host us, mentor makers, bring a strong idea, or build something with us, send a note. Early thoughts are welcome.</p>
           </div>
           <div className="window-card-grid" aria-label="Ways to collaborate">
@@ -1493,10 +1493,10 @@ function DetailsDesktop() {
         </div>
       </DesktopWindow>
 
-      <DesktopWindow index={4} className="becoming-window" title="Still Becoming">
+      <DesktopWindow index={4} className="becoming-window" title="Build in progress...">
         <div className="window-body becoming-window-body">
           <div className="window-hero-copy">
-            <h2>Make Software is still a build in progress.</h2>
+            <h2>Build in progress...</h2>
             <p>We are currently working on the manifesto, the direction, and what we want Make Software to be. Stay tuned while the shape becomes clearer.</p>
           </div>
           <div className="system-note" aria-label="Community status">
