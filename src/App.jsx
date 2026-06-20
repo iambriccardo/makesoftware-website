@@ -223,10 +223,10 @@ function spreadStep(count) {
 
 function stickerViewportConfig(width = window.innerWidth) {
   if (width <= 480) {
-    return { count: 6, size: Math.round(clamp(width * 0.18, 64, 78)), marginX: 0.18, marginTop: 0.16, marginBottom: 0.22, avoidWidth: 0.5, avoidHeight: 0.44 };
+    return { count: 6, size: Math.round(clamp(width * 0.22, 76, 96)), marginX: 0.18, marginTop: 0.16, marginBottom: 0.22, avoidWidth: 0.52, avoidHeight: 0.46 };
   }
   if (width <= 640) {
-    return { count: 7, size: Math.round(clamp(width * 0.15, 66, 86)), marginX: 0.16, marginTop: 0.14, marginBottom: 0.2, avoidWidth: 0.48, avoidHeight: 0.42 };
+    return { count: 7, size: Math.round(clamp(width * 0.18, 78, 102)), marginX: 0.16, marginTop: 0.14, marginBottom: 0.2, avoidWidth: 0.5, avoidHeight: 0.44 };
   }
   if (width <= 920) {
     return { count: 10, size: 82, marginX: 0.12, marginTop: 0.12, marginBottom: 0.16, avoidWidth: 0.44, avoidHeight: 0.38 };
