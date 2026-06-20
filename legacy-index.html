@@ -7,16 +7,15 @@
   <meta name="description" content="A playful Make Software landing page inspired by mixed-media web collages, built from original CSS objects and existing brand assets." />
   <meta name="theme-color" content="#91c6e4" />
   <meta name="color-scheme" content="light" />
-  <link rel="icon" href="/assets/branding/tomo/favicon.svg" sizes="any" type="image/svg+xml" />
-  <link rel="shortcut icon" href="/assets/branding/tomo/favicon.svg" type="image/svg+xml" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="icon" href="/legacy-assets/branding/tomo/favicon.svg" sizes="any" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/legacy-assets/branding/tomo/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     @font-face {
       font-family: 'Departure Mono';
-      src: url('assets/fonts/DepartureMono-Regular.woff2') format('woff2');
+      src: url('legacy-assets/fonts/DepartureMono-Regular.woff2') format('woff2');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -3521,7 +3520,7 @@
 </head>
 <body>
   <a class="scene-logo" href="index.html" aria-label="Make Software home">
-    <img src="assets/branding/tomo/logo.svg" alt="" width="350" height="350" />
+    <img src="legacy-assets/branding/tomo/logo.svg" alt="" width="350" height="350" />
   </a>
   <div class="sticker-board" data-sticker-board aria-label="Draggable sticker layer"></div>
 
@@ -3840,7 +3839,7 @@
   <footer class="floating-ambient-footer" aria-label="Made by Ambient, coming soon to Vienna">
     <span class="footer-charms" aria-hidden="true"><i></i><i></i><i></i></span>
     <span class="floating-ambient-mark" aria-hidden="true">
-      <img src="assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+      <img src="legacy-assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
     </span>
     <span class="floating-footer-copy">
       <span class="floating-footer-kicker">local internet object</span>
@@ -3862,22 +3861,22 @@
     let activeMiniAppZ = 24;
     const stickerPlacementSeed = Math.random() * 10000;
     const fallbackStickerAssets = [
-      'assets/stickers/freud.webp',
-      'assets/stickers/hundertwasser.webp',
-      'assets/stickers/klimt.webp',
-      'assets/stickers/knodel.webp',
-      'assets/stickers/krapfen.webp',
-      'assets/stickers/mozart.webp',
-      'assets/stickers/oper.webp',
-      'assets/stickers/prater.webp',
-      'assets/stickers/sacher.webp',
-      'assets/stickers/schnitzel.webp',
-      'assets/stickers/schonnbrunn.webp',
-      'assets/stickers/sissi.webp',
-      'assets/stickers/stephansdom.webp',
-      'assets/stickers/tram.webp',
-      'assets/stickers/u-bahn.webp',
-      'assets/stickers/vienna.webp'
+      'legacy-assets/stickers/freud.webp',
+      'legacy-assets/stickers/hundertwasser.webp',
+      'legacy-assets/stickers/klimt.webp',
+      'legacy-assets/stickers/knodel.webp',
+      'legacy-assets/stickers/krapfen.webp',
+      'legacy-assets/stickers/mozart.webp',
+      'legacy-assets/stickers/oper.webp',
+      'legacy-assets/stickers/prater.webp',
+      'legacy-assets/stickers/sacher.webp',
+      'legacy-assets/stickers/schnitzel.webp',
+      'legacy-assets/stickers/schonnbrunn.webp',
+      'legacy-assets/stickers/sissi.webp',
+      'legacy-assets/stickers/stephansdom.webp',
+      'legacy-assets/stickers/tram.webp',
+      'legacy-assets/stickers/u-bahn.webp',
+      'legacy-assets/stickers/vienna.webp'
     ];
 
     if ('scrollRestoration' in history) {
@@ -4880,7 +4879,7 @@
 
     async function loadStickerAssets() {
       try {
-        const response = await fetch('assets/stickers/', { cache: 'no-store' });
+        const response = await fetch('legacy-assets/stickers/', { cache: 'no-store' });
         if (!response.ok) return fallbackStickerAssets;
 
         const html = await response.text();
@@ -4888,16 +4887,16 @@
         const assets = [...doc.querySelectorAll('a[href]')]
           .map(anchor => {
             try {
-              return new URL(anchor.getAttribute('href'), new URL('assets/stickers/', window.location.href));
+              return new URL(anchor.getAttribute('href'), new URL('legacy-assets/stickers/', window.location.href));
             } catch {
               return null;
             }
           })
           .filter(Boolean)
-          .filter(url => /\/assets\/stickers\//.test(url.pathname))
+          .filter(url => /\/legacy-assets\/stickers\//.test(url.pathname))
           .filter(url => !decodeURIComponent(url.pathname.split('/').pop() || '').startsWith('.'))
           .filter(url => /\.(png|webp|jpe?g|gif|svg)$/i.test(url.pathname))
-          .map(url => `assets/stickers/${decodeURIComponent(url.pathname.split('/').pop())}`);
+          .map(url => `legacy-assets/stickers/${decodeURIComponent(url.pathname.split('/').pop())}`);
 
         if (!assets.length) return fallbackStickerAssets;
 

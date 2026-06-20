@@ -1,5 +1,6 @@
 import {
   AnimatePresence,
+  LayoutGroup,
   motion
 } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -141,7 +142,7 @@ const contactPrompts = [
   },
   {
     title: "Bring ideas",
-    text: "Suggest a tiny challenge, weird tool, or playful prompt.",
+    text: "Suggest a focused challenge, useful tool, or strong prompt.",
     bg: "#ffb3c9",
     rotate: "-0.8deg"
   },
@@ -155,9 +156,10 @@ const contactPrompts = [
 const footerCopy = {
   title: "Make Software",
   kicker: "a project by Ambient",
-  description: "A playful software community in Vienna.",
+  description: "Make Software is a community for people making software for its own sake: useful, personal, strange, careful, and fun. Not everything needs to become a company.",
   action: "Open Luma"
 };
+const footerLayoutTransition = { type: "spring", stiffness: 310, damping: 34, mass: 0.82 };
 let activeDesktopWindowZ = 40;
 const MiniAppStackContext = createContext({
   frontWidget: null,
@@ -1405,13 +1407,13 @@ function DetailsDesktop() {
         <div className="letter-window-body">
           <span className="letter-badge" aria-hidden="true">M</span>
           <div className="letter-copy">
-            <span className="letter-kicker-app">Manifesto / Make Software</span>
             <h2>Computers are fun again.</h2>
-            <p>Make Software is a Vienna community for people who want to create with computers the way others paint, write, play music, or make tiny strange things with friends.</p>
-            <p>We make software without needing to justify it through profit, scale, business models, users, or a startup pitch. AI makes building easier; this room is for keeping taste, authorship, and play in the process.</p>
-            <p className="letter-note">Bring a half-working demo, a blank idea, a useful script, a silly game, a personal website, or just curiosity.</p>
+            <span className="letter-kicker-app">Manifesto / Make Software</span>
+            <p>Make Software is a software community around collaboration, craft, and creative technology in Vienna.</p>
+            <p>We make software as a medium for useful tools, personal systems, prototypes, interfaces, and experiments with a point of view. AI makes building faster; this room is for keeping taste, authorship, and care in the process.</p>
+            <p className="letter-note">Bring a work in progress, a blank idea, a useful script, a product sketch, a personal website, or just curiosity.</p>
             <p className="letter-signature">
-              <span>For tiny finished things and strange ideas made near others,</span>
+              <span>For software made with care, intention, and people nearby,</span>
               <strong>Riccardo &amp; Florian</strong>
             </p>
           </div>
@@ -1426,11 +1428,10 @@ function DetailsDesktop() {
         <div className="window-body luma-window-body">
           <div className="window-hero-copy">
             <h2>Come make with us.</h2>
-            <p>Small, warm gatherings for tiny tools, playful prototypes, broken demos, and strange things with computers. Browse upcoming dates below.</p>
+            <p>Gatherings for people building software with craft, taste, and curiosity. Browse upcoming dates below.</p>
           </div>
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
-            <span className="window-pill">Vienna / local internet</span>
             <a className="window-action window-action-compact" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>
           </div>
           <div className="event-frame-wrap" data-window-surface>
@@ -1447,8 +1448,8 @@ function DetailsDesktop() {
       <DesktopWindow index={2} className="values-window" title="Values">
         <div className="values-window-body">
           <div className="values-window-heading">
-            <span className="letter-kicker-app">Values / Make Software</span>
             <h2>What we want to protect while building gets easier.</h2>
+            <span className="letter-kicker-app">Values / Make Software</span>
           </div>
           <div className="values-square-grid" aria-label="Make Software values">
             {communityValues.map((value) => (
@@ -1469,14 +1470,7 @@ function DetailsDesktop() {
         <div className="window-body contact-window-body">
           <div className="window-hero-copy">
             <h2>Send a small signal.</h2>
-            <p>If you want to collaborate, host us, mentor makers, bring a weird idea, or make something with us, send a note. Half-formed thoughts are welcome.</p>
-          </div>
-          <div className="contact-stamp" aria-label="Email note">
-            <span className="contact-seal" aria-hidden="true" />
-            <span>
-              <strong>Mailbox / Make Software</strong>
-              <span>We read these and turn good sparks into rooms, prompts, and tiny gatherings.</span>
-            </span>
+            <p>If you want to collaborate, host us, mentor makers, bring a strong idea, or build something with us, send a note. Early thoughts are welcome.</p>
           </div>
           <div className="window-card-grid" aria-label="Ways to collaborate">
             {contactPrompts.map((prompt) => (
@@ -1502,12 +1496,12 @@ function DetailsDesktop() {
       <DesktopWindow index={4} className="becoming-window" title="Still Becoming">
         <div className="window-body becoming-window-body">
           <div className="window-hero-copy">
-            <h2>Make Software 0.1 is still compiling.</h2>
-            <p>We are shaping this into prototype nights, tiny workshops, demo evenings, and strange prompts. Stay close if that sounds like your kind of room.</p>
+            <h2>Make Software is still a build in progress.</h2>
+            <p>We are currently working on the manifesto, the direction, and what we want Make Software to be. Stay tuned while the shape becomes clearer.</p>
           </div>
           <div className="system-note" aria-label="Community status">
             <span className="system-note-light" aria-hidden="true" />
-            <span>status: playful, local, unfinished on purpose</span>
+            <span>status: building</span>
           </div>
         </div>
       </DesktopWindow>
@@ -1654,7 +1648,7 @@ function LogoPlayer() {
       onKeyDown={onKeyDown}
     >
       <audio ref={audioRef} src="/assets/audio/song.mp3" preload="none" loop />
-      <img src="/assets/branding/tomo/logo.svg" alt="" width="1254" height="1254" draggable="false" />
+      <img src="/assets/branding/logo-individual.svg" alt="" width="350" height="350" draggable="false" />
       <span className="logo-notes" aria-hidden="true">
         {notes.map((note) => (
           <span
@@ -1841,47 +1835,60 @@ export default function App() {
         </section>
         <DetailsDesktop />
       </motion.main>
-      <motion.footer
-        className={`floating-ambient-footer${footerCollapsed ? " is-collapsed" : ""}${footerAutoOpen ? " is-auto-open" : ""}${footerManualOpen ? " is-manual-open" : ""}`}
-        aria-label="Make Software by Ambient"
-        data-state={footerCollapsed ? "collapsed" : "open"}
-        data-open-mode={footerManualOpen ? "manual" : footerAutoOpen ? "auto" : "collapsed"}
-        initial={{ opacity: 0, y: 18, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.36, type: "spring", stiffness: 170, damping: 16, mass: 0.76 }}
-      >
-        <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
-        {footerCollapsed ? (
+      <LayoutGroup id="ambient-footer">
+        <motion.footer
+          layout="position"
+          className={`floating-ambient-footer${footerCollapsed ? " is-collapsed" : ""}${footerAutoOpen ? " is-auto-open" : ""}${footerManualOpen ? " is-manual-open" : ""}`}
+          aria-label="Make Software by Ambient"
+          data-state={footerCollapsed ? "collapsed" : "open"}
+          data-open-mode={footerManualOpen ? "manual" : footerAutoOpen ? "auto" : "collapsed"}
+          initial={{ opacity: 0, y: 18, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.36, type: "spring", stiffness: 170, damping: 16, mass: 0.76, layout: footerLayoutTransition }}
+        >
+          <span className="footer-morph-surface" aria-hidden="true" />
+          <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
+          {footerCollapsed ? (
+            <motion.button
+              layout
+              layoutId="ambient-footer-mark"
+              transition={footerLayoutTransition}
+              className="floating-ambient-mark footer-logo-toggle"
+              type="button"
+              aria-label="Show Ambient footer"
+              aria-expanded="false"
+              onClick={openFooterManually}
+            >
+              <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+            </motion.button>
+          ) : (
+            <motion.span
+              layout
+              layoutId="ambient-footer-mark"
+              transition={footerLayoutTransition}
+              className="floating-ambient-mark"
+              aria-hidden="true"
+            >
+              <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+            </motion.span>
+          )}
+          <span className="floating-footer-copy">
+            <span className="floating-footer-title">
+              <strong>{footerCopy.title}</strong>
+              <span className="floating-footer-kicker">{footerCopy.kicker}</span>
+            </span>
+            <span className="floating-footer-description">{footerCopy.description}</span>
+          </span>
+          <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">{footerCopy.action}</a>
           <button
-            className="floating-ambient-mark footer-logo-toggle"
+            className="footer-collapse-button"
             type="button"
-            aria-label="Show Ambient footer"
-            aria-expanded="false"
-            onClick={openFooterManually}
-          >
-            <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
-          </button>
-        ) : (
-          <span className="floating-ambient-mark" aria-hidden="true">
-            <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
-          </span>
-        )}
-        <span className="floating-footer-copy">
-          <span className="floating-footer-title">
-            <strong>{footerCopy.title}</strong>
-            <span className="floating-footer-kicker">{footerCopy.kicker}</span>
-          </span>
-          <span className="floating-footer-description">{footerCopy.description}</span>
-        </span>
-        <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">{footerCopy.action}</a>
-        <button
-          className="footer-collapse-button"
-          type="button"
-          aria-label="Hide Ambient footer"
-          aria-expanded="true"
-          onClick={closeFooterManually}
-        />
-      </motion.footer>
+            aria-label="Hide Ambient footer"
+            aria-expanded="true"
+            onClick={closeFooterManually}
+          />
+        </motion.footer>
+      </LayoutGroup>
     </>
   );
 }

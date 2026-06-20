@@ -6,6 +6,7 @@ import react from "@vitejs/plugin-react";
 const rootDir = process.cwd();
 const staticEntries = [
   "assets",
+  "legacy-assets",
   "site.webmanifest",
   "old-index.html",
   "new-brand.html",
