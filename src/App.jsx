@@ -2,7 +2,7 @@ import {
   AnimatePresence,
   motion
 } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
@@ -64,6 +64,10 @@ const weatherStates = [
 const memoTexts = ["save the odd version", "invite one maker", "make it smaller", "finish before polish"];
 const pixelColors = ["#fffdf5", "#fff36e", "#60d130", "#63a7ff", "#fb78a6", "#ff8a2a", "#2D250E"];
 let activeDesktopWindowZ = 40;
+const MiniAppStackContext = createContext({
+  frontWidget: null,
+  bringMiniAppToFront: () => {}
+});
 
 const initialState = {
   stampActive: false,
@@ -296,11 +300,36 @@ function getStickerPageHeight() {
   );
 }
 
+function getStickerViewportMetrics() {
+  const width = Math.max(320, Math.round(document.documentElement.clientWidth || window.innerWidth));
+  const height = Math.max(480, Math.round(document.documentElement.clientHeight || window.innerHeight));
+  const config = stickerViewportConfig(width);
+  return {
+    width,
+    height,
+    count: Math.min(stickerAssets.length, config.count),
+    size: config.size,
+    pageHeight: getStickerPageHeight()
+  };
+}
+
+function getVisibleViewportBounds() {
+  const viewport = window.visualViewport;
+  const top = viewport?.offsetTop || 0;
+  const height = viewport?.height || window.innerHeight;
+  return {
+    top,
+    bottom: top + height,
+    height
+  };
+}
+
 function clampStickerPoint(x, y, size, bounds = {}) {
   const gutter = Math.max(12, size * 0.45);
   const maxY = Math.max(window.innerHeight, bounds.height || getStickerPageHeight());
+  const width = Math.max(320, document.documentElement.clientWidth || window.innerWidth);
   return {
-    x: clamp(x, gutter, window.innerWidth - gutter),
+    x: clamp(x, gutter, width - gutter),
     y: clamp(y, gutter, maxY - gutter)
   };
 }
@@ -413,7 +442,6 @@ function useWindowDrag(ref, index) {
   useEffect(() => {
     const windowEl = ref.current;
     const handle = windowEl?.querySelector("[data-drag-handle]");
-    const iframeSurface = windowEl?.querySelector("[data-window-surface]");
     if (!windowEl || !handle) return undefined;
 
     let pointerId = null;
@@ -467,9 +495,11 @@ function useWindowDrag(ref, index) {
     };
 
     const updateAutoScroll = (clientY) => {
-      const edge = Math.min(110, window.innerHeight * 0.18);
-      const bottomDistance = window.innerHeight - clientY;
-      const topPressure = clientY < edge ? clamp((edge - clientY) / edge, 0, 1.25) : 0;
+      const visible = getVisibleViewportBounds();
+      const edge = Math.min(110, visible.height * 0.18);
+      const topDistance = clientY - visible.top;
+      const bottomDistance = visible.bottom - clientY;
+      const topPressure = topDistance < edge ? clamp((edge - topDistance) / edge, 0, 1.25) : 0;
       const bottomPressure = bottomDistance < edge ? clamp((edge - bottomDistance) / edge, 0, 1.25) : 0;
       autoScrollY = (bottomPressure - topPressure) * 18;
 
@@ -554,13 +584,11 @@ function useWindowDrag(ref, index) {
 
     windowEl.addEventListener("pointerdown", bringToFront);
     windowEl.addEventListener("focusin", bringToFront);
-    iframeSurface?.addEventListener("pointerenter", bringToFront);
     handle.addEventListener("pointerdown", startDrag);
     handle.addEventListener("dblclick", reset);
     return () => {
       windowEl.removeEventListener("pointerdown", bringToFront);
       windowEl.removeEventListener("focusin", bringToFront);
-      iframeSurface?.removeEventListener("pointerenter", bringToFront);
       handle.removeEventListener("pointerdown", startDrag);
       handle.removeEventListener("dblclick", reset);
       window.removeEventListener("pointermove", moveDrag);
@@ -576,6 +604,8 @@ function Sticker({ sticker, index }) {
   const ref = useRef(null);
   const state = useRef({
     pointerId: null,
+    isDragging: false,
+    moved: false,
     startX: 0,
     startY: 0,
     originX: sticker.x,
@@ -592,6 +622,28 @@ function Sticker({ sticker, index }) {
     autoScrollFrame: 0,
     autoScrollY: 0
   });
+
+  const cancelStickerAnimations = useCallback(() => {
+    const element = ref.current;
+    if (!element) return;
+    element
+      .getAnimations?.({ subtree: true })
+      .filter((animation) => animation.id === "sticker-attach")
+      .forEach((animation) => animation.cancel());
+  }, []);
+
+  const clearStickerMotion = useCallback(() => {
+    const element = ref.current;
+    if (!element) return;
+    cancelStickerAnimations();
+    element.classList.remove("is-lifted", "is-dragging");
+    element.style.setProperty("--sticker-lift", "0");
+    element.style.setProperty("--sticker-press-x", "0px");
+    element.style.setProperty("--sticker-press-y", "0px");
+    element.style.setProperty("--sticker-press-rotate", "0deg");
+    element.style.setProperty("--sticker-press-scale-x", "1");
+    element.style.setProperty("--sticker-press-scale-y", "1");
+  }, [cancelStickerAnimations]);
 
   const readRenderedPosition = useCallback(() => {
     const element = ref.current;
@@ -637,37 +689,99 @@ function Sticker({ sticker, index }) {
 
   const attachSticker = () => {
     const element = ref.current;
-    if (!element || window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof element.animate !== "function") return;
+    if (!element) return;
 
-    element
-      .getAnimations?.({ subtree: true })
-      .filter((animation) => animation.id === "sticker-attach" || animation.id === "sticker-shadow-attach")
-      .forEach((animation) => animation.cancel());
+    cancelStickerAnimations();
+    element.style.setProperty("--sticker-lift", "1");
+    element.style.setProperty("--sticker-press-x", "0px");
+    element.style.setProperty("--sticker-press-y", "0px");
+    element.style.setProperty("--sticker-press-rotate", "0deg");
+    element.style.setProperty("--sticker-press-scale-x", "1");
+    element.style.setProperty("--sticker-press-scale-y", "1");
+    element.classList.remove("is-lifted", "is-dragging");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof element.animate !== "function") {
+      element.style.setProperty("--sticker-lift", "0");
+      return;
+    }
 
-    const velocity = Math.hypot(state.current.releaseVelocityX, state.current.releaseVelocityY);
-    const direction = velocity > 0.01 ? Math.sign(state.current.releaseVelocityX || 1) : seededNoise(index + 19.4) > 0.5 ? 1 : -1;
-    const twist = clamp((state.current.releaseVelocityX / 32) * 5, -6, 6) || direction * 2.6;
-    const drop = clamp(Math.abs(state.current.releaseVelocityY) / 18, 1.5, 7);
+    const direction = Math.sign(state.current.releaseVelocityX || seededNoise(index + 19.4) - 0.5 || 1);
+    const velocity = Math.min(Math.hypot(state.current.releaseVelocityX, state.current.releaseVelocityY), 18);
+    const twist = clamp(state.current.releaseVelocityX * 0.08, -2.4, 2.4) || direction * 0.8;
+    const settleY = clamp(1 + velocity * 0.06, 1, 2.2);
 
     const animation = element.animate(
       [
-        { offset: 0, scale: "0.84 0.9", translate: `${(-direction * 2.5).toFixed(2)}px ${(-drop).toFixed(2)}px`, rotate: `${(-twist * 0.75).toFixed(2)}deg`, easing: "cubic-bezier(.2,.72,.18,1)" },
-        { offset: 0.26, scale: "1.11 0.89", translate: `${(direction * 1.5).toFixed(2)}px 3px`, rotate: `${twist.toFixed(2)}deg`, easing: "cubic-bezier(.12,.82,.16,1)" },
-        { offset: 0.48, scale: "0.95 1.055", translate: `${(-direction * 0.7).toFixed(2)}px -1px`, rotate: `${(-twist * 0.34).toFixed(2)}deg`, easing: "cubic-bezier(.18,.7,.18,1)" },
-        { offset: 0.68, scale: "1.025 0.985", translate: "0 0.5px", rotate: `${(twist * 0.16).toFixed(2)}deg`, easing: "cubic-bezier(.16,.84,.18,1)" },
-        { offset: 1, scale: "1", translate: "0 0", rotate: "0deg" }
+        {
+          offset: 0,
+          "--sticker-lift": "1",
+          "--sticker-press-x": "0px",
+          "--sticker-press-y": "-1px",
+          "--sticker-press-rotate": `${(twist * -0.45).toFixed(2)}deg`,
+          "--sticker-press-scale-x": "1.018",
+          "--sticker-press-scale-y": "0.992",
+          easing: "cubic-bezier(.16,.84,.18,1)"
+        },
+        {
+          offset: 0.34,
+          "--sticker-lift": "0.35",
+          "--sticker-press-x": `${(direction * 0.7).toFixed(2)}px`,
+          "--sticker-press-y": `${settleY.toFixed(2)}px`,
+          "--sticker-press-rotate": `${twist.toFixed(2)}deg`,
+          "--sticker-press-scale-x": "1.035",
+          "--sticker-press-scale-y": "0.948",
+          easing: "cubic-bezier(.22,.72,.18,1)"
+        },
+        {
+          offset: 0.62,
+          "--sticker-lift": "0.08",
+          "--sticker-press-x": `${(direction * -0.28).toFixed(2)}px`,
+          "--sticker-press-y": "-0.7px",
+          "--sticker-press-rotate": `${(twist * -0.24).toFixed(2)}deg`,
+          "--sticker-press-scale-x": "0.992",
+          "--sticker-press-scale-y": "1.014",
+          easing: "cubic-bezier(.18,.7,.18,1)"
+        },
+        {
+          offset: 1,
+          "--sticker-lift": "0",
+          "--sticker-press-x": "0px",
+          "--sticker-press-y": "0px",
+          "--sticker-press-rotate": "0deg",
+          "--sticker-press-scale-x": "1",
+          "--sticker-press-scale-y": "1"
+        }
       ],
-      { duration: 620, easing: "linear" }
+      { duration: 360, easing: "linear" }
     );
     animation.id = "sticker-attach";
+    animation.onfinish = () => {
+      element.style.setProperty("--sticker-lift", "0");
+      element.style.setProperty("--sticker-press-x", "0px");
+      element.style.setProperty("--sticker-press-y", "0px");
+      element.style.setProperty("--sticker-press-rotate", "0deg");
+      element.style.setProperty("--sticker-press-scale-x", "1");
+      element.style.setProperty("--sticker-press-scale-y", "1");
+      animation.cancel();
+    };
   };
 
   const updateDragFromClient = useCallback((clientX, clientY) => {
     const current = state.current;
     if (current.pointerId === null) return;
+    const deltaX = clientX - current.startX;
+    const deltaY = clientY + window.scrollY - current.startY;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (!current.isDragging && distance < 6) return;
+    if (!current.isDragging) {
+      current.isDragging = true;
+      current.moved = true;
+      clearStickerMotion();
+      ref.current?.style.setProperty("--sticker-lift", "1");
+      ref.current?.classList.add("is-lifted", "is-dragging");
+    }
     const next = clampStickerPoint(
-      current.originX + clientX - current.startX,
-      current.originY + clientY + window.scrollY - current.startY,
+      current.originX + deltaX,
+      current.originY + deltaY,
       sticker.size
     );
     const now = performance.now();
@@ -689,9 +803,11 @@ function Sticker({ sticker, index }) {
 
   const updateAutoScroll = useCallback((clientY) => {
     const current = state.current;
-    const edge = Math.min(110, window.innerHeight * 0.18);
-    const bottomDistance = window.innerHeight - clientY;
-    const topPressure = clientY < edge ? clamp((edge - clientY) / edge, 0, 1.25) : 0;
+    const visible = getVisibleViewportBounds();
+    const edge = Math.min(110, visible.height * 0.18);
+    const topDistance = clientY - visible.top;
+    const bottomDistance = visible.bottom - clientY;
+    const topPressure = topDistance < edge ? clamp((edge - topDistance) / edge, 0, 1.25) : 0;
     const bottomPressure = bottomDistance < edge ? clamp((edge - bottomDistance) / edge, 0, 1.25) : 0;
     current.autoScrollY = (bottomPressure - topPressure) * 18;
 
@@ -736,8 +852,12 @@ function Sticker({ sticker, index }) {
     current.lastMoveTime = performance.now();
     current.releaseVelocityX = 0;
     current.releaseVelocityY = 0;
+    current.isDragging = false;
+    current.moved = false;
+    clearStickerMotion();
     bringToFront();
-    ref.current?.classList.add("is-dragging");
+    ref.current?.style.setProperty("--sticker-lift", "0.7");
+    ref.current?.classList.add("is-lifted");
     ref.current?.setPointerCapture(event.pointerId);
   };
   const onPointerMove = (event) => {
@@ -754,8 +874,11 @@ function Sticker({ sticker, index }) {
     ref.current?.releasePointerCapture(current.pointerId);
     current.pointerId = null;
     stopAutoScroll();
-    ref.current?.classList.remove("is-dragging");
-    attachSticker();
+    ref.current?.classList.remove("is-lifted", "is-dragging");
+    if (current.moved) attachSticker();
+    else ref.current?.style.setProperty("--sticker-lift", "0");
+    current.isDragging = false;
+    current.moved = false;
   };
 
   return (
@@ -790,16 +913,30 @@ function StickerBoard({ style }) {
   const seed = useMemo(() => Math.random() * 10000, []);
   const [stickers, setStickers] = useState([]);
   const [boardHeight, setBoardHeight] = useState(0);
+  const layoutRef = useRef(null);
 
   useLayoutEffect(() => {
     let frame = 0;
 
-    const build = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      setBoardHeight(getStickerPageHeight());
+    const build = ({ force = false } = {}) => {
+      const metrics = getStickerViewportMetrics();
+      setBoardHeight(metrics.pageHeight);
+
+      const previous = layoutRef.current;
+      const widthChanged = !previous || Math.abs(metrics.width - previous.width) >= 18;
+      const layoutChanged = widthChanged || !previous || metrics.count !== previous.count || metrics.size !== previous.size;
+      if (!force && !layoutChanged) return;
+
+      layoutRef.current = {
+        width: metrics.width,
+        count: metrics.count,
+        size: metrics.size
+      };
+
+      const width = metrics.width;
+      const height = metrics.height;
       const visibleAssets = selectStickerAssetsForViewport(stickerAssets, seed, width);
-      const size = stickerViewportConfig(width).size;
+      const size = metrics.size;
       const exclusionZones = getStickerExclusionZones(width, height, size);
       const points = placeStickerPoints(visibleAssets.length, seed, width, height, size, exclusionZones);
       setStickers(
@@ -825,11 +962,13 @@ function StickerBoard({ style }) {
       });
     };
 
-    build();
+    build({ force: true });
     window.addEventListener("resize", scheduleBuild, { passive: true });
+    window.visualViewport?.addEventListener("resize", scheduleBuild, { passive: true });
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", scheduleBuild);
+      window.visualViewport?.removeEventListener("resize", scheduleBuild);
     };
   }, [seed]);
 
@@ -894,14 +1033,16 @@ function BurstLayer({ bursts }) {
 }
 
 function MiniApp({ id, className, label, children, onActivate, active, dataProps = {}, style = {} }) {
-  const [front, setFront] = useState(false);
+  const { frontWidget, bringMiniAppToFront } = useContext(MiniAppStackContext);
   const [tapped, setTapped] = useState(false);
   const tapTimerRef = useRef(0);
+  const front = frontWidget === id;
 
   useEffect(() => () => window.clearTimeout(tapTimerRef.current), []);
 
   const activate = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
+    bringMiniAppToFront(id);
     setTapped(true);
     window.clearTimeout(tapTimerRef.current);
     tapTimerRef.current = window.setTimeout(() => setTapped(false), 260);
@@ -914,7 +1055,7 @@ function MiniApp({ id, className, label, children, onActivate, active, dataProps
 
   return (
     <article
-      className={`artifact mini-app ${className}${active ? " is-active" : ""}${front ? " is-hover-target is-front" : ""}${tapped ? " is-tapped" : ""}`}
+      className={`artifact mini-app ${className}${active ? " is-active" : ""}${front ? " is-front" : ""}${tapped ? " is-tapped" : ""}`}
       data-widget={id}
       data-depth={dataProps["data-depth"]}
       tabIndex={0}
@@ -922,10 +1063,7 @@ function MiniApp({ id, className, label, children, onActivate, active, dataProps
       style={{ ...style, "--app-pulse": tapped ? 1 : 0 }}
       {...dataProps}
       onClick={activate}
-      onPointerEnter={() => setFront(true)}
-      onPointerLeave={() => setFront(false)}
-      onFocus={() => setFront(true)}
-      onBlur={() => setFront(false)}
+      onFocus={() => bringMiniAppToFront(id)}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
@@ -1417,8 +1555,13 @@ export default function App() {
   const sceneRef = useRef(null);
   const burstIdRef = useRef(0);
   const burstTimersRef = useRef(new Set());
+  const footerAtBottomRef = useRef(false);
+  const footerAutoSuppressedRef = useRef(false);
   const [appState, setAppState] = useState(initialState);
   const [bursts, setBursts] = useState([]);
+  const [frontWidget, setFrontWidget] = useState(null);
+  const [footerCollapsed, setFooterCollapsed] = useState(true);
+  const [footerManualOpen, setFooterManualOpen] = useState(false);
 
   usePointerParallax(sceneRef);
 
@@ -1426,6 +1569,57 @@ export default function App() {
     burstTimersRef.current.forEach((timer) => window.clearTimeout(timer));
     burstTimersRef.current.clear();
   }, []);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const readBottomState = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      const viewportHeight = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 0;
+      const pageHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight
+      );
+      const threshold = Math.max(120, viewportHeight * 0.18);
+      return scrollTop + viewportHeight >= pageHeight - threshold;
+    };
+
+    const updateFooterFromScroll = () => {
+      frame = 0;
+      const atBottom = readBottomState();
+      footerAtBottomRef.current = atBottom;
+
+      if (footerManualOpen) return;
+
+      if (!atBottom) {
+        footerAutoSuppressedRef.current = false;
+        setFooterCollapsed(true);
+        return;
+      }
+
+      if (!footerAutoSuppressedRef.current) {
+        setFooterCollapsed(false);
+      }
+    };
+
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateFooterFromScroll);
+    };
+
+    updateFooterFromScroll();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
+    };
+  }, [footerManualOpen]);
 
   const activate = useCallback((id, burst) => {
     const burstId = `burst-${burstIdRef.current += 1}`;
@@ -1486,6 +1680,25 @@ export default function App() {
     });
   }, []);
 
+  const miniAppStack = useMemo(() => ({
+    frontWidget,
+    bringMiniAppToFront: setFrontWidget
+  }), [frontWidget]);
+
+  const openFooterManually = useCallback(() => {
+    footerAutoSuppressedRef.current = false;
+    setFooterManualOpen(true);
+    setFooterCollapsed(false);
+  }, []);
+
+  const closeFooterManually = useCallback(() => {
+    footerAutoSuppressedRef.current = footerAtBottomRef.current;
+    setFooterManualOpen(false);
+    setFooterCollapsed(true);
+  }, []);
+
+  const footerAutoOpen = !footerManualOpen && !footerCollapsed;
+
   return (
     <>
       <LogoPlayer />
@@ -1501,23 +1714,39 @@ export default function App() {
         <CloudLayer />
         <section className="hero" aria-labelledby="page-title">
           <div className="collage">
-            <MiniApps state={appState} activate={activate} />
+            <MiniAppStackContext.Provider value={miniAppStack}>
+              <MiniApps state={appState} activate={activate} />
+            </MiniAppStackContext.Provider>
           </div>
           <h1 className="sr-only" id="page-title">Make Software</h1>
         </section>
         <DetailsDesktop />
       </motion.main>
       <motion.footer
-        className="floating-ambient-footer"
+        className={`floating-ambient-footer${footerCollapsed ? " is-collapsed" : ""}${footerAutoOpen ? " is-auto-open" : ""}${footerManualOpen ? " is-manual-open" : ""}`}
         aria-label="Make Software by Ambient"
+        data-state={footerCollapsed ? "collapsed" : "open"}
+        data-open-mode={footerManualOpen ? "manual" : footerAutoOpen ? "auto" : "collapsed"}
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.36, type: "spring", stiffness: 170, damping: 16, mass: 0.76 }}
       >
         <span className="footer-charms" aria-hidden="true"><i /><i /><i /></span>
-        <span className="floating-ambient-mark" aria-hidden="true">
-          <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
-        </span>
+        {footerCollapsed ? (
+          <button
+            className="floating-ambient-mark footer-logo-toggle"
+            type="button"
+            aria-label="Show Ambient footer"
+            aria-expanded="false"
+            onClick={openFooterManually}
+          >
+            <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+          </button>
+        ) : (
+          <span className="floating-ambient-mark" aria-hidden="true">
+            <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+          </span>
+        )}
         <span className="floating-footer-copy">
           <span className="floating-footer-title">
             <strong>Make Software</strong>
@@ -1526,6 +1755,13 @@ export default function App() {
           <span className="floating-footer-description">A small community for playful software, tiny tools, prototype nights, and making with others.</span>
         </span>
         <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Coming soon to Vienna</a>
+        <button
+          className="footer-collapse-button"
+          type="button"
+          aria-label="Hide Ambient footer"
+          aria-expanded="true"
+          onClick={closeFooterManually}
+        />
       </motion.footer>
     </>
   );
