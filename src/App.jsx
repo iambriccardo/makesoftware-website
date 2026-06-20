@@ -27,24 +27,24 @@ const stickerAssets = [
 
 const terminalCommands = [
   ["$ make tiny-tool", "saved /tiny/weird.html"],
-  ["$ gather nearby", "5 makers found"],
-  ["$ ship strange", "demo uploaded"],
-  ["$ open room", "play more together"],
-  ["$ keep taste", "authorship saved"]
+  ["$ gather nearby", "room found"],
+  ["$ ship strange", "unfinished demo welcome"],
+  ["$ keep taste", "authorship saved"],
+  ["$ help friend", "bug fixed together"]
 ];
 
 const chatMessages = [
-  "bring a weird idea",
+  "bring a half idea",
   "unfinished demos welcome",
   "tiny tools forever",
   "made near others",
-  "computers can feel playful"
+  "taste beats hype"
 ];
 
 const calendarDates = [
-  { month: "June", day: "7" },
-  { month: "July", day: "13" },
-  { month: "Soon", day: "21" },
+  { month: "Room", day: "1" },
+  { month: "Demo", day: "2" },
+  { month: "Soon", day: "3" },
   { month: "Now", day: "∞" }
 ];
 
@@ -61,8 +61,103 @@ const weatherStates = [
   { temp: "31°", a: "#ff8a2a", b: "#fff36e", sun: "#fffdf5" }
 ];
 
-const memoTexts = ["save the odd version", "invite one maker", "make it smaller", "finish before polish"];
+const memoTexts = ["save the odd version", "invite one maker", "make it smaller", "help someone debug"];
 const pixelColors = ["#fffdf5", "#fff36e", "#60d130", "#63a7ff", "#fb78a6", "#ff8a2a", "#2D250E"];
+const communityValues = [
+  {
+    title: "Computers are fun again",
+    text: "Make them feel magical, personal, and worth playing with.",
+    bg: "#fff36e",
+    rotate: "-1.4deg"
+  },
+  {
+    title: "Make, don't perform",
+    text: "The work matters more than the image of the work.",
+    bg: "#bde6ff",
+    rotate: "1.1deg"
+  },
+  {
+    title: "AI with authorship",
+    text: "Use AI to move faster, but keep your taste and intention.",
+    bg: "#ffb3c9",
+    rotate: "-0.9deg"
+  },
+  {
+    title: "Small software is beautiful",
+    text: "A tool for five friends can matter deeply.",
+    bg: "#9bea68",
+    rotate: "1.4deg"
+  },
+  {
+    title: "Bring back the local internet",
+    text: "Less feed, more room. Less audience, more peers.",
+    bg: "#ffd0a1",
+    rotate: "-1.1deg"
+  },
+  {
+    title: "Finish tiny things",
+    text: "Leave with something that exists, even if it is small.",
+    bg: "#c9cfff",
+    rotate: "0.8deg"
+  },
+  {
+    title: "Weird is good",
+    text: "Poetic, funny, useless, awkward, absurd ideas belong.",
+    bg: "#fff36e",
+    rotate: "1.2deg"
+  },
+  {
+    title: "Taste over hype",
+    text: "When execution is cheap, care and judgment matter more.",
+    bg: "#bde6ff",
+    rotate: "-1.5deg"
+  },
+  {
+    title: "Learn by making near others",
+    text: "Knowledge spreads when people debug side by side.",
+    bg: "#ffb3c9",
+    rotate: "0.9deg"
+  },
+  {
+    title: "No gatekeeping",
+    text: "Beginners, experts, artists, engineers, and tinkerers belong.",
+    bg: "#9bea68",
+    rotate: "-0.6deg"
+  }
+];
+const audiencePills = ["beginners", "experts", "designers", "engineers", "artists", "tinkerers", "curious minds"];
+const contactPrompts = [
+  {
+    title: "Host us",
+    text: "Share a room, studio, office, cafe, or long table.",
+    bg: "#fff36e",
+    rotate: "-1.4deg"
+  },
+  {
+    title: "Mentor",
+    text: "Help someone move from vague spark to working thing.",
+    bg: "#bde6ff",
+    rotate: "1.2deg"
+  },
+  {
+    title: "Bring ideas",
+    text: "Suggest a tiny challenge, weird tool, or playful prompt.",
+    bg: "#ffb3c9",
+    rotate: "-0.8deg"
+  },
+  {
+    title: "Join in",
+    text: "Show up with curiosity, unfinished code, or taste.",
+    bg: "#9bea68",
+    rotate: "1.5deg"
+  }
+];
+const footerCopy = {
+  title: "Make Software",
+  kicker: "a project by Ambient",
+  description: "A playful software community in Vienna.",
+  action: "Open Luma"
+};
 let activeDesktopWindowZ = 40;
 const MiniAppStackContext = createContext({
   frontWidget: null,
@@ -128,13 +223,13 @@ function spreadStep(count) {
 
 function stickerViewportConfig(width = window.innerWidth) {
   if (width <= 480) {
-    return { count: 6, size: Math.round(clamp(width * 0.13, 46, 54)), marginX: 0.16, marginTop: 0.14, marginBottom: 0.2, avoidWidth: 0.48, avoidHeight: 0.42 };
+    return { count: 6, size: Math.round(clamp(width * 0.18, 64, 78)), marginX: 0.18, marginTop: 0.16, marginBottom: 0.22, avoidWidth: 0.5, avoidHeight: 0.44 };
   }
   if (width <= 640) {
-    return { count: 7, size: Math.round(clamp(width * 0.12, 52, 62)), marginX: 0.14, marginTop: 0.13, marginBottom: 0.18, avoidWidth: 0.46, avoidHeight: 0.4 };
+    return { count: 7, size: Math.round(clamp(width * 0.15, 66, 86)), marginX: 0.16, marginTop: 0.14, marginBottom: 0.2, avoidWidth: 0.48, avoidHeight: 0.42 };
   }
   if (width <= 920) {
-    return { count: 10, size: 72, marginX: 0.11, marginTop: 0.11, marginBottom: 0.16, avoidWidth: 0.44, avoidHeight: 0.38 };
+    return { count: 10, size: 82, marginX: 0.12, marginTop: 0.12, marginBottom: 0.16, avoidWidth: 0.44, avoidHeight: 0.38 };
   }
   return { count: Number.POSITIVE_INFINITY, size: Math.round(clamp(width * 0.075, 88, 112)), marginX: 0.08, marginTop: 0.1, marginBottom: 0.14, avoidWidth: 0.43, avoidHeight: 0.39 };
 }
@@ -1161,14 +1256,14 @@ function MiniApps({ state, activate }) {
 
       <ClockMiniApp clock24={state.clock24} activate={activate} />
 
-      <MiniApp id="mail" className="mail-app" label="Small inbox" active={state.mailCount === 0} onActivate={activate}>
+      <MiniApp id="mail" className="mail-app" label="Local room inbox" active={state.mailCount === 0} onActivate={activate}>
         <strong>{state.mailCount}</strong>
         <button className="app-action" type="button" data-action="mail" tabIndex={-1}>read</button>
       </MiniApp>
 
       <MiniApp id="receipt" className="receipt" label="Values receipt" onActivate={activate}>
         <strong className="receipt-total">{state.receiptTotal}</strong>
-        <span className="receipt-line">{state.receiptItems === 2 ? <>tiny tools<br />paid in taste</> : <>{state.receiptItems} small sparks<br />paid in taste</>}</span>
+        <span className="receipt-line">{state.receiptItems === 2 ? <>tiny tools<br />paid in taste</> : <>{state.receiptItems} small sparks<br />paid in care</>}</span>
         <button className="app-action receipt-add" type="button" data-action="receipt" tabIndex={-1}>add</button>
       </MiniApp>
 
@@ -1177,12 +1272,12 @@ function MiniApps({ state, activate }) {
         <button type="button" data-action="calendar" aria-label="Next calendar day" tabIndex={-1} />
       </MiniApp>
 
-      <MiniApp id="bubble" className={`chat-badge${state.bubbleCount === 0 ? " is-empty" : ""}`} label="Small notification bubble" onActivate={activate}>
+      <MiniApp id="bubble" className={`chat-badge${state.bubbleCount === 0 ? " is-empty" : ""}`} label="Peer note bubble" onActivate={activate}>
         <span className="bubble-count">{state.bubbleCount}</span>
         <button type="button" data-action="bubble" aria-label="Clear notification" tabIndex={-1} />
       </MiniApp>
 
-      <MiniApp id="calculator" className="calculator-app" label="Small calculator" onActivate={activate}>
+      <MiniApp id="calculator" className="calculator-app" label="Smallness calculator" onActivate={activate}>
         <output className="calc-screen">{state.calc || "0"}</output>
         <span className="calc-grid">
           {["7", "8", "+", "4", "5", "=", "C", "1", "2"].map((key) => (
@@ -1197,7 +1292,7 @@ function MiniApps({ state, activate }) {
         ))}
       </MiniApp>
 
-      <MiniApp id="weather" className="weather-app" label="Soft weather card" onActivate={activate} style={{ "--weather-a": weather.a, "--weather-b": weather.b, "--weather-sun": weather.sun }}>
+      <MiniApp id="weather" className="weather-app" label="Room weather card" onActivate={activate} style={{ "--weather-a": weather.a, "--weather-b": weather.b, "--weather-sun": weather.sun }}>
         <span className="weather-temp">{weather.temp}</span>
         <button className="app-action weather-next" type="button" data-action="weather" tabIndex={-1}>next</button>
       </MiniApp>
@@ -1207,24 +1302,24 @@ function MiniApps({ state, activate }) {
         <button className="music-toggle" type="button" data-action="music" aria-label="Play tiny music" tabIndex={-1}>{state.musicPlaying ? "pause" : "play"}</button>
       </MiniApp>
 
-      <MiniApp id="timer" className="timer-app" label="Focus timer" onActivate={activate} style={{ "--timer-progress": String(state.timerProgress) }}>
+      <MiniApp id="timer" className="timer-app" label="Tiny finish timer" onActivate={activate} style={{ "--timer-progress": String(state.timerProgress) }}>
         <span className="timer-label">{Math.max(1, Math.round((100 - state.timerProgress) / 6))}</span>
         <button type="button" data-action="timer" tabIndex={-1}>timer</button>
       </MiniApp>
 
-      <MiniApp id="photo" className="photo-app" label="Playful photo stack" active={state.photoFlip} onActivate={activate}>
+      <MiniApp id="photo" className="photo-app" label="Demo photo stack" active={state.photoFlip} onActivate={activate}>
         <span style={{ rotate: state.photoFlip ? "12deg" : "-10deg" }} />
         <span style={{ rotate: state.photoFlip ? "-12deg" : "8deg" }} />
         <button className="app-action" type="button" data-action="photo" tabIndex={-1}>flip</button>
       </MiniApp>
 
-      <MiniApp id="memo" className="memo-app" label="Small memo" onActivate={activate}>
+      <MiniApp id="memo" className="memo-app" label="Taste memo" onActivate={activate}>
         <span className="memo-text">{memoTexts[state.memoIndex]}</span>
         <button className="app-action" type="button" data-action="memo" tabIndex={-1}>new</button>
       </MiniApp>
 
-      <MiniApp id="voice" className={`voice-app${state.voiceRecording ? " is-recording" : ""}`} label="Playful voice recorder" onActivate={activate}>
-        <span className="voice-title">voice</span>
+      <MiniApp id="voice" className={`voice-app${state.voiceRecording ? " is-recording" : ""}`} label="Room voice recorder" onActivate={activate}>
+        <span className="voice-title">room</span>
         <span className="voice-status">{state.voiceRecording ? "recording" : "ready"}</span>
         <span className="voice-bars"><i /><i /><i /><i /><i /></span>
         <button className="app-action voice-toggle" type="button" data-action="voice" tabIndex={-1}>{state.voiceRecording ? "stop" : "rec"}</button>
@@ -1239,8 +1334,8 @@ function MiniApps({ state, activate }) {
         <button className="app-action pixel-shuffle" type="button" data-action="pixel" tabIndex={-1}>paint</button>
       </MiniApp>
 
-      <MiniApp id="file" className="file-app" label="Small file stack" active={state.fileCount <= 6} onActivate={activate}>
-        <span className="file-tab">files</span>
+      <MiniApp id="file" className="file-app" label="Tiny file stack" active={state.fileCount <= 6} onActivate={activate}>
+        <span className="file-tab">demos</span>
         <strong className="file-count">{state.fileCount}</strong>
         <button className="app-action file-add" type="button" data-action="file" tabIndex={-1}>sort</button>
       </MiniApp>
@@ -1252,8 +1347,8 @@ function MiniApps({ state, activate }) {
         <button className="app-action slider-mix" type="button" data-action="slider" tabIndex={-1}>mix</button>
       </MiniApp>
 
-      <MiniApp id="coin" className={`coin-app${state.coinHeads ? " is-heads" : ""}`} label="Small budget coin" onActivate={activate}>
-        <span className="coin-face">{state.coinHeads ? "MS" : "$"}</span>
+      <MiniApp id="coin" className={`coin-app${state.coinHeads ? " is-heads" : ""}`} label="Taste coin" onActivate={activate}>
+        <span className="coin-face">{state.coinHeads ? "MS" : "fun"}</span>
         <button className="app-action coin-flip" type="button" data-action="coin" tabIndex={-1}>flip</button>
       </MiniApp>
 
@@ -1300,24 +1395,43 @@ function DetailsDesktop() {
   return (
     <motion.section
       className="details-desktop"
-      aria-label="Make Software events and contact"
+      aria-label="Make Software desktop"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.55, ease: [0.18, 0.86, 0.2, 1] }}
     >
+      <DesktopWindow index={0} className="letter-window" title="Manifesto">
+        <div className="letter-window-body">
+          <span className="letter-badge" aria-hidden="true">M</span>
+          <div className="letter-copy">
+            <span className="letter-kicker-app">Manifesto / Make Software</span>
+            <h2>Computers are fun again.</h2>
+            <p>Make Software is a Vienna community for people who want to create with computers the way others paint, write, play music, or make tiny strange things with friends.</p>
+            <p>We make software without needing to justify it through profit, scale, business models, users, or a startup pitch. AI makes building easier; this room is for keeping taste, authorship, and play in the process.</p>
+            <p className="letter-note">Bring a half-working demo, a blank idea, a useful script, a silly game, a personal website, or just curiosity.</p>
+            <p className="letter-signature">
+              <span>For tiny finished things and strange ideas made near others,</span>
+              <strong>Riccardo &amp; Florian</strong>
+            </p>
+          </div>
+        </div>
+      </DesktopWindow>
+
       <DesktopWindow
-        index={0}
+        index={1}
         className="events-window"
         title="Events"
       >
         <div className="window-body luma-window-body">
           <div className="window-hero-copy">
             <h2>Come make with us.</h2>
-            <p>We organize a few Make Software events every month: small, warm gatherings for people making tiny tools, playful prototypes, and strange things with computers. Browse the upcoming list below.</p>
+            <p>Small, warm gatherings for tiny tools, playful prototypes, broken demos, and strange things with computers. Browse upcoming dates below.</p>
           </div>
           <div className="window-pill-row event-ribbon" aria-label="Event notes">
             <span className="window-pill">upcoming events</span>
+            <span className="window-pill">Vienna / local internet</span>
+            <a className="window-action window-action-compact" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Open Luma</a>
           </div>
           <div className="event-frame-wrap" data-window-surface>
             <iframe
@@ -1330,36 +1444,54 @@ function DetailsDesktop() {
         </div>
       </DesktopWindow>
 
-      <DesktopWindow index={1} className="contact-window" title="Contact">
+      <DesktopWindow index={2} className="values-window" title="Values">
+        <div className="values-window-body">
+          <div className="values-window-heading">
+            <span className="letter-kicker-app">Values / Make Software</span>
+            <h2>What we want to protect while building gets easier.</h2>
+          </div>
+          <div className="values-square-grid" aria-label="Make Software values">
+            {communityValues.map((value) => (
+              <div
+                className="value-square"
+                key={value.title}
+                style={{ "--value-bg": value.bg, "--value-r": value.rotate }}
+              >
+                <strong>{value.title}</strong>
+                <span>{value.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DesktopWindow>
+
+      <DesktopWindow index={3} className="contact-window" title="Contact">
         <div className="window-body contact-window-body">
           <div className="window-hero-copy">
             <h2>Send a small signal.</h2>
-            <p>If you want to collaborate, host us, mentor makers, bring a weird idea, or make something with us, send us a message. Half-formed thoughts are welcome.</p>
+            <p>If you want to collaborate, host us, mentor makers, bring a weird idea, or make something with us, send a note. Half-formed thoughts are welcome.</p>
           </div>
           <div className="contact-stamp" aria-label="Email note">
             <span className="contact-seal" aria-hidden="true" />
             <span>
               <strong>Mailbox / Make Software</strong>
-              <span>We read these and turn good sparks into small, playful gatherings.</span>
+              <span>We read these and turn good sparks into rooms, prompts, and tiny gatherings.</span>
             </span>
           </div>
           <div className="window-card-grid" aria-label="Ways to collaborate">
-            <div className="window-soft-card" style={{ "--card-bg": "#fff36e", "--card-r": "-1.4deg" }}>
-              <strong>Host us</strong>
-              <span>Share a room, studio, office, cafe, or table for a small evening.</span>
-            </div>
-            <div className="window-soft-card" style={{ "--card-bg": "#bde6ff", "--card-r": "1.2deg" }}>
-              <strong>Mentor</strong>
-              <span>Help someone push a prototype from vague idea to working thing.</span>
-            </div>
-            <div className="window-soft-card" style={{ "--card-bg": "#ffb3c9", "--card-r": "-0.8deg" }}>
-              <strong>Bring ideas</strong>
-              <span>Suggest a tiny challenge, weird tool, workshop, or playful prompt.</span>
-            </div>
-            <div className="window-soft-card" style={{ "--card-bg": "#9bea68", "--card-r": "1.5deg" }}>
-              <strong>Join in</strong>
-              <span>Show up with curiosity, unfinished code, or just a bit of taste.</span>
-            </div>
+            {contactPrompts.map((prompt) => (
+              <div
+                className="window-soft-card"
+                key={prompt.title}
+                style={{ "--card-bg": prompt.bg, "--card-r": prompt.rotate }}
+              >
+                <strong>{prompt.title}</strong>
+                <span>{prompt.text}</span>
+              </div>
+            ))}
+          </div>
+          <div className="window-pill-row audience-ribbon" aria-label="Who belongs here">
+            {audiencePills.map((pill) => <span className="window-pill" key={pill}>{pill}</span>)}
           </div>
           <div className="window-pill-row" aria-label="Contact links">
             <a className="window-action" href="mailto:riccardob36@gmail.com">Email us</a>
@@ -1367,28 +1499,15 @@ function DetailsDesktop() {
         </div>
       </DesktopWindow>
 
-      <DesktopWindow index={2} className="letter-window" title="Manifesto">
-        <div className="letter-window-body">
-          <span className="letter-badge" aria-hidden="true">M</span>
-          <div className="letter-copy">
-            <span className="letter-kicker-app">Manifesto / Make Software</span>
-            <h2>Computers are fun again.</h2>
-            <p>Make Software is a community for people who want to create with computers the way others paint, write, play music, or make something weird with friends.</p>
-            <p className="letter-note">Broken demos, unfinished ideas, tiny tools, strange scripts, and playful experiments are welcome.</p>
+      <DesktopWindow index={4} className="becoming-window" title="Still Becoming">
+        <div className="window-body becoming-window-body">
+          <div className="window-hero-copy">
+            <h2>Make Software 0.1 is still compiling.</h2>
+            <p>We are shaping this into prototype nights, tiny workshops, demo evenings, and strange prompts. Stay close if that sounds like your kind of room.</p>
           </div>
-        </div>
-      </DesktopWindow>
-
-      <DesktopWindow index={3} className="values-window" title="Values">
-        <div className="values-window-body">
-          <h2>What we care about.</h2>
-          <div className="values-square-grid" aria-label="Make Software values">
-            <div className="value-square"><strong>AI with authorship</strong><span>Use AI fast, keep taste and intention.</span></div>
-            <div className="value-square"><strong>Small software</strong><span>A tool for five friends can matter deeply.</span></div>
-            <div className="value-square"><strong>Local internet</strong><span>Less feed, more peers and presence.</span></div>
-            <div className="value-square"><strong>Finish tiny things</strong><span>Leave with something that exists.</span></div>
-            <div className="value-square"><strong>Weird is good</strong><span>Poetic, funny, useless, awkward, alive.</span></div>
-            <div className="value-square"><strong>No gatekeeping</strong><span>Beginners, experts, artists, tinkerers belong.</span></div>
+          <div className="system-note" aria-label="Community status">
+            <span className="system-note-light" aria-hidden="true" />
+            <span>status: playful, local, unfinished on purpose</span>
           </div>
         </div>
       </DesktopWindow>
@@ -1749,12 +1868,12 @@ export default function App() {
         )}
         <span className="floating-footer-copy">
           <span className="floating-footer-title">
-            <strong>Make Software</strong>
-            <span className="floating-footer-kicker">brought to you by Ambient</span>
+            <strong>{footerCopy.title}</strong>
+            <span className="floating-footer-kicker">{footerCopy.kicker}</span>
           </span>
-          <span className="floating-footer-description">A small community for playful software, tiny tools, prototype nights, and making with others.</span>
+          <span className="floating-footer-description">{footerCopy.description}</span>
         </span>
-        <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">Coming soon to Vienna</a>
+        <a className="floating-footer-soon" href="https://luma.com/embed/calendar/cal-49APBOHEsAwegFJ/events">{footerCopy.action}</a>
         <button
           className="footer-collapse-button"
           type="button"
