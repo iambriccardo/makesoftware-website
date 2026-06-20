@@ -21,6 +21,9 @@
       --pink: #ffa1b8;
       --orange: #ff8a2a;
       --red: #ff5a47;
+      --mac-close: #ff605c;
+      --mac-minimize: #ffbd44;
+      --mac-zoom: #00ca4e;
       --rim-light: rgba(255, 255, 255, 0.82);
       --rim-glow: rgba(255, 255, 255, 0.34);
       --rim-shade: rgba(45, 37, 14, 0.12);
@@ -963,8 +966,8 @@
       width: 0.42rem;
       height: 0.42rem;
       border-radius: 50%;
-      background: #ff5a47;
-      box-shadow: 0.72rem 0 #fff36e, 1.44rem 0 #60d130;
+      background: var(--mac-close);
+      box-shadow: 0.72rem 0 var(--mac-minimize), 1.44rem 0 var(--mac-zoom);
     }
 
     .window-tabs {
@@ -1049,8 +1052,8 @@
       width: 0.36rem;
       aspect-ratio: 1;
       border-radius: 50%;
-      background: #ff5a47;
-      box-shadow: 0.62rem 0 #fff36e, 1.24rem 0 #60d130;
+      background: var(--mac-close);
+      box-shadow: 0.62rem 0 var(--mac-minimize), 1.24rem 0 var(--mac-zoom);
     }
 
     .website-app .site-hero {
@@ -1409,9 +1412,9 @@
       display: block;
       height: 1.05rem;
       background:
-        radial-gradient(circle at 0.55rem 50%, #ff5a47 0 0.22rem, transparent 0.24rem),
-        radial-gradient(circle at 1.3rem 50%, #fff36e 0 0.22rem, transparent 0.24rem),
-        radial-gradient(circle at 2.05rem 50%, #60d130 0 0.22rem, transparent 0.24rem),
+        radial-gradient(circle at 0.55rem 50%, var(--mac-close) 0 0.22rem, transparent 0.24rem),
+        radial-gradient(circle at 1.3rem 50%, var(--mac-minimize) 0 0.22rem, transparent 0.24rem),
+        radial-gradient(circle at 2.05rem 50%, var(--mac-zoom) 0 0.22rem, transparent 0.24rem),
         #f6f0df;
     }
 
@@ -2498,8 +2501,8 @@
       width: 0.62rem;
       aspect-ratio: 1;
       border-radius: 50%;
-      background: #ff5a47;
-      box-shadow: 1rem 0 #fff36e, 2rem 0 #60d130;
+      background: var(--mac-close);
+      box-shadow: 1rem 0 var(--mac-minimize), 2rem 0 var(--mac-zoom);
       filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.45)) drop-shadow(0 0.12rem 0 rgba(45, 37, 14, 0.12));
       flex: 0 0 auto;
     }
@@ -3146,11 +3149,12 @@
       background-attachment: fixed, scroll, scroll, scroll, scroll, scroll;
       color: #2D250E;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.84),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.46),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2),
         inset 0 1.35rem 1.6rem rgba(255, 255, 255, 0.2),
         inset 0 -0.72rem 1.05rem rgba(45, 37, 14, 0.09),
-        var(--mac-shadow-rest);
+        0 0.18rem 0.26rem rgba(45, 37, 14, 0.1),
+        0 0.72rem 1.2rem rgba(35, 64, 86, 0.11),
+        0 1.9rem 3.2rem rgba(35, 64, 86, 0.08);
       -webkit-backdrop-filter: blur(16px) saturate(1.18) contrast(1.03) brightness(1.03);
       backdrop-filter: blur(16px) saturate(1.18) contrast(1.03) brightness(1.03);
       pointer-events: auto;
@@ -3320,18 +3324,18 @@
     }
 
     .footer-collapse-button {
+      --footer-tab-size: 3.72rem;
       appearance: none;
       position: absolute;
-      top: -1.78rem;
+      top: calc((var(--footer-tab-size) / -2) + 1px);
       left: 50%;
       display: grid;
-      width: 3.72rem;
-      height: 1.78rem;
+      width: var(--footer-tab-size);
+      height: var(--footer-tab-size);
       place-items: center;
       padding: 0;
       border: 2px solid var(--footer-border-color);
-      border-bottom: 0;
-      border-radius: 999px 999px 0 0;
+      border-radius: 50%;
       background: var(--footer-tab-mask);
       background-attachment: fixed, scroll, scroll;
       box-shadow:
@@ -3341,18 +3345,19 @@
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      clip-path: inset(0 0 calc(50% + 1px) 0);
       transform: translate3d(-50%, 0, 0);
       z-index: 2;
       transition:
         opacity 180ms ease,
-        visibility 180ms ease,
-        transform 180ms cubic-bezier(.16, .84, .18, 1),
-        box-shadow 180ms ease;
+        visibility 180ms ease;
     }
 
     .footer-collapse-button::before {
       content: '';
-      position: relative;
+      position: absolute;
+      top: 25%;
+      left: 50%;
       z-index: 1;
       display: block;
       width: 0.62rem;
@@ -3361,7 +3366,7 @@
       border-bottom: 2px solid #2D250E;
       border-radius: 1px;
       background: transparent;
-      transform: translateY(-0.15rem) rotate(45deg);
+      transform: translate3d(-50%, -48%, 0) rotate(45deg);
       pointer-events: none;
     }
 
@@ -3370,19 +3375,11 @@
     }
 
     .footer-collapse-button:hover {
-      transform: translate3d(-50%, -0.04rem, 0);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.84),
-        inset 0 -0.34rem 0.5rem rgba(255, 255, 255, 0.18),
-        0 -0.1rem 0.22rem rgba(255, 255, 255, 0.32),
-        0 -0.18rem 0.34rem rgba(45, 79, 105, 0.12);
+      transform: translate3d(-50%, 0, 0);
     }
 
     .footer-collapse-button:active {
-      transform: translate3d(-50%, 0.04rem, 0);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
-        0 0.12rem 0.2rem rgba(45, 37, 14, 0.14);
+      transform: translate3d(-50%, 0, 0);
     }
 
     .floating-footer-copy {
@@ -4137,9 +4134,7 @@
       }
 
       .footer-collapse-button {
-        top: -1.48rem;
-        width: 3.15rem;
-        height: 1.48rem;
+        --footer-tab-size: 3.15rem;
         margin-top: 0;
       }
 
