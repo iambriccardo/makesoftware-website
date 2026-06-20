@@ -124,8 +124,8 @@
       --layer-effects: 875;
       --layer-stickers: 900;
       --layer-mini-app-front: 950;
-      --layer-logo: 18;
-      --layer-footer: 1000;
+      --layer-logo: 1200;
+      --layer-footer: 1300;
     }
 
     @property --scene-tilt-x {
