@@ -703,6 +703,15 @@ export default function GroupFormationView({ onNavigateHome }) {
   }, []);
 
   useEffect(() => {
+    const nextCode = queryRoomCode();
+    if (!nextCode) return;
+    setCodeInput(nextCode);
+    if (!accessGranted) {
+      setFormationCode(nextCode);
+    }
+  }, [accessGranted]);
+
+  useEffect(() => {
     writeJsonStorage(layoutKey, localPositions);
   }, [localPositions]);
 
