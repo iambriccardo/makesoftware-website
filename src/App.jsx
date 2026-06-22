@@ -4,6 +4,7 @@ import {
   motion
 } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import GroupFormationView from "./GroupFormation.jsx";
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
@@ -1509,158 +1510,68 @@ function DetailsDesktop() {
   );
 }
 
-function LogoPlayer() {
-  const audioRef = useRef(null);
-  const pressRef = useRef({ pointerId: null, startedAt: 0, timer: 0, longPressReady: false });
-  const noteIdRef = useRef(0);
-  const noteTimersRef = useRef(new Set());
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isHolding, setIsHolding] = useState(false);
-  const [notes, setNotes] = useState([]);
+function ToolsMenu({ route, onNavigate }) {
+  const [open, setOpen] = useState(false);
+  const openGroupFormation = useCallback(() => {
+    onNavigate("/group-formation");
+    setOpen(false);
+  }, [onNavigate]);
 
-  const emitNotes = useCallback((count = 4) => {
-    const base = performance.now();
-    const glyphs = ["♪", "♫", "♬", "♩", "♪", "♫"].slice(0, count);
-    const created = glyphs.map((glyph, index) => ({
-      id: `note-${noteIdRef.current += 1}`,
-      glyph,
-      x: `${(seededNoise(index * 7.31 + base * 0.001) - 0.5) * 3.8}rem`,
-      y: `${-4.4 - seededNoise(index * 5.17 + 3.4) * 3.2}rem`,
-      r: `${(seededNoise(index * 3.41 + 9.7) - 0.5) * 34}deg`,
-      d: `${index * 140}ms`
-    }));
-    setNotes((current) => [...current, ...created]);
-    const timer = window.setTimeout(() => {
-      const createdIds = new Set(created.map((note) => note.id));
-      noteTimersRef.current.delete(timer);
-      setNotes((current) => current.filter((note) => !createdIds.has(note.id)));
-    }, 3400);
-    noteTimersRef.current.add(timer);
-  }, []);
-
-  const playAudio = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    emitNotes(5);
-    try {
-      await audio.play();
-      setIsPlaying(true);
-    } catch (_) {
-      setIsPlaying(false);
-    }
-  }, [emitNotes]);
-
-  const toggleAudio = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused) {
-      await playAudio();
-      return;
-    }
-    audio.pause();
-    setIsPlaying(false);
-  }, [playAudio]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return undefined;
-    const sync = () => setIsPlaying(!audio.paused && !audio.ended);
-    audio.addEventListener("play", sync);
-    audio.addEventListener("pause", sync);
-    audio.addEventListener("ended", sync);
-    return () => {
-      audio.removeEventListener("play", sync);
-      audio.removeEventListener("pause", sync);
-      audio.removeEventListener("ended", sync);
-      window.clearTimeout(pressRef.current.timer);
-      noteTimersRef.current.forEach((timer) => window.clearTimeout(timer));
-      noteTimersRef.current.clear();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isPlaying) return undefined;
-    const timer = window.setInterval(() => emitNotes(3), 1250);
-    return () => window.clearInterval(timer);
-  }, [emitNotes, isPlaying]);
-
-  const clearPress = useCallback(() => {
-    window.clearTimeout(pressRef.current.timer);
-    pressRef.current.pointerId = null;
-    pressRef.current.timer = 0;
-    pressRef.current.longPressReady = false;
-    setIsHolding(false);
-  }, []);
-
-  const onPointerDown = (event) => {
-    if (event.button && event.button !== 0) return;
-    event.preventDefault();
-    pressRef.current.pointerId = event.pointerId;
-    pressRef.current.startedAt = performance.now();
-    pressRef.current.longPressReady = false;
-    setIsHolding(true);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    pressRef.current.timer = window.setTimeout(() => {
-      pressRef.current.longPressReady = true;
-      emitNotes(5);
-    }, 850);
-  };
-
-  const onPointerUp = async (event) => {
-    const press = pressRef.current;
-    if (press.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-    const heldLongEnough = press.longPressReady || performance.now() - press.startedAt > 820;
-    window.clearTimeout(press.timer);
-    press.pointerId = null;
-    press.timer = 0;
-    press.longPressReady = false;
-    setIsHolding(false);
-    if (heldLongEnough) await playAudio();
-    else await toggleAudio();
-  };
-
-  const onPointerCancel = (event) => {
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-    clearPress();
-  };
-
-  const onKeyDown = async (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    await toggleAudio();
-  };
+  const openHome = useCallback(() => {
+    onNavigate("/");
+    setOpen(false);
+  }, [onNavigate]);
 
   return (
-    <button
-      className={`scene-logo${isPlaying ? " is-playing" : ""}${isHolding ? " is-holding" : ""}`}
-      type="button"
-      aria-label={isPlaying ? "Pause Make Software music" : "Play Make Software music"}
-      aria-pressed={isPlaying}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onPointerLeave={(event) => {
-        if (pressRef.current.pointerId === event.pointerId) onPointerCancel(event);
-      }}
-      onContextMenu={(event) => event.preventDefault()}
-      onKeyDown={onKeyDown}
-    >
-      <audio ref={audioRef} src="/assets/audio/song.mp3" preload="none" loop />
-      <img src="/assets/branding/logo-individual.svg" alt="" width="350" height="350" draggable="false" />
-      <span className="logo-notes" aria-hidden="true">
-        {notes.map((note) => (
-          <span
-            key={note.id}
-            className="logo-note"
-            style={{ "--note-x": note.x, "--note-y": note.y, "--note-r": note.r, "--note-delay": note.d }}
+    <LayoutGroup id="tools-menu">
+      <motion.nav
+        layout
+        className={`tools-menu${open ? " is-open" : ""}`}
+        aria-label="Make Software tools"
+        initial={{ opacity: 0, y: -12, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 220, damping: 20, mass: 0.8 }}
+      >
+        <span className="tools-menu-surface" aria-hidden="true" />
+        {!open ? (
+          <motion.button
+            layout
+            layoutId="tools-menu-button"
+            className="tools-menu-button"
+            type="button"
+            aria-label="Open tools menu"
+            aria-expanded="false"
+            onClick={() => setOpen(true)}
           >
-            {note.glyph}
-          </span>
-        ))}
-      </span>
-    </button>
+            <span /><span /><span />
+          </motion.button>
+        ) : (
+          <>
+            <motion.button
+              layout
+              layoutId="tools-menu-button"
+              className="tools-menu-button is-close"
+              type="button"
+              aria-label="Close tools menu"
+              aria-expanded="true"
+              onClick={() => setOpen(false)}
+            >
+              <span /><span /><span />
+            </motion.button>
+            <motion.div className="tools-menu-list" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}>
+              <button type="button" className={route === "/" ? "is-active" : ""} onClick={openHome}>
+                <strong>Home</strong>
+                <span>initial page</span>
+              </button>
+              <button type="button" className={route === "/group-formation" ? "is-active" : ""} onClick={openGroupFormation}>
+                <strong>Group Formation</strong>
+                <span>live meetup matching</span>
+              </button>
+            </motion.div>
+          </>
+        )}
+      </motion.nav>
+    </LayoutGroup>
   );
 }
 
@@ -1675,8 +1586,15 @@ export default function App() {
   const [frontWidget, setFrontWidget] = useState(null);
   const [footerCollapsed, setFooterCollapsed] = useState(true);
   const [footerManualOpen, setFooterManualOpen] = useState(false);
+  const [route, setRoute] = useState(() => window.location.pathname);
 
   usePointerParallax(sceneRef);
+
+  useEffect(() => {
+    const syncRoute = () => setRoute(window.location.pathname);
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
 
   useEffect(() => () => {
     burstTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -1811,10 +1729,26 @@ export default function App() {
   }, []);
 
   const footerAutoOpen = !footerManualOpen && !footerCollapsed;
+  const navigate = useCallback((path) => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+    setRoute(path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  if (route === "/group-formation") {
+    return (
+      <>
+        <ToolsMenu route={route} onNavigate={navigate} />
+        <GroupFormationView onNavigateHome={() => navigate("/")} />
+      </>
+    );
+  }
 
   return (
     <>
-      <LogoPlayer />
+      <ToolsMenu route={route} onNavigate={navigate} />
       <StickerBoard />
       <BurstLayer bursts={bursts} />
       <motion.main
@@ -1859,7 +1793,7 @@ export default function App() {
               aria-expanded="false"
               onClick={openFooterManually}
             >
-              <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+              <img src="/assets/branding/logo-individual.svg" alt="" width="350" height="350" />
             </motion.button>
           ) : (
             <motion.span
@@ -1869,13 +1803,16 @@ export default function App() {
               className="floating-ambient-mark"
               aria-hidden="true"
             >
-              <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+              <img src="/assets/branding/logo-individual.svg" alt="" width="350" height="350" />
             </motion.span>
           )}
           <span className="floating-footer-copy">
             <span className="floating-footer-title">
               <strong>{footerCopy.title}</strong>
-              <span className="floating-footer-kicker">{footerCopy.kicker}</span>
+              <span className="floating-footer-kicker">
+                <img src="/assets/branding/ambient-logo.svg" alt="" width="1254" height="1254" />
+                <span>{footerCopy.kicker}</span>
+              </span>
             </span>
             <span className="floating-footer-description">{footerCopy.description}</span>
           </span>

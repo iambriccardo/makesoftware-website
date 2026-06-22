@@ -21,6 +21,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +39,22 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Validate Supabase browser config
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            echo "::error::Missing VITE_SUPABASE_URL. Configure it as a GitHub Actions repository or environment secret."
+            exit 1
+          fi
+          if [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Missing VITE_SUPABASE_PUBLISHABLE_KEY. Configure it as a GitHub Actions repository or environment secret."
+            exit 1
+          fi
+
+          echo "Supabase URL configured for $VITE_SUPABASE_URL"
+
+      - name: Run tests
+        run: npm test
 
       - name: Build React site
         run: npm run build

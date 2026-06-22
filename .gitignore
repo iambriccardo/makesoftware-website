@@ -1,4 +1,33 @@
+# OS/editor noise
 .DS_Store
 .idea/
-dist/
+.vscode/
+
+# Dependencies and build output
 node_modules/
+dist/
+
+# Local env files. Keep the documented template tracked.
+.env
+.env.*
+!.env.example
+supabase/.env
+supabase/.env.*
+supabase/functions/.env
+supabase/functions/.env.*
+
+# Supabase CLI local state
+supabase/.temp/
+
+# Local test/browser artifacts
+coverage/
+.nyc_output/
+.playwright-cli/
+output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

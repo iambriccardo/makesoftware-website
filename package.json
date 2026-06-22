@@ -6,9 +6,13 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test",
+    "db:apply-remote": "supabase db query --db-url \"$SUPABASE_DB_URL\" -f supabase/migrations/202606210001_group_formation.sql",
+    "group:admin": "node scripts/group-formation-admin.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "motion": "^12.40.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

@@ -80,6 +80,7 @@ function legacyStaticPlugin() {
       for (const entry of staticEntries) {
         copyRecursive(path.resolve(rootDir, entry), path.resolve(outDir, entry));
       }
+      copyRecursive(path.resolve(outDir, "index.html"), path.resolve(outDir, "404.html"));
       fs.writeFileSync(path.resolve(outDir, ".nojekyll"), "");
     }
   };
