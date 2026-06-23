@@ -3904,7 +3904,7 @@
       border-radius: 999px;
       background:
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
-        rgba(255, 253, 245, 0.78);
+        #fffdf5;
       box-shadow: var(--raised-button-shadow);
       color: #2D250E;
     }
