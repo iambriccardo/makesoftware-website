@@ -516,8 +516,13 @@ function downloadMarkdownFile(filename, content) {
   URL.revokeObjectURL(url);
 }
 
+function bubbleColorForParticipant(participant) {
+  const seed = participant.id || `${participant.first_name}:${participant.last_name}:${participant.created_at}`;
+  return bubbleColors[hashText(seed) % bubbleColors.length];
+}
+
 function GroupBubble({ participant, index, position, selected, owned, onSelect }) {
-  const color = bubbleColors[index % bubbleColors.length];
+  const color = bubbleColorForParticipant(participant);
 
   return (
     <motion.button
