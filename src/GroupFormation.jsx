@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lockPageScroll } from "./scrollLock.js";
 import { callGroupFormation, getRealtimeClient, groupFormationRealtimeTopic, hasRealtimeConfig } from "./supabaseClient.js";
 
 const tokenKey = "make-software-group-formation-token";
@@ -644,7 +645,7 @@ function FormationToast({ toast, onClose }) {
             <strong>{toast.title}</strong>
             <p>{toast.detail}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Dismiss message">×</button>
+          <button className="formation-close-button" type="button" onClick={onClose} aria-label="Dismiss message" />
         </motion.aside>
       ) : null}
     </AnimatePresence>
@@ -764,6 +765,11 @@ export default function GroupFormationView({ onNavigateHome }) {
     const timeout = window.setTimeout(() => setToast(null), toast.type === "error" ? 8200 : 4800);
     return () => window.clearTimeout(timeout);
   }, [toast]);
+
+  useEffect(() => {
+    if (!privacyOpen) return undefined;
+    return lockPageScroll();
+  }, [privacyOpen]);
 
   const ensureBoardPositions = useCallback((nextParticipants, nextGroups) => {
     setLocalPositions((current) => {
@@ -1474,7 +1480,7 @@ export default function GroupFormationView({ onNavigateHome }) {
             >
               <div className="formation-privacy-heading">
                 <span className="formation-kicker">Privacy</span>
-                <button type="button" onClick={() => setPrivacyOpen(false)} aria-label="Close privacy note">×</button>
+                <button className="formation-close-button" type="button" onClick={() => setPrivacyOpen(false)} aria-label="Close privacy note" />
               </div>
               <h2 id="formation-privacy-title">A small note on your data</h2>
               <p>
@@ -1508,7 +1514,7 @@ export default function GroupFormationView({ onNavigateHome }) {
             >
               <div className="formation-profile-heading">
                 <span className="formation-kicker">{currentParticipant ? "Edit Profile" : formation?.status === "closed" ? "Join Existing Group" : "Join Formation"}</span>
-                <button type="button" onClick={() => setFormOpen(false)} aria-label="Close profile form">×</button>
+                <button className="formation-close-button" type="button" onClick={() => setFormOpen(false)} aria-label="Close profile form" />
               </div>
               <input value={form.first_name} onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))} placeholder="First name" autoComplete="given-name" disabled={!canSubmitProfile} required maxLength={80} />
               <input value={form.last_name} onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))} placeholder="Last name" autoComplete="family-name" disabled={!canSubmitProfile} required maxLength={80} />

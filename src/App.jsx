@@ -5,6 +5,7 @@ import {
 } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import GroupFormationView from "./GroupFormation.jsx";
+import { lockPageScroll } from "./scrollLock.js";
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
@@ -1512,6 +1513,7 @@ function DetailsDesktop() {
 
 function ToolsMenu({ route, onNavigate }) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
   const openGroupFormation = useCallback(() => {
     onNavigate("/group-formation");
     setOpen(false);
@@ -1522,9 +1524,42 @@ function ToolsMenu({ route, onNavigate }) {
     setOpen(false);
   }, [onNavigate]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const unlockScroll = lockPageScroll();
+
+    const closeFromOutside = (event) => {
+      const menu = menuRef.current;
+      if (!menu || menu.contains(event.target)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeFromOutside);
+    return () => {
+      document.removeEventListener("pointerdown", closeFromOutside);
+      unlockScroll();
+    };
+  }, [open]);
+
   return (
     <LayoutGroup id="tools-menu">
+      <AnimatePresence>
+        {open ? (
+          <motion.button
+            key="tools-menu-backdrop"
+            className="tools-menu-backdrop"
+            type="button"
+            aria-label="Close tools menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => setOpen(false)}
+          />
+        ) : null}
+      </AnimatePresence>
       <motion.nav
+        ref={menuRef}
         layout
         className={`tools-menu${open ? " is-open" : ""}`}
         aria-label="Make Software tools"

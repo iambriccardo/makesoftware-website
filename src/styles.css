@@ -3733,19 +3733,44 @@
       animation-delay: 90ms;
     }
 
+    .tools-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: calc(var(--layer-menu) - 1);
+      appearance: none;
+      border: 0;
+      background: rgba(45, 79, 105, 0.2);
+      -webkit-backdrop-filter: blur(8px) saturate(1.08);
+      backdrop-filter: blur(8px) saturate(1.08);
+      cursor: pointer;
+    }
+
     .tools-menu {
       position: fixed;
       top: calc(env(safe-area-inset-top, 0px) + 0.92rem);
       right: calc(env(safe-area-inset-right, 0px) + 0.92rem);
       z-index: var(--layer-menu);
-      display: flex;
+      display: grid;
+      grid-template-columns: 2.82rem;
       align-items: center;
-      gap: 0.92rem;
+      gap: 0;
       min-width: 3.45rem;
       min-height: 3.45rem;
       padding: 0.42rem;
       isolation: isolate;
       pointer-events: auto;
+    }
+
+    .tools-menu.is-open {
+      grid-template-columns: 2.82rem minmax(0, 1fr);
+      align-items: stretch;
+      gap: 0.72rem;
+      padding: 0.72rem;
+    }
+
+    .tools-menu.is-open .tools-menu-button {
+      align-self: center;
+      justify-self: center;
     }
 
     .tools-menu-surface {
@@ -3818,17 +3843,18 @@
 
     .tools-menu-list {
       display: grid;
-      gap: 0.54rem;
+      gap: 0.72rem;
       min-width: min(19.2rem, calc(100vw - 6.4rem));
-      padding: 0.08rem 0.32rem 0.08rem 0;
+      padding: 0;
     }
 
     .tools-menu-list button {
       appearance: none;
       display: grid;
-      gap: 0.34rem;
-      min-height: 3.92rem;
-      padding: 0.92rem 1.08rem 0.96rem;
+      align-content: center;
+      gap: 0.38rem;
+      min-height: 4.08rem;
+      padding: 0.9rem 1.05rem;
       border: 2px solid rgba(45, 37, 14, 0.72);
       border-radius: 0.72rem;
       background:
@@ -4779,12 +4805,12 @@
     }
 
     .formation-privacy-entry.is-floating {
-      position: fixed;
-      right: calc(env(safe-area-inset-right, 0px) + clamp(0.82rem, 3vw, 1.4rem));
-      bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(0.82rem, 3vw, 1.4rem));
-      z-index: calc(var(--layer-tools) + 1);
-      width: max-content;
-      margin: 0;
+      position: relative;
+      z-index: 3;
+      display: flex;
+      justify-content: flex-end;
+      width: min(78rem, 100%);
+      margin: clamp(0.94rem, 2.2vw, 1.45rem) auto 0;
     }
 
     .formation-privacy-overlay {
@@ -4938,6 +4964,51 @@
       font-size: 1.12rem;
       line-height: 1;
       cursor: pointer;
+    }
+
+    .formation-close-button {
+      position: relative;
+      grid-column: auto;
+      display: grid;
+      width: 2.28rem;
+      min-width: 2.28rem;
+      height: 2.28rem;
+      min-height: 2.28rem;
+      place-items: center;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 0;
+      line-height: 0;
+      text-transform: none;
+      cursor: pointer;
+    }
+
+    .formation-toast .formation-close-button {
+      width: 2.18rem;
+      min-width: 2.18rem;
+      height: 2.18rem;
+      min-height: 2.18rem;
+    }
+
+    .formation-close-button::before,
+    .formation-close-button::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1.05rem;
+      height: 0.16rem;
+      border-radius: 999px;
+      background: currentColor;
+      transform-origin: center;
+    }
+
+    .formation-close-button::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .formation-close-button::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
     }
 
     @keyframes formation-bob {
@@ -5204,19 +5275,24 @@
         right: calc(env(safe-area-inset-right, 0px) + 0.62rem);
       }
 
+      .tools-menu.is-open {
+        gap: 0.58rem;
+        padding: 0.58rem;
+      }
+
       .tools-menu-list {
-        gap: 0.46rem;
+        gap: 0.58rem;
         min-width: min(17.25rem, calc(100vw - 5.25rem));
       }
 
       .tools-menu-list button {
-        gap: 0.3rem;
-        min-height: 3.78rem;
-        padding: 0.82rem 0.86rem 0.88rem;
+        gap: 0.34rem;
+        min-height: 3.86rem;
+        padding: 0.82rem 0.9rem;
       }
 
       .formation-page {
-        padding: 4.55rem 0.68rem 8rem;
+        padding: 4.55rem 0.68rem calc(11.25rem + env(safe-area-inset-bottom, 0px));
       }
 
       .formation-topbar,
@@ -5225,18 +5301,40 @@
       }
 
       .formation-topbar {
-        display: grid;
+        display: flex;
+        align-items: center;
         gap: 0.52rem;
-        justify-items: start;
-        padding-right: 3.5rem;
+        margin-inline: -0.68rem;
+        padding: 0 4.25rem 0.48rem 0.68rem;
+        overflow-y: hidden;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: none;
+        scrollbar-width: none;
+        touch-action: pan-x;
+        -webkit-overflow-scrolling: touch;
       }
 
       .formation-room-actions {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
         justify-content: flex-start;
+        gap: 0.52rem;
       }
 
-      .formation-live-pill {
-        max-width: 100%;
+      .formation-topbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .formation-topbar > .formation-home-button,
+      .formation-room-actions > * {
+        flex: 0 0 auto;
+      }
+
+      .formation-topbar .formation-home-button,
+      .formation-live-pill,
+      .formation-status-chip {
+        white-space: nowrap;
       }
 
       .formation-status-popover {
@@ -5259,19 +5357,16 @@
       }
 
       .formation-privacy-entry.is-code-gate {
-        top: calc(env(safe-area-inset-top, 0px) + 0.68rem);
-        right: auto;
-        bottom: auto;
-        left: calc(env(safe-area-inset-left, 0px) + 0.68rem);
+        top: auto;
+        right: calc(env(safe-area-inset-right, 0px) + 0.68rem);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 0.68rem);
+        left: auto;
         width: max-content;
       }
 
       .formation-privacy-entry.is-floating {
-        top: calc(env(safe-area-inset-top, 0px) + 0.68rem);
-        right: auto;
-        bottom: auto;
-        left: calc(env(safe-area-inset-left, 0px) + 0.68rem);
         width: max-content;
+        margin: 0.94rem 0 0 auto;
       }
 
       .formation-toast {
