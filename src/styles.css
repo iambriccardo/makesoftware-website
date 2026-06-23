@@ -3887,6 +3887,33 @@
         #9bea68;
     }
 
+    .app-action,
+    .window-action,
+    .window-tabs button,
+    .site-tools button,
+    .calendar button,
+    .chat-badge button,
+    .mail-app button,
+    .map-app button,
+    .timer-app button,
+    .photo-app button,
+    .memo-app button,
+    .footer-collapse-button,
+    .tools-menu-button,
+    .tools-menu-list button,
+    .formation-home-button,
+    .formation-export-button,
+    .formation-privacy-button,
+    .formation-code-card button,
+    .formation-profile-form button,
+    .formation-self-bubble,
+    .formation-zoom-controls button,
+    .formation-sidebar-tabs button,
+    .formation-close-button {
+      position: relative;
+      z-index: 2;
+    }
+
     .formation-page {
       min-height: 100svh;
       padding: clamp(4.8rem, 8vw, 6.8rem) clamp(0.82rem, 3vw, 2.4rem) clamp(7.8rem, 12vw, 10rem);
@@ -5304,8 +5331,9 @@
         display: flex;
         align-items: center;
         gap: 0.52rem;
+        justify-content: flex-start;
         margin-inline: -0.68rem;
-        padding: 0 4.25rem 0.48rem 0.68rem;
+        padding: 1.18rem 5.1rem 0.48rem 0.68rem;
         overflow-y: hidden;
         overflow-x: auto;
         overscroll-behavior-x: contain;
