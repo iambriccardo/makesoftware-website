@@ -724,6 +724,8 @@ export default function GroupFormationView({ onNavigateHome }) {
   const zoomOutRef = useRef(null);
   const zoomInRef = useRef(null);
   const panRef = useRef(null);
+  const activePointersRef = useRef(new Map());
+  const pinchRef = useRef(null);
   const boardZoomRef = useRef(1);
   const toastIdRef = useRef(0);
   const realtimeNoticeShownRef = useRef(false);
@@ -1119,6 +1121,13 @@ export default function GroupFormationView({ onNavigateHome }) {
     setZoomAroundPoint(boardZoomRef.current + delta);
   }, [setZoomAroundPoint]);
 
+  const resetBoardGesture = useCallback((stage) => {
+    panRef.current = null;
+    pinchRef.current = null;
+    activePointersRef.current.clear();
+    stage?.classList.remove("is-panning");
+  }, []);
+
   const centerParticipantOnBoard = useCallback((participantId) => {
     const stage = stageRef.current;
     if (!stage || !participantId) return;
@@ -1164,11 +1173,33 @@ export default function GroupFormationView({ onNavigateHome }) {
   }, [selectedId]);
 
   const startBoardPan = useCallback((event) => {
-    if (event.button !== 0) return;
-    if (event.target.closest(".formation-zoom-controls")) return;
-    if (event.target.closest("button, input, textarea, select, a")) return;
     const stage = stageRef.current;
     if (!stage) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".formation-zoom-controls")) return;
+    const interactiveTarget = target.closest("button, input, textarea, select, a");
+
+    if (event.pointerType === "touch") {
+      if (interactiveTarget) return;
+      activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      stage.setPointerCapture?.(event.pointerId);
+
+      if (activePointersRef.current.size === 2) {
+        const pointers = Array.from(activePointersRef.current.values());
+        pinchRef.current = {
+          distance: Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y),
+          zoom: boardZoomRef.current,
+        };
+        panRef.current = null;
+        stage.classList.add("is-panning");
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (event.button !== 0) return;
+    if (interactiveTarget) return;
     panRef.current = {
       pointerId: event.pointerId,
       x: event.clientX,
@@ -1182,17 +1213,50 @@ export default function GroupFormationView({ onNavigateHome }) {
   }, []);
 
   const moveBoardPan = useCallback((event) => {
-    const pan = panRef.current;
     const stage = stageRef.current;
+    if (event.pointerType === "touch" && activePointersRef.current.has(event.pointerId)) {
+      activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const pinch = pinchRef.current;
+      if (pinch && activePointersRef.current.size >= 2) {
+        const pointers = Array.from(activePointersRef.current.values()).slice(0, 2);
+        const distance = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+        const midpoint = {
+          x: (pointers[0].x + pointers[1].x) / 2,
+          y: (pointers[0].y + pointers[1].y) / 2,
+        };
+        if (pinch.distance > 0) {
+          setZoomAroundPoint(pinch.zoom * (distance / pinch.distance), midpoint);
+        }
+        event.preventDefault();
+        return;
+      }
+    }
+
+    const pan = panRef.current;
     if (!pan || !stage || pan.pointerId !== event.pointerId) return;
     stage.scrollLeft = pan.left - (event.clientX - pan.x);
     stage.scrollTop = pan.top - (event.clientY - pan.y);
-  }, []);
+  }, [setZoomAroundPoint]);
 
   const stopBoardPan = useCallback((event) => {
     const pan = panRef.current;
     const stage = stageRef.current;
-    if (!pan || !stage || pan.pointerId !== event.pointerId) return;
+    if (!stage) return;
+
+    if (event.pointerType === "touch") {
+      activePointersRef.current.delete(event.pointerId);
+      stage.releasePointerCapture?.(event.pointerId);
+      if (activePointersRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+      if (!pan || pan.pointerId === event.pointerId) {
+        panRef.current = null;
+        stage.classList.remove("is-panning");
+      }
+      return;
+    }
+
+    if (!pan || pan.pointerId !== event.pointerId) return;
     stage.releasePointerCapture?.(event.pointerId);
     stage.classList.remove("is-panning");
     panRef.current = null;
@@ -1211,8 +1275,11 @@ export default function GroupFormationView({ onNavigateHome }) {
     };
 
     stage.addEventListener("wheel", onWheel, { passive: false });
-    return () => stage.removeEventListener("wheel", onWheel);
-  }, [setZoomAroundPoint, showFormation]);
+    return () => {
+      stage.removeEventListener("wheel", onWheel);
+      resetBoardGesture(stage);
+    };
+  }, [resetBoardGesture, setZoomAroundPoint, showFormation]);
 
   return (
     <main className="formation-page">

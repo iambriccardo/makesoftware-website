@@ -126,6 +126,7 @@
       --layer-mini-app-front: 950;
       --layer-tools: 1260;
       --layer-footer: 1300;
+      --layer-menu: 1500;
     }
 
     @property --scene-tilt-x {
@@ -3736,7 +3737,7 @@
       position: fixed;
       top: calc(env(safe-area-inset-top, 0px) + 0.92rem);
       right: calc(env(safe-area-inset-right, 0px) + 0.92rem);
-      z-index: var(--layer-tools);
+      z-index: var(--layer-menu);
       display: flex;
       align-items: center;
       gap: 0.92rem;
@@ -3756,7 +3757,7 @@
       background:
         var(--plastic-gloss),
         radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.8), transparent 28%),
-        linear-gradient(145deg, rgba(255, 243, 110, 0.92), rgba(189, 230, 255, 0.88) 58%, rgba(255, 179, 201, 0.86));
+        linear-gradient(145deg, #fff36e, #bde6ff 58%, #ffb3c9);
       box-shadow: var(--surface-shadow);
       -webkit-backdrop-filter: blur(15px) saturate(1.18);
       backdrop-filter: blur(15px) saturate(1.18);
@@ -3832,7 +3833,7 @@
       border-radius: 0.72rem;
       background:
         radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.76), transparent 30%),
-        rgba(255, 253, 245, 0.72);
+        #fffdf5;
       color: #2D250E;
       font: inherit;
       text-align: left;
@@ -4396,7 +4397,7 @@
       min-height: 30rem;
       overflow: auto;
       overscroll-behavior: contain;
-      touch-action: pan-x pan-y;
+      touch-action: none;
       scrollbar-width: none;
       -ms-overflow-style: none;
       cursor: grab;
@@ -5279,15 +5280,30 @@
       }
 
       .formation-stage {
-        --formation-board-base-width: 54rem;
-        --formation-board-base-height: 50rem;
-        height: 39rem;
-        min-height: 39rem;
+        --formation-board-base-width: 50rem;
+        --formation-board-base-height: 45rem;
+        height: min(70svh, 34rem);
+        min-height: 28rem;
       }
 
       .formation-bubble {
-        width: clamp(3.8rem, 17vw, 4.75rem);
-        padding: 0.42rem;
+        width: clamp(2.95rem, 12.5vw, 3.55rem);
+        padding: 0.28rem;
+      }
+
+      .formation-bubble strong {
+        font-size: clamp(0.39rem, 1.6vw, 0.48rem);
+        line-height: 0.98;
+      }
+
+      .formation-bubble em {
+        font-size: clamp(0.42rem, 1.8vw, 0.5rem);
+      }
+
+      .formation-bubble-shine {
+        inset: 0.32rem auto auto 0.46rem;
+        width: 0.54rem;
+        height: 0.28rem;
       }
 
       .formation-inspector {
