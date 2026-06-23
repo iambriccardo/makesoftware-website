@@ -1575,6 +1575,11 @@ function ToolsMenu({ route, onNavigate }) {
   );
 }
 
+function normalizeRoutePath(pathname) {
+  if (!pathname || pathname === "/") return "/";
+  return pathname.replace(/\/+$/, "");
+}
+
 export default function App() {
   const sceneRef = useRef(null);
   const burstIdRef = useRef(0);
@@ -1586,12 +1591,12 @@ export default function App() {
   const [frontWidget, setFrontWidget] = useState(null);
   const [footerCollapsed, setFooterCollapsed] = useState(true);
   const [footerManualOpen, setFooterManualOpen] = useState(false);
-  const [route, setRoute] = useState(() => window.location.pathname);
+  const [route, setRoute] = useState(() => normalizeRoutePath(window.location.pathname));
 
   usePointerParallax(sceneRef);
 
   useEffect(() => {
-    const syncRoute = () => setRoute(window.location.pathname);
+    const syncRoute = () => setRoute(normalizeRoutePath(window.location.pathname));
     window.addEventListener("popstate", syncRoute);
     return () => window.removeEventListener("popstate", syncRoute);
   }, []);
@@ -1730,10 +1735,11 @@ export default function App() {
 
   const footerAutoOpen = !footerManualOpen && !footerCollapsed;
   const navigate = useCallback((path) => {
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, "", path);
+    const nextPath = normalizeRoutePath(path);
+    if (normalizeRoutePath(window.location.pathname) !== nextPath) {
+      window.history.pushState({}, "", nextPath);
     }
-    setRoute(path);
+    setRoute(nextPath);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
