@@ -144,6 +144,16 @@ function forgetParticipant(formationId) {
   }
 }
 
+function forgetCurrentFormation() {
+  const activeFormationId = readStorageItem(activeFormationIdKey);
+  if (activeFormationId) {
+    forgetParticipant(activeFormationId);
+  }
+  removeStorageItem(codeKey);
+  removeStorageItem(activeFormationIdKey);
+  removeStorageItem(participantIdKey);
+}
+
 function initialParticipantId() {
   const activeFormationId = readStorageItem(activeFormationIdKey);
   const participantsByFormation = readJsonStorage(participantIdsByFormationKey, {});
@@ -700,6 +710,7 @@ export default function GroupFormationView({ onNavigateHome }) {
   const queryFormationCode = queryRoomCode();
   const savedFormationCode = normalizeRoomCode(readStorageItem(codeKey));
   const initialFormationCode = queryFormationCode || savedFormationCode;
+  const initialCodeInput = queryFormationCode || "";
   const shouldAutoEnterRoom = !queryFormationCode && savedFormationCode.length === 4;
   const [formation, setFormation] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -708,7 +719,7 @@ export default function GroupFormationView({ onNavigateHome }) {
   const [loading, setLoading] = useState(() => shouldAutoEnterRoom);
   const [toast, setToast] = useState(null);
   const [formationCode, setFormationCode] = useState(initialFormationCode);
-  const [codeInput, setCodeInput] = useState(initialFormationCode);
+  const [codeInput, setCodeInput] = useState(initialCodeInput);
   const [accessGranted, setAccessGranted] = useState(() => shouldAutoEnterRoom);
   const [sidebarTab, setSidebarTab] = useState("profile");
   const [form, setForm] = useState({ first_name: "", last_name: "", age: "", years_experience: "", profession: "" });
@@ -733,6 +744,7 @@ export default function GroupFormationView({ onNavigateHome }) {
   const snapshotInFlightRef = useRef(false);
   const snapshotQueuedRef = useRef(false);
   const pendingFocusParticipantIdRef = useRef("");
+  const restoringStoredFormationRef = useRef(shouldAutoEnterRoom);
 
   const showToast = useCallback((type, title, detail) => {
     toastIdRef.current += 1;
@@ -853,6 +865,7 @@ export default function GroupFormationView({ onNavigateHome }) {
       return;
     }
     snapshotInFlightRef.current = true;
+    let cancelQueuedSnapshot = false;
 
     if (!formationCode || formationCode.length !== 4) {
       setLoading(false);
@@ -882,16 +895,33 @@ export default function GroupFormationView({ onNavigateHome }) {
         setCurrentParticipantId("");
       }
       setAccessGranted(true);
+      restoringStoredFormationRef.current = false;
     } catch (error) {
+      const wasRestoringStoredFormation = restoringStoredFormationRef.current;
+      if (wasRestoringStoredFormation) {
+        forgetCurrentFormation();
+        setFormationCode(queryRoomCode() || "");
+        setCodeInput(queryRoomCode() || "");
+        setCurrentParticipantId("");
+        snapshotQueuedRef.current = false;
+        cancelQueuedSnapshot = true;
+      }
+      restoringStoredFormationRef.current = false;
       setAccessGranted(false);
       setFormation(null);
       setParticipants([]);
       setGroups([]);
-      showToast("error", "Could not load group formation", error instanceof Error ? error.message : "Could not load group formation.");
+      showToast(
+        "error",
+        wasRestoringStoredFormation ? "Saved group formation expired" : "Could not load group formation",
+        wasRestoringStoredFormation
+          ? "That saved meetup code no longer works. Enter a current group formation code to join."
+          : error instanceof Error ? error.message : "Could not load group formation."
+      );
     } finally {
       setLoading(false);
       snapshotInFlightRef.current = false;
-      if (snapshotQueuedRef.current) {
+      if (snapshotQueuedRef.current && !cancelQueuedSnapshot) {
         snapshotQueuedRef.current = false;
         window.setTimeout(loadSnapshot, 0);
       }
@@ -968,6 +998,7 @@ export default function GroupFormationView({ onNavigateHome }) {
 
   const submitCode = async (event) => {
     event.preventDefault();
+    restoringStoredFormationRef.current = false;
     const nextCode = normalizeRoomCode(codeInput);
     setToast(null);
     if (nextCode.length !== 4) {
@@ -1002,6 +1033,9 @@ export default function GroupFormationView({ onNavigateHome }) {
       removeRoomCodeFromUrl();
     } catch (error) {
       setAccessGranted(false);
+      setFormation(null);
+      setParticipants([]);
+      setGroups([]);
       showToast("error", "Group formation code did not work", error instanceof Error ? error.message : "That group formation code did not work.");
     } finally {
       setLoading(false);
@@ -1077,9 +1111,8 @@ export default function GroupFormationView({ onNavigateHome }) {
     setForm(formFromParticipant(null));
     setFormOpen(false);
     setToast(null);
-    removeStorageItem(codeKey);
-    removeStorageItem(activeFormationIdKey);
-    removeStorageItem(participantIdKey);
+    restoringStoredFormationRef.current = false;
+    forgetCurrentFormation();
     removeRoomCodeFromUrl();
   };
 

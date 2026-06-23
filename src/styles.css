@@ -108,6 +108,11 @@
         inset 0 -0.32rem 0 rgba(45, 37, 14, 0.1),
         0 0.18rem 0 rgba(45, 37, 14, 0.18),
         0 0.54rem 0.72rem rgba(45, 79, 105, 0.14);
+      --raised-button-shadow-hover:
+        inset 0 1px 0 rgba(255, 255, 255, 0.88),
+        inset 0 -0.28rem 0 rgba(45, 37, 14, 0.08),
+        0 0.24rem 0 rgba(45, 37, 14, 0.16),
+        0 0.68rem 0.84rem rgba(45, 79, 105, 0.15);
       --surface-shadow:
         var(--mac-shadow-rest);
       --surface-shadow-hover:
@@ -510,7 +515,7 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: var(--layer-stickers);
+      z-index: calc(var(--layer-footer) - 1);
       height: var(--sticker-board-height, 100svh);
       min-height: 100svh;
       overflow: visible;
@@ -897,11 +902,7 @@
     .app-action:focus-visible {
       outline: 0;
       transform: translateY(-0.08rem);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.88),
-        inset 0 -0.28rem 0 rgba(45, 37, 14, 0.08),
-        0 0.24rem 0 rgba(45, 37, 14, 0.16),
-        0 0.68rem 0.84rem rgba(45, 79, 105, 0.15);
+      box-shadow: var(--raised-button-shadow-hover);
     }
 
     .app-action:active,
@@ -2616,11 +2617,7 @@
     .window-action:focus-visible {
       outline: 0;
       transform: translateY(-0.08rem);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.88),
-        inset 0 -0.28rem 0 rgba(45, 37, 14, 0.08),
-        0 0.24rem 0 rgba(45, 37, 14, 0.16),
-        0 0.68rem 0.84rem rgba(45, 79, 105, 0.15);
+      box-shadow: var(--raised-button-shadow-hover);
     }
 
     .window-action:active {
@@ -3810,6 +3807,10 @@
       box-shadow: var(--raised-button-shadow);
       cursor: pointer;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease;
     }
 
     .tools-menu-button span {
@@ -3867,6 +3868,27 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.76),
         0 0.18rem 0 rgba(45, 37, 14, 0.14);
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        background-color 180ms ease;
+    }
+
+    .tools-menu-button:hover,
+    .tools-menu-button:focus-visible,
+    .tools-menu-list button:hover,
+    .tools-menu-list button:focus-visible {
+      outline: 0;
+      transform: translateY(-0.08rem);
+      box-shadow: var(--raised-button-shadow-hover);
+    }
+
+    .tools-menu-button:active,
+    .tools-menu-list button:active {
+      transform: translateY(0.08rem);
+      box-shadow: var(--pressed-shadow);
     }
 
     .tools-menu-list button strong {
@@ -3887,18 +3909,6 @@
         #9bea68;
     }
 
-    .app-action,
-    .window-action,
-    .window-tabs button,
-    .site-tools button,
-    .calendar button,
-    .chat-badge button,
-    .mail-app button,
-    .map-app button,
-    .timer-app button,
-    .photo-app button,
-    .memo-app button,
-    .footer-collapse-button,
     .tools-menu-button,
     .tools-menu-list button,
     .formation-home-button,
@@ -3957,6 +3967,7 @@
       border: 2px solid rgba(45, 37, 14, 0.82);
       border-radius: 999px;
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #fffdf5;
       box-shadow: var(--raised-button-shadow);
@@ -3967,6 +3978,7 @@
       border: 2px solid rgba(45, 37, 14, 0.82);
       border-radius: 50%;
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #fffdf5;
       box-shadow: var(--raised-button-shadow);
@@ -3980,6 +3992,11 @@
       font-size: 0.8rem;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease;
     }
 
     .formation-live-pill {
@@ -3991,6 +4008,7 @@
 
     .formation-live-pill.is-connected {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #9bea68;
     }
@@ -4001,6 +4019,7 @@
 
     .formation-live-pill.is-fallback {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #fff36e;
     }
@@ -4015,6 +4034,7 @@
       border-radius: 999px;
       padding: 0.5rem 0.78rem;
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #fffdf5;
       box-shadow: var(--raised-button-shadow);
@@ -4029,18 +4049,21 @@
 
     .formation-status-chip.is-draft {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #c9cfff;
     }
 
     .formation-status-chip.is-collecting {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #9bea68;
     }
 
     .formation-status-chip.is-matching {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #fff36e;
       animation: gentle-pulse 1.25s ease-in-out infinite;
@@ -4048,6 +4071,7 @@
 
     .formation-status-chip.is-closed {
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.72), transparent 30%),
         #ffd0a1;
     }
@@ -4191,6 +4215,48 @@
       font-size: 0.74rem;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        opacity 160ms ease;
+    }
+
+    .formation-home-button:hover,
+    .formation-home-button:focus-visible,
+    .formation-export-button:hover:not(:disabled),
+    .formation-export-button:focus-visible:not(:disabled),
+    .formation-privacy-button:hover,
+    .formation-privacy-button:focus-visible,
+    .formation-code-card button:hover:not(:disabled),
+    .formation-code-card button:focus-visible:not(:disabled),
+    .formation-profile-form button:hover:not(:disabled),
+    .formation-profile-form button:focus-visible:not(:disabled),
+    .formation-self-bubble:hover:not(:disabled),
+    .formation-self-bubble:focus-visible:not(:disabled),
+    .formation-zoom-controls button:hover:not(:disabled),
+    .formation-zoom-controls button:focus-visible:not(:disabled),
+    .formation-sidebar-tabs button:hover:not(:disabled),
+    .formation-sidebar-tabs button:focus-visible:not(:disabled),
+    .formation-close-button:hover,
+    .formation-close-button:focus-visible {
+      outline: 0;
+      transform: translateY(-0.08rem);
+      box-shadow: var(--raised-button-shadow-hover);
+    }
+
+    .formation-home-button:active,
+    .formation-export-button:active:not(:disabled),
+    .formation-privacy-button:active,
+    .formation-code-card button:active:not(:disabled),
+    .formation-profile-form button:active:not(:disabled),
+    .formation-self-bubble:active:not(:disabled),
+    .formation-zoom-controls button:active:not(:disabled),
+    .formation-sidebar-tabs button:active:not(:disabled),
+    .formation-close-button:active {
+      transform: translateY(0.08rem);
+      box-shadow: var(--pressed-shadow);
     }
 
     .formation-export-button:disabled {
@@ -4215,8 +4281,9 @@
       border-radius: var(--tactile-radius);
       background:
         var(--plastic-gloss),
+        var(--paper-grain),
         radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.72), transparent 28%),
-        rgba(255, 253, 245, 0.72);
+        rgba(255, 253, 245, 0.86);
       box-shadow: var(--mac-shadow-window);
       -webkit-backdrop-filter: blur(18px) saturate(1.16);
       backdrop-filter: blur(18px) saturate(1.16);
@@ -4253,7 +4320,9 @@
       border: 2px solid rgba(45, 37, 14, 0.72);
       border-radius: 0.7rem;
       padding: 0 0.8rem;
-      background: rgba(255, 253, 245, 0.82);
+      background:
+        var(--paper-grain),
+        rgba(255, 253, 245, 0.9);
       color: #2D250E;
       font-family: var(--mono);
       font-size: 1.45rem;
@@ -4270,6 +4339,12 @@
       font-size: 0.8rem;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        opacity 160ms ease;
     }
 
     .formation-code-card button:disabled {
@@ -4322,7 +4397,9 @@
       border: 2px solid rgba(45, 37, 14, 0.62);
       border-radius: 0.58rem;
       padding: 0 0.74rem;
-      background: rgba(255, 253, 245, 0.78);
+      background:
+        var(--paper-grain),
+        rgba(255, 253, 245, 0.88);
       color: #2D250E;
       font: inherit;
       box-shadow: inset 0 0.14rem 0.28rem rgba(45, 37, 14, 0.08);
@@ -4339,6 +4416,12 @@
       font-size: 0.8rem;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        opacity 160ms ease;
     }
 
     .formation-profile-form button:disabled,
@@ -4375,6 +4458,12 @@
       padding: 0.42rem 0.9rem 0.42rem 0.46rem;
       cursor: pointer;
       text-align: left;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        opacity 160ms ease;
     }
 
     .formation-self-bubble span {
@@ -4386,6 +4475,7 @@
       border-radius: 50%;
       background:
         radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.92), transparent 28%),
+        var(--plastic-gloss),
         #9bea68;
       font-family: var(--mono);
       font-size: 1.25rem;
@@ -4457,6 +4547,7 @@
       background:
         radial-gradient(circle at 24% 22%, rgba(255, 243, 110, 0.26), transparent 12rem),
         radial-gradient(circle at 70% 64%, rgba(96, 209, 48, 0.18), transparent 12rem),
+        var(--paper-grain),
         var(--glass-surface);
     }
 
@@ -4486,7 +4577,8 @@
       padding: 0.28rem 0.42rem;
       background:
         radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.72), transparent 34%),
-        rgba(255, 253, 245, 0.88);
+        var(--paper-grain),
+        rgba(255, 253, 245, 0.9);
       box-shadow: var(--raised-button-shadow);
       pointer-events: auto;
     }
@@ -4502,6 +4594,12 @@
       font-size: 1.05rem;
       line-height: 1;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        opacity 160ms ease;
     }
 
     .formation-zoom-controls button:disabled {
@@ -4564,6 +4662,7 @@
       border-radius: 2rem;
       background:
         radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.6), transparent 32%),
+        var(--paper-grain),
         rgba(255, 253, 245, 0.28);
       box-shadow:
         inset 0 0 0 0.32rem rgba(155, 234, 104, 0.16),
@@ -4580,6 +4679,7 @@
       border: 2px solid rgba(45, 37, 14, 0.72);
       border-radius: 999px;
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.82), transparent 34%),
         #fffdf5;
       font-family: var(--mono);
@@ -4695,6 +4795,7 @@
       border-radius: 1.1rem;
       background:
         radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.68), transparent 34%),
+        var(--paper-grain),
         rgba(255, 253, 245, 0.54);
       box-shadow:
         inset 0 0.18rem 0.28rem rgba(255, 255, 255, 0.5),
@@ -4714,11 +4815,20 @@
       line-height: 1;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease,
+        color 160ms ease,
+        background-color 160ms ease,
+        opacity 160ms ease;
     }
 
     .formation-sidebar-tabs button.is-active {
       border-color: rgba(45, 37, 14, 0.78);
       background:
+        var(--plastic-gloss),
         radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.78), transparent 36%),
         #9bea68;
       color: #2D250E;
@@ -4810,6 +4920,9 @@
       border-radius: 999px;
       padding: 0.2rem 0.46rem;
       background: #9bea68;
+      background-image:
+        var(--plastic-gloss),
+        radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.76), transparent 34%);
       font-family: var(--mono);
       font-size: 0.58rem;
       line-height: 1;
@@ -4871,8 +4984,9 @@
       padding: clamp(1.18rem, 2.8vw, 1.65rem);
       background:
         var(--plastic-gloss),
+        var(--paper-grain),
         radial-gradient(circle at 18% 10%, rgba(155, 234, 104, 0.28), transparent 12rem),
-        rgba(255, 253, 245, 0.86);
+        rgba(255, 253, 245, 0.9);
       box-shadow: var(--mac-shadow-window);
       -webkit-backdrop-filter: blur(18px) saturate(1.16);
       backdrop-filter: blur(18px) saturate(1.16);
@@ -4935,6 +5049,7 @@
       padding: 0.72rem 0.74rem;
       background:
         var(--plastic-gloss),
+        var(--paper-grain),
         radial-gradient(circle at 13% 12%, rgba(255, 255, 255, 0.88), transparent 30%),
         rgba(255, 253, 245, 0.9);
       box-shadow:
@@ -5009,6 +5124,11 @@
       line-height: 0;
       text-transform: none;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        transform 160ms var(--ease-tactile),
+        box-shadow 160ms ease;
     }
 
     .formation-toast .formation-close-button {
