@@ -1488,7 +1488,11 @@ export default function GroupFormationView({ onNavigateHome }) {
                 They are stored and processed in Supabase, the database service used for this tool.
               </p>
               <p>
-                After groups are created and exported, the admins will delete the submitted profile details from the database.
+                Your details are kept only for the duration of the meetup and only while they are needed to form and review
+                groups. Once the groups are no longer needed, the submitted profile details will be deleted from the database.
+                After deletion, this data is not kept anywhere by this tool and cannot be recovered.
+              </p>
+              <p>
                 If you want stronger privacy, use an alias or an approximate name that people in the session can still recognize.
               </p>
               <p>
