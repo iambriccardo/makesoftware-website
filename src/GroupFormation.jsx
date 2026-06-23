@@ -1484,20 +1484,20 @@ export default function GroupFormationView({ onNavigateHome }) {
               </div>
               <h2 id="formation-privacy-title">A small note on your data</h2>
               <p>
-                While the session is open, the details you add here are visible to anyone who has the group formation code.
-                They are stored and processed in Supabase, the database service used for this tool.
+                While the meetup is running, the details you add here can be seen by anyone with the group formation code.
+                This tool uses Supabase to save them for the session.
               </p>
               <p>
-                Your details are kept only for the duration of the meetup and only while they are needed to form and review
-                groups. Once the groups are no longer needed, the submitted profile details will be deleted from the database.
-                After deletion, this data is not kept anywhere by this tool and cannot be recovered.
+                Your details are kept only for the meetup and only while they are needed for the groups. When the groups are no
+                longer needed, the details will be deleted. After that, this tool does not keep a copy and the data cannot be
+                recovered.
               </p>
               <p>
-                If you want stronger privacy, use an alias or an approximate name that people in the session can still recognize.
+                If you want more privacy, use an alias or a name that people in the session can still recognize.
               </p>
               <p>
-                More accurate age, experience, and profession details help the matching algorithm make better diversity and
-                knowledge-sharing decisions. The groups are suggestions, not fixed assignments.
+                Age, experience, and profession details help make better group suggestions. The groups are suggestions, not fixed
+                assignments.
               </p>
             </motion.section>
           </motion.div>
