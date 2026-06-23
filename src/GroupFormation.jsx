@@ -8,7 +8,7 @@ const activeFormationIdKey = "make-software-group-formation-active-id";
 const participantIdsByFormationKey = "make-software-group-formation-participants-by-formation";
 const codeKey = "make-software-group-formation-code";
 const layoutKey = "make-software-group-formation-layout";
-const bubbleColors = ["#fff36e", "#bde6ff", "#ffb3c9", "#9bea68", "#ffd0a1", "#c9cfff", "#ff8a2a"];
+const bubbleColors = ["#fff36e", "#63a7ff", "#ff8a2a", "#9bea68", "#c9cfff", "#ffb3c9", "#bde6ff", "#ffd0a1"];
 const minBoardZoom = 0.68;
 const maxBoardZoom = 1.75;
 const boardBounds = { minLeft: 7, maxLeft: 93, minTop: 8, maxTop: 92 };
@@ -521,14 +521,30 @@ function bubbleColorForParticipant(participant) {
   return bubbleColors[hashText(seed) % bubbleColors.length];
 }
 
-function GroupBubble({ participant, index, position, selected, owned, onSelect }) {
-  const color = bubbleColorForParticipant(participant);
+function bubbleColorMapForParticipants(participants, formationId = "") {
+  const colorMap = new Map();
+  const colorStride = spreadStep(bubbleColors.length);
+  const offset = hashText(formationId || participants[0]?.formation_id || "group-formation") % bubbleColors.length;
+  const orderedParticipants = [...participants].sort((a, b) => (
+    String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")) || String(a.id ?? "").localeCompare(String(b.id ?? ""))
+  ));
+
+  orderedParticipants.forEach((participant, index) => {
+    if (!participant.id) return;
+    colorMap.set(participant.id, bubbleColors[(offset + index * colorStride) % bubbleColors.length]);
+  });
+
+  return colorMap;
+}
+
+function GroupBubble({ participant, index, color, position, selected, owned, onSelect }) {
+  const bubbleColor = color || bubbleColorForParticipant(participant);
 
   return (
     <motion.button
       type="button"
       className={`formation-bubble${selected ? " is-selected" : ""}${participant.group_id ? " is-grouped" : ""}${owned ? " is-owned" : ""}`}
-      style={{ "--bubble-color": color, "--bubble-delay": `${index * -0.37}s` }}
+      style={{ "--bubble-color": bubbleColor, "--bubble-delay": `${index * -0.37}s` }}
       layout
       initial={{ opacity: 0, scale: 0.42, y: 18, left: `${position.left}%`, top: `${position.top}%` }}
       animate={{ opacity: 1, scale: selected ? 1.08 : 1, y: 0, left: `${position.left}%`, top: `${position.top}%` }}
@@ -778,6 +794,11 @@ export default function GroupFormationView({ onNavigateHome }) {
   const boardPositions = useMemo(
     () => groupedBoardPositions(participants, groups, localPositions),
     [groups, localPositions, participants]
+  );
+
+  const bubbleColorMap = useMemo(
+    () => bubbleColorMapForParticipants(participants, formation?.id),
+    [formation?.id, participants]
   );
 
   const currentParticipantGroup = useMemo(
@@ -1240,6 +1261,7 @@ export default function GroupFormationView({ onNavigateHome }) {
                       key={participant.id}
                       participant={participant}
                       index={index}
+                      color={bubbleColorMap.get(participant.id)}
                       position={boardPositions[participant.id] ?? { left: 50, top: 50 }}
                       selected={selectedParticipant?.id === participant.id}
                       owned={participant.id === currentParticipantId}
