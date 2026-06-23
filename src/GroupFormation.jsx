@@ -64,6 +64,23 @@ function hashText(value) {
   return Math.abs(hash);
 }
 
+function greatestCommonDivisor(a, b) {
+  let left = Math.abs(a);
+  let right = Math.abs(b);
+  while (right) {
+    const next = left % right;
+    left = right;
+    right = next;
+  }
+  return left || 1;
+}
+
+function spreadStep(count) {
+  let step = Math.max(1, Math.round(count * 0.618));
+  while (greatestCommonDivisor(step, count) !== 1) step += 1;
+  return step;
+}
+
 function readJsonStorage(key, fallback) {
   try {
     const value = readStorageItem(key);
