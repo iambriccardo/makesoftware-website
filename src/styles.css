@@ -3154,9 +3154,13 @@
         linear-gradient(145deg, rgba(255, 253, 245, 0.94), rgba(247, 244, 236, 0.9) 45%, rgba(255, 253, 245, 0.86)),
         rgba(255, 253, 245, 0.86);
       --footer-tab-mask:
-        repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.16) 0 0.28rem, rgba(45, 37, 14, 0.018) 0.28rem 0.62rem),
-        radial-gradient(circle at 30% 12%, rgba(255, 255, 255, 0.72), transparent 34%),
-        linear-gradient(145deg, rgba(255, 253, 245, 0.99) 0%, rgba(248, 245, 238, 0.98) 52%, rgba(255, 253, 245, 0.98) 100%),
+        var(--plastic-gloss),
+        var(--paper-grain),
+        radial-gradient(circle at 9% 14%, rgba(255, 255, 255, 0.72), transparent 24%),
+        radial-gradient(circle at 86% 18%, rgba(255, 243, 110, 0.16), transparent 26%),
+        radial-gradient(circle at 68% 78%, rgba(255, 161, 184, 0.11), transparent 34%),
+        radial-gradient(circle at 76% 100%, rgba(96, 209, 48, 0.14), transparent 38%),
+        linear-gradient(145deg, rgba(255, 253, 245, 0.94), rgba(247, 244, 236, 0.9) 45%, rgba(255, 253, 245, 0.86)),
         var(--paper);
       position: fixed;
       left: 50%;
@@ -3208,6 +3212,7 @@
       border: var(--footer-border-width) solid var(--footer-border-color);
       border-radius: 1.35rem;
       background: var(--footer-open-surface);
+      background-attachment: fixed;
       box-shadow: var(--surface-shadow);
       -webkit-backdrop-filter: blur(16px) saturate(1.18) contrast(1.03) brightness(1.03);
       backdrop-filter: blur(16px) saturate(1.18) contrast(1.03) brightness(1.03);
@@ -3461,6 +3466,7 @@
       border-bottom: 0;
       border-radius: var(--footer-tab-height) var(--footer-tab-height) 0 0;
       background: var(--footer-tab-mask);
+      background-attachment: fixed;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.8),
         inset 0 -0.08rem 0.18rem rgba(45, 37, 14, 0.025);
