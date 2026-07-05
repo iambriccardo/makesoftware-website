@@ -4,15 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 const rootDir = process.cwd();
-const staticEntries = [
-  "assets",
-  "legacy-assets",
-  "site.webmanifest",
-  "old-index.html",
-  "new-brand.html",
-  "tomo-inspired.html",
-  "legacy-index.html"
-];
+const staticEntries = ["assets", "site.webmanifest"];
 
 const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],

@@ -161,7 +161,9 @@ const footerCopy = {
   description: "Make Software is a community for people making software for its own sake: useful, personal, strange, careful, and fun. Not everything needs to become a company.",
   action: "Open Luma"
 };
-const footerLayoutTransition = { type: "spring", stiffness: 310, damping: 34, mass: 0.82 };
+const footerLayoutTransition = { type: "spring", stiffness: 310, damping: 23, mass: 0.82 };
+const toolsMenuLayoutTransition = { type: "spring", stiffness: 220, damping: 20, mass: 0.8 };
+const toolsMenuGestureTransition = { duration: 0.16, ease: [0.16, 0.84, 0.18, 1] };
 let activeDesktopWindowZ = 40;
 const MiniAppStackContext = createContext({
   frontWidget: null,
@@ -1003,7 +1005,7 @@ function Sticker({ sticker, index }) {
       animate={{ opacity: 0.96 }}
       transition={{ delay: 0.22 + index * 0.035, duration: 0.78, ease: [0.18, 0.86, 0.2, 1] }}
     >
-      <img src={sticker.src} alt="" width="1254" height="1254" draggable="false" />
+      <img src={sticker.src} alt="" width="1254" height="1254" draggable="false" decoding="async" />
     </motion.button>
   );
 }
@@ -1565,17 +1567,20 @@ function ToolsMenu({ route, onNavigate }) {
         aria-label="Make Software tools"
         initial={{ opacity: 0, y: -12, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 220, damping: 20, mass: 0.8 }}
+        transition={toolsMenuLayoutTransition}
       >
         <span className="tools-menu-surface" aria-hidden="true" />
         {!open ? (
           <motion.button
             layout
             layoutId="tools-menu-button"
+            transition={toolsMenuLayoutTransition}
             className="tools-menu-button"
             type="button"
             aria-label="Open tools menu"
             aria-expanded="false"
+            whileHover={{ y: -1.3, transition: toolsMenuGestureTransition }}
+            whileTap={{ y: 1.3, transition: { ...toolsMenuGestureTransition, duration: 0.1 } }}
             onClick={() => setOpen(true)}
           >
             <span /><span /><span />
@@ -1585,15 +1590,23 @@ function ToolsMenu({ route, onNavigate }) {
             <motion.button
               layout
               layoutId="tools-menu-button"
+              transition={toolsMenuLayoutTransition}
               className="tools-menu-button is-close"
               type="button"
               aria-label="Close tools menu"
               aria-expanded="true"
+              whileHover={{ y: -1.3, transition: toolsMenuGestureTransition }}
+              whileTap={{ y: 1.3, transition: { ...toolsMenuGestureTransition, duration: 0.1 } }}
               onClick={() => setOpen(false)}
             >
               <span /><span /><span />
             </motion.button>
-            <motion.div className="tools-menu-list" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}>
+            <motion.div
+              className="tools-menu-list"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 0.84, 0.18, 1] }}
+            >
               <button type="button" className={route === "/" ? "is-active" : ""} onClick={openHome}>
                 <strong>Home</strong>
                 <span>initial page</span>
