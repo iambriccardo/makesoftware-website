@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 const rootDir = process.cwd();
-const staticEntries = ["assets", "site.webmanifest"];
+const staticEntries = ["assets", "site.webmanifest", "robots.txt", "sitemap.xml"];
 
 const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -17,7 +17,9 @@ const contentTypes = new Map([
   [".woff2", "font/woff2"],
   [".webmanifest", "application/manifest+json; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
-  [".mp3", "audio/mpeg"]
+  [".mp3", "audio/mpeg"],
+  [".txt", "text/plain; charset=utf-8"],
+  [".xml", "application/xml; charset=utf-8"]
 ]);
 
 function copyRecursive(source, destination) {
@@ -82,6 +84,9 @@ function legacyStaticPlugin() {
 
 export default defineConfig({
   plugins: [react(), legacyStaticPlugin()],
+  server: {
+    port: Number(process.env.PORT) || 5173
+  },
   build: {
     cssCodeSplit: false,
     target: "es2022"

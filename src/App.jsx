@@ -68,8 +68,8 @@ const memoTexts = ["save the odd version", "invite one maker", "make it smaller"
 const pixelColors = ["#fffdf5", "#fff36e", "#60d130", "#63a7ff", "#fb78a6", "#ff8a2a", "#2D250E"];
 const communityValues = [
   {
-    title: "Computers are fun again",
-    text: "Make them feel magical, personal, and worth playing with.",
+    title: "Play is part of the craft",
+    text: "Make computers feel magical, personal, and worth playing with again.",
     bg: "#fff36e",
     rotate: "-1.4deg"
   },
@@ -104,8 +104,8 @@ const communityValues = [
     rotate: "0.8deg"
   },
   {
-    title: "Weird is good",
-    text: "Poetic, funny, useless, awkward, absurd ideas belong.",
+    title: "Weird ideas welcome",
+    text: "Poetic, funny, impractical, absurd ideas belong here too.",
     bg: "#fff36e",
     rotate: "1.2deg"
   },
@@ -158,7 +158,7 @@ const contactPrompts = [
 const footerCopy = {
   title: "Make Software",
   kicker: "a project by Ambient",
-  description: "Make Software is a community for people making software for its own sake: useful, personal, strange, careful, and fun. Not everything needs to become a company.",
+  description: "Make Software is a community for people who build software for its own sake — useful, personal, strange, careful, and fun, whether or not it ever becomes a company.",
   action: "Open Luma"
 };
 const footerLayoutTransition = { type: "spring", stiffness: 310, damping: 23, mass: 0.82 };
@@ -1413,8 +1413,8 @@ function DetailsDesktop() {
           <div className="letter-copy">
             <h2>Computers are fun again.</h2>
             <span className="letter-kicker-app">Manifesto / Make Software</span>
-            <p>Make Software is a software community around collaboration, craft, and creative technology in Vienna.</p>
-            <p>We make software as a medium for useful tools, personal systems, prototypes, interfaces, and experiments with a point of view. AI makes building faster; this room is for keeping taste, authorship, and care in the process.</p>
+            <p>Make Software is a community around collaboration, craft, and creative technology in Vienna.</p>
+            <p>We treat software as a medium: useful tools, personal systems, prototypes, interfaces, and experiments with a point of view. AI makes building faster — this room is for keeping taste, authorship, and care in the process.</p>
             <p className="letter-note">Bring a work in progress, a blank idea, a useful script, a product sketch, a personal website, or just curiosity.</p>
             <p className="letter-signature">
               <span>For software made with care, intention, and people nearby,</span>
@@ -1628,6 +1628,36 @@ function normalizeRoutePath(pathname) {
   return pathname.replace(/\/+$/, "");
 }
 
+const routeMeta = {
+  "/": {
+    title: "Make Software",
+    description: "Make Software is a Vienna community for building playful, useful software — tiny tools, honest experiments, and AI used with real authorship — made together, in person."
+  },
+  "/group-formation": {
+    title: "Group Formation — Make Software",
+    description: "Live meetup group matching for Make Software gatherings in Vienna."
+  }
+};
+
+function useRouteMeta(route) {
+  useEffect(() => {
+    const meta = routeMeta[route] || routeMeta["/"];
+    document.title = meta.title;
+
+    const canonicalUrl = `https://makesoftware.fun${route === "/" ? "/" : route}`;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement("link");
+      canonicalLink.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute("href", canonicalUrl);
+
+    const descriptionTag = document.querySelector('meta[name="description"]');
+    if (descriptionTag) descriptionTag.setAttribute("content", meta.description);
+  }, [route]);
+}
+
 export default function App() {
   const sceneRef = useRef(null);
   const burstIdRef = useRef(0);
@@ -1642,6 +1672,7 @@ export default function App() {
   const [route, setRoute] = useState(() => normalizeRoutePath(window.location.pathname));
 
   usePointerParallax(sceneRef);
+  useRouteMeta(route);
 
   useEffect(() => {
     const syncRoute = () => setRoute(normalizeRoutePath(window.location.pathname));
